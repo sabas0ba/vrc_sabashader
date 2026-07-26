@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+
+# テスト成果物
+_test_artifacts/
+.cache/
+
+# リスティングのビルド結果
+_site/
+
+# OS
+.DS_Store
+Thumbs.db

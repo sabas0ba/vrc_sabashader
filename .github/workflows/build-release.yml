@@ -1,0 +1,62 @@
+name: build release
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "[0-9]+.[0-9]+.[0-9]+"
+      - "[0-9]+.[0-9]+.[0-9]+-*"
+
+permissions:
+  contents: write
+
+env:
+  PACKAGE_NAME: jp.sabas0ba.sabashader
+
+jobs:
+  release:
+    name: zip を作って Release に上げる
+    runs-on: ubuntu-24.04
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: バージョンを読む
+        id: meta
+        run: |
+          version=$(jq -r .version "Packages/${PACKAGE_NAME}/package.json")
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+          echo "zip=${PACKAGE_NAME}-${version}.zip" >> "$GITHUB_OUTPUT"
+
+      - name: タグと package.json のバージョンが一致するか確認する
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          if [ "${GITHUB_REF_NAME}" != "${{ steps.meta.outputs.version }}" ]; then
+            echo "タグ ${GITHUB_REF_NAME} と package.json の ${{ steps.meta.outputs.version }} が違います" >&2
+            exit 1
+          fi
+
+      - name: .meta の抜けが無いか確認する
+        run: python3 tools/gen_meta.py --check
+
+      - name: zip を作る
+        run: |
+          cd "Packages/${PACKAGE_NAME}"
+          zip -r "${GITHUB_WORKSPACE}/${{ steps.meta.outputs.zip }}" . -x '.*' -x '*/.*'
+
+      - name: Release を作る
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version="${{ steps.meta.outputs.version }}"
+          if gh release view "$version" >/dev/null 2>&1; then
+            gh release upload "$version" \
+              "${{ steps.meta.outputs.zip }}" \
+              "Packages/${PACKAGE_NAME}/package.json" --clobber
+          else
+            gh release create "$version" \
+              --title "${PACKAGE_NAME} ${version}" \
+              --notes "VCC からの導入方法とパッケージの詳細は README を参照してください。" \
+              "${{ steps.meta.outputs.zip }}" \
+              "Packages/${PACKAGE_NAME}/package.json"
+          fi

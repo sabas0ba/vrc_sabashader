@@ -1,0 +1,228 @@
+msgid ""
+msgstr ""
+"Language: ja-JP\n"
+
+msgid "__Cull"
+msgstr "カリング"
+
+msgid "__CullDesc"
+msgstr "描画する面を選びます。両面表示にする場合は Off にしてください。"
+
+msgid "__AlphaMode"
+msgstr "アルファの扱い"
+
+msgid "__AlphaModeDesc"
+msgstr "Cutout にすると Cutoff より薄いピクセルを捨てます。半透明が必要な場合は Render Queue も調整してください。"
+
+msgid "__Shading"
+msgstr "塗り"
+
+msgid "__ShadeBorder1"
+msgstr "1影の境界"
+
+msgid "__ShadeBorder1Desc"
+msgstr "明部と1影の境目の位置です。大きくすると影が広がります。"
+
+msgid "__ShadeBlur1"
+msgstr "1影のぼかし"
+
+msgid "__ShadeBlurDesc"
+msgstr "0 に近づけるほどアニメ塗りらしい硬い境界になります。"
+
+msgid "__Shade1Color"
+msgstr "1影の乗算色"
+
+msgid "__ShadeColorDesc"
+msgstr "色相・彩度・明度をずらした後に掛ける色です。"
+
+msgid "__Shade1HueShift"
+msgstr "1影の色相シフト"
+
+msgid "__HueShiftDesc"
+msgstr "影を寒色寄りにずらすとイラストらしい発色になります。"
+
+msgid "__Shade1Saturation"
+msgstr "1影の彩度"
+
+msgid "__Shade1Value"
+msgstr "1影の明度"
+
+msgid "__ShadeBorder2"
+msgstr "2影の境界"
+
+msgid "__ShadeBorder2Desc"
+msgstr "1影とさらに濃い2影の境目です。1影の境界より大きい値は自動で切り詰められます。"
+
+msgid "__ShadeBlur2"
+msgstr "2影のぼかし"
+
+msgid "__Shade2Color"
+msgstr "2影の乗算色"
+
+msgid "__Shade2HueShift"
+msgstr "2影の色相シフト"
+
+msgid "__Shade2Saturation"
+msgstr "2影の彩度"
+
+msgid "__Shade2Value"
+msgstr "2影の明度"
+
+msgid "__ShadeSteps"
+msgstr "ランプの段数"
+
+msgid "__ShadeStepsDesc"
+msgstr "0 または 1 で無効。2 以上にするとぼかし部分が階段状になります。"
+
+msgid "__ShadowStrength"
+msgstr "落ち影の強さ"
+
+msgid "__ShadowStrengthDesc"
+msgstr "リアルタイムシャドウをどれだけ塗りに反映するかです。"
+
+msgid "__ShadeMaskChannel"
+msgstr "影マスクのチャンネル"
+
+msgid "__Specular"
+msgstr "ハイライト"
+
+msgid "__SpecularColor"
+msgstr "ハイライト色"
+
+msgid "__SpecularBorder"
+msgstr "ハイライトの境界"
+
+msgid "__SpecularBlur"
+msgstr "ハイライトのぼかし"
+
+msgid "__SpecularSmoothness"
+msgstr "ハイライトの鋭さ"
+
+msgid "__SpecularMaskChannel"
+msgstr "ハイライトマスクのチャンネル"
+
+msgid "__RimLight"
+msgstr "リムライト"
+
+msgid "__RimColor"
+msgstr "リムライト色"
+
+msgid "__RimBorder"
+msgstr "リムライトの境界"
+
+msgid "__RimBlur"
+msgstr "リムライトのぼかし"
+
+msgid "__RimLightAlign"
+msgstr "ライト方向への追従"
+
+msgid "__RimLightAlignDesc"
+msgstr "1 にするとライトが当たっている側にだけリムライトが出ます。"
+
+msgid "__RimMaskChannel"
+msgstr "リムライトマスクのチャンネル"
+
+msgid "__Emission"
+msgstr "発光"
+
+msgid "__EmissionMap"
+msgstr "発光テクスチャ"
+
+msgid "__EmissionColor"
+msgstr "発光色"
+
+msgid "__Outline"
+msgstr "輪郭線"
+
+msgid "__OutlineEnabled"
+msgstr "輪郭線を描画"
+
+msgid "__OutlineWidth"
+msgstr "輪郭線の太さ"
+
+msgid "__OutlineWidthDesc"
+msgstr "モデルスケール基準の太さです。1.0 でおよそ 1cm 相当になります。"
+
+msgid "__OutlineColor"
+msgstr "輪郭線の色"
+
+msgid "__OutlineAlbedoBlend"
+msgstr "ベースカラーの反映量"
+
+msgid "__OutlineAlbedoBlendDesc"
+msgstr "1 に近いほど色トレス（部位ごとの色に馴染む線）になります。"
+
+msgid "__OutlineHueShift"
+msgstr "輪郭線の色相シフト"
+
+msgid "__OutlineSaturation"
+msgstr "輪郭線の彩度"
+
+msgid "__OutlineValue"
+msgstr "輪郭線の明度"
+
+msgid "__OutlineFixedWidth"
+msgstr "距離による太さ補正"
+
+msgid "__OutlineFixedWidthDesc"
+msgstr "1 にすると離れても画面上の線幅がほぼ一定になります。"
+
+msgid "__OutlineVertexColorChannel"
+msgstr "太さマスクの頂点カラー"
+
+msgid "__OutlineVertexColorChannelDesc"
+msgstr "頂点カラーのどの成分を輪郭線の太さマスクに使うかです。None で常に最大幅になります。"
+
+msgid "__LightSettings"
+msgstr "ライトの受け方"
+
+msgid "__LightMinLimit"
+msgstr "明るさの下限"
+
+msgid "__LightMinLimitDesc"
+msgstr "暗いワールドでも真っ黒にならないようにする下限です。"
+
+msgid "__LightMaxLimit"
+msgstr "明るさの上限"
+
+msgid "__LightMaxLimitDesc"
+msgstr "明るすぎるワールドで白飛びしないようにする上限です。"
+
+msgid "__MonochromeLighting"
+msgstr "ライト色の無彩色化"
+
+msgid "__MonochromeLightingDesc"
+msgstr "1 にするとワールドのライト色に染まらなくなります。"
+
+msgid "__AsUnlit"
+msgstr "Unlit 化"
+
+msgid "__AsUnlitDesc"
+msgstr "1 にするとライトの影響を受けずテクスチャそのままの明るさになります。"
+
+msgid "__SHLightWeight"
+msgstr "環境光の指向性の強さ"
+
+msgid "__SHLightWeightDesc"
+msgstr "ライトプローブから取り出した指向性成分をどれだけ塗りに使うかです。"
+
+msgid "__SHLightDirectionWeight"
+msgstr "環境光の方向の寄与"
+
+msgid "__SHLightDirectionWeightDesc"
+msgstr "影の向きを決める際、ライトプローブの方向をどれだけ考慮するかです。"
+
+msgid "__Grading"
+msgstr "仕上げ"
+
+msgid "__Saturation"
+msgstr "彩度"
+
+msgid "__SaturationDesc"
+msgstr "最終出力の彩度です。少し上げるとイラストらしい発色になります。"
+
+msgid "__Contrast"
+msgstr "コントラスト"
+
+msgid "__ContrastDesc"
+msgstr "最終出力のコントラストです。"

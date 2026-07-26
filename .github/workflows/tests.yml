@@ -1,0 +1,49 @@
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  shader-regression:
+    name: シェーダー回帰テスト
+    runs-on: ubuntu-24.04
+    env:
+      # llvmpipe を確実に使う（ランナーに GPU は無い）
+      LIBGL_ALWAYS_SOFTWARE: "1"
+      MESA_LOADER_DRIVER_OVERRIDE: llvmpipe
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: tests/requirements.txt
+
+      - name: ヘッドレス OpenGL を用意する
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            libegl1 libgles2 libgl1-mesa-dri libglvnd0
+
+      - name: 依存パッケージを入れる
+        run: pip install -r tests/requirements.txt
+
+      - name: レンダラを表示する
+        run: python -c "import sys; sys.path.insert(0, 'tests'); from harness.render import renderer_info; print(renderer_info())"
+
+      - name: テストを実行する
+        run: python -m pytest tests -q
+
+      - name: 差分画像をアップロードする
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: golden-diff
+          path: _test_artifacts/
+          if-no-files-found: ignore
+          retention-days: 14
