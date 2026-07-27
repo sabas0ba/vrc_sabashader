@@ -37,7 +37,8 @@
 | `Packages/jp.sabas0ba.sabashader/` | 配布する VPM パッケージ本体 |
 | `Packages/.../Shaders/Illust2D/` | Illust2D シェーダー一式 |
 | `tests/` | ヘッドレス描画による回帰テストと構造チェック |
-| `tools/` | `.meta` 生成・VPM リスティング生成スクリプト |
+| `.ci/UnityProject/` | Unity でのコンパイル検証用プロジェクトの雛形 |
+| `tools/` | `.meta` 生成・VPM リスティング生成・Unity プロジェクト組み立て |
 | `listing.json` | 配信するリスティングのメタ情報 |
 | `.github/workflows/` | テスト・リリース・Pages 配信 |
 
@@ -62,7 +63,15 @@ python -m pytest tests -q
 
 # 見た目を意図的に変えたとき（差分を必ず目視してからコミットする）
 python -m pytest tests -k render --update-goldens
+
+# .scshader が Unity からどう見えるかを書き出す
+python tools/expand_shader.py --output /tmp/Illust2D.shader
 ```
+
+HLSL が実際にコンパイルできるかは Unity でしか確認できません。
+`.github/workflows/unity-compile.yml` がその検証をしますが、
+Unity のライセンス secret が設定されるまではスキップされます。
+設定方法とローカルでの回し方は [docs/testing.md](docs/testing.md#4-unity-でのコンパイル検証) を参照してください。
 
 `.meta` は Unity 無しでも生成できます。ファイルを足したら忘れずに実行してください。
 

@@ -1,0 +1,82 @@
+name: unity compile check
+
+# Unity を実際に起動してシェーダーがコンパイルできるかを確認する。
+# Unity のライセンスが要るため、secret が設定されていない場合はスキップする
+# （PR を赤くしない）。設定方法は docs/testing.md を参照。
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  gate:
+    name: ライセンス secret の有無を見る
+    runs-on: ubuntu-24.04
+    outputs:
+      licensed: ${{ steps.probe.outputs.licensed }}
+    steps:
+      - id: probe
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+        run: |
+          if [ -n "${UNITY_LICENSE}" ] || [ -n "${UNITY_SERIAL}" ]; then
+            echo "licensed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "licensed=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=Unity 検証をスキップ::UNITY_LICENSE / UNITY_SERIAL が未設定のため Unity でのコンパイル検証を行いません。設定方法は docs/testing.md を参照してください。"
+          fi
+
+  compile:
+    name: Unity でシェーダーをコンパイルする
+    needs: gate
+    if: needs.gate.outputs.licensed == 'true'
+    runs-on: ubuntu-24.04
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: ディスクを空ける
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/local/share/boost
+          df -h /
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: 検証用 Unity プロジェクトを組み立てる
+        run: python tools/setup_unity_project.py
+
+      - name: Unity のライブラリをキャッシュする
+        uses: actions/cache@v4
+        with:
+          path: .ci/UnityProject/Library
+          key: unity-library-${{ hashFiles('.ci/UnityProject/Packages/manifest.json') }}-${{ hashFiles('Packages/**') }}
+          restore-keys: |
+            unity-library-${{ hashFiles('.ci/UnityProject/Packages/manifest.json') }}-
+            unity-library-
+
+      - name: EditMode テストを実行する
+        uses: game-ci/unity-test-runner@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          projectPath: .ci/UnityProject
+          testMode: EditMode
+          artifactsPath: unity-test-results
+          coverageOptions: ""
+
+      - name: テスト結果をアップロードする
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unity-test-results
+          path: unity-test-results
+          if-no-files-found: ignore
+          retention-days: 14

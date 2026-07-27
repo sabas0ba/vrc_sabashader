@@ -11,6 +11,19 @@ _test_artifacts/
 # リスティングのビルド結果
 _site/
 
+# Unity 検証プロジェクト（雛形以外は組み立て時に生成される）
+.ci/UnityProject/Library/
+.ci/UnityProject/Logs/
+.ci/UnityProject/Temp/
+.ci/UnityProject/obj/
+.ci/UnityProject/UserSettings/
+.ci/UnityProject/Packages/jp.sabas0ba.sabashader/
+.ci/UnityProject/Packages/jp.lilxyzw.shadercore/
+.ci/UnityProject/Packages/packages-lock.json
+.ci/UnityProject/ProjectSettings/*
+!.ci/UnityProject/ProjectSettings/ProjectVersion.txt
+unity-test-results/
+
 # OS
 .DS_Store
 Thumbs.db

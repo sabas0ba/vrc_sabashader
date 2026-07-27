@@ -1,13 +1,14 @@
 # テストの仕組み
 
-Unity を起動せずに、シェーダーの見た目と構造を CI で守るための仕組みです。
-3 層に分かれています。
+シェーダーの見た目と構造を CI で守るための仕組みです。4 層に分かれています。
+上の 3 層は Unity 無しで動き、4 層目だけ Unity ライセンスを要求します。
 
-| 層 | 対象 | 実体 |
-| --- | --- | --- |
-| 描画回帰テスト | シェーディングの数式 | `tests/test_core_render.py` |
-| 構造チェック | `.scshader` の展開結果 | `tests/test_scshader_structure.py` |
-| 配布チェック | `package.json` / `.meta` / リスティング | `tests/test_packaging.py` |
+| 層 | 対象 | 実体 | Unity |
+| --- | --- | --- | --- |
+| 描画回帰テスト | シェーディングの数式 | `tests/test_core_render.py` | 不要 |
+| 構造チェック | `.scshader` の展開結果 | `tests/test_scshader_structure.py` | 不要 |
+| 配布チェック | `package.json` / `.meta` / リスティング | `tests/test_packaging.py` | 不要 |
+| コンパイル検証 | HLSL が実際に通るか | `.ci/UnityProject` | **必要** |
 
 ---
 
@@ -94,9 +95,14 @@ Shader Core 本体はテスト時に `.cache/Shader-Core` へ shallow clone し�
 
 ### できないこと
 
-HLSL の実コンパイルはしていません。Unity のシェーダーコンパイラを通す検証は
-Unity ライセンスが要るため、このリポジトリには入れていません。
-実機確認は Unity プロジェクトに入れて行ってください。
+この層では HLSL の実コンパイルはしていません。それは 4 層目の担当です。
+
+`.scshader` が Unity から実際にどう見えているかを確認したいときは、
+展開結果をファイルに書き出せます。
+
+```bash
+python tools/expand_shader.py --output /tmp/Illust2D.shader
+```
 
 ---
 
@@ -105,3 +111,60 @@ Unity ライセンスが要るため、このリポジトリには入れてい�
 `package.json` の必須項目・semver・Shader Core への依存宣言、
 `.meta` の不足／孤児／GUID の一意性と決定性、
 リスティング生成（バージョン順、ドラフト除外、zip URL）を検証します。
+
+---
+
+## 4. Unity でのコンパイル検証
+
+上の 3 層は「Unity 無しで分かること」しか見ていません。
+**HLSL が本当にコンパイルできるか**はここでしか確認できません。
+
+`.ci/UnityProject` に検証専用の Unity プロジェクトの雛形を置いてあります。
+`tools/setup_unity_project.py` がそこへ本パッケージと Shader Core
+（テストハーネスと同じコミットに固定）を埋め込みパッケージとして配置し、
+`game-ci/unity-test-runner` が EditMode テストを走らせます。
+
+検証内容（`.ci/UnityProject/Assets/Editor/`）:
+
+- `.scshader` が `Shader` としてインポートできるか（Shader Core のインポータが動いているか）
+- `ShaderUtil.GetShaderMessages` にエラーが 1 件も無いか（警告はログに出すだけ）
+- 4 つのパス（FORWARD / OUTLINE / FORWARD_DELTA / SHADOW_CASTER）が存在するか
+- マテリアルに主要プロパティが生成されるか（`_BaseTexture_ST` など）
+
+C# 側に書いた期待値（パス名・必須プロパティ）が実際の `.scshader` とズレていないかは
+Python 側の `tests/test_unity_project.py` が突き合わせます。
+「C# の期待値が古いまま Unity ジョブが通ってしまう」抜けを塞ぐためです。
+
+### CI で有効にする
+
+`unity-compile.yml` は **Unity のライセンス secret が無い場合はスキップ**します
+（PR は赤くなりません）。有効にするには次の secret を設定してください。
+
+| secret | 用途 |
+| --- | --- |
+| `UNITY_LICENSE` | Personal ライセンスの `.ulf` の中身をそのまま貼る |
+| `UNITY_EMAIL` / `UNITY_PASSWORD` | Unity アカウント |
+| `UNITY_SERIAL` | Plus / Pro の場合はこちら（`UNITY_LICENSE` の代わり） |
+
+`.ulf` の取得手順は
+[GameCI のドキュメント](https://game.ci/docs/github/activation)
+を参照してください。
+
+`.ci/UnityProject/ProjectSettings/ProjectVersion.txt` の Unity バージョンが
+`package.json` の `unity` と一致していることはテストで確認しています。
+
+### 手元で動かす
+
+Unity を持っている場合は同じ検証をローカルでも回せます。
+
+```bash
+python tools/setup_unity_project.py
+
+# Test Runner の EditMode から実行するか、batchmode で:
+<Unity>/Editor/Unity -batchmode -quit \
+  -projectPath .ci/UnityProject \
+  -executeMethod SabaShader.CI.ShaderCompileChecker.RunBatch \
+  -logFile -
+```
+
+問題があれば終了コード 1 で落ち、どのファイルの何行目かがログに出ます。
