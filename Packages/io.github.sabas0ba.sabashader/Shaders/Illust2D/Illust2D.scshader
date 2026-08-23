@@ -1,0 +1,81 @@
+Shader "SabaShader/Illust2D"
+{
+    Properties
+    {
+        __SC_SHADERLAB_properties__
+        [SCHide]_ShaderLabDummy("", Float) = 0
+    }
+
+    SubShader
+    {
+        Tags
+        {
+            "RenderType" = "Opaque"
+            "Queue" = "Geometry"
+            "VRCFallback" = "Toon"
+        }
+
+        Pass
+        {
+            Name "FORWARD"
+            Tags { "LightMode" = "ForwardBase" }
+            Cull [_Cull]
+            ZWrite On
+
+            HLSLPROGRAM
+            #pragma target 3.5
+            #include "Packages/jp.lilxyzw.shadercore/ShaderLibrary/birp_forward.hlsl"
+            #include "Illust2DLighting.hlsl"
+            #include "Packages/jp.lilxyzw.shadercore/ShaderLibrary/birp_lighting.hlsl"
+            #include "Illust2DFragment.hlsl"
+            ENDHLSL
+        }
+
+        Pass
+        {
+            Name "OUTLINE"
+            Tags { "LightMode" = "ForwardBase" }
+            Cull Front
+            ZWrite On
+
+            HLSLPROGRAM
+            #pragma target 3.5
+            #define SBS_PASS_OUTLINE
+            #include "Packages/jp.lilxyzw.shadercore/ShaderLibrary/birp_forward.hlsl"
+            #include "Illust2DOutlineFragment.hlsl"
+            ENDHLSL
+        }
+
+        Pass
+        {
+            Name "FORWARD_DELTA"
+            Tags { "LightMode" = "ForwardAdd" }
+            Cull [_Cull]
+            ZWrite Off
+            Blend One One
+
+            HLSLPROGRAM
+            #pragma target 3.5
+            #include "Packages/jp.lilxyzw.shadercore/ShaderLibrary/birp_forwardadd.hlsl"
+            #include "Illust2DLighting.hlsl"
+            #include "Packages/jp.lilxyzw.shadercore/ShaderLibrary/birp_lighting.hlsl"
+            #include "Illust2DFragment.hlsl"
+            ENDHLSL
+        }
+
+        Pass
+        {
+            Name "SHADOW_CASTER"
+            Tags { "LightMode" = "ShadowCaster" }
+            Cull [_Cull]
+            ZWrite On
+
+            HLSLPROGRAM
+            #pragma target 3.5
+            #include "Packages/jp.lilxyzw.shadercore/ShaderLibrary/birp_shadowcaster.hlsl"
+            ENDHLSL
+        }
+    }
+
+    CustomEditor "SCMaterialEditor"
+}

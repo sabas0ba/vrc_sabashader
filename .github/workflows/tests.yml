@@ -1,0 +1,60 @@
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      update_goldens:
+        description: "ゴールデン画像を生成してアーティファクトに上げる（比較はしない）"
+        type: boolean
+        default: false
+
+jobs:
+  shader-regression:
+    name: シェーダー回帰テスト
+    runs-on: ubuntu-24.04
+
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      # 開発者が手元で使うものと同じイメージを組み立てて、その中で回す。
+      # ランナーに Python や Mesa を入れないので、CI とローカルで環境がずれない。
+      # ヘッドレス OpenGL に必要なパッケージも Containerfile 側で完結する。
+      - name: コンテナを組み立てる
+        run: docker build -t vrc-sabashader-dev -f Containerfile .
+
+      - name: レンダラを表示する
+        run: >
+          docker run --rm -v "$PWD:/work" -w /work vrc-sabashader-dev
+          python -c "import sys; sys.path.insert(0, 'tests'); from harness.render import renderer_info; print(renderer_info())"
+
+      - name: テストを実行する
+        if: ${{ inputs.update_goldens != true }}
+        run: docker run --rm -v "$PWD:/work" -w /work vrc-sabashader-dev python -m pytest tests -q
+
+      # ゴールデン画像は Mesa のバージョンに依存する。基準環境は Containerfile
+      # なので、生成もそのイメージの中で行う。
+      - name: ゴールデン画像を生成する
+        if: ${{ inputs.update_goldens == true }}
+        run: >
+          docker run --rm -v "$PWD:/work" -w /work vrc-sabashader-dev
+          python -m pytest tests -k render -q --update-goldens
+
+      - name: ゴールデン画像をアップロードする
+        if: ${{ inputs.update_goldens == true }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: goldens
+          path: tests/golden/
+          retention-days: 14
+
+      - name: 差分画像をアップロードする
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: golden-diff
+          path: _test_artifacts/
+          if-no-files-found: ignore
+          retention-days: 14

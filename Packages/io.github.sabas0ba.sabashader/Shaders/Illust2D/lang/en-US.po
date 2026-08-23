@@ -1,0 +1,228 @@
+msgid ""
+msgstr ""
+"Language: en-US\n"
+
+msgid "__Cull"
+msgstr "Cull"
+
+msgid "__CullDesc"
+msgstr "Which faces to draw. Use Off for double sided meshes."
+
+msgid "__AlphaMode"
+msgstr "Alpha Mode"
+
+msgid "__AlphaModeDesc"
+msgstr "Cutout discards pixels below Cutoff. For transparency, also adjust the render queue."
+
+msgid "__Shading"
+msgstr "Shading"
+
+msgid "__ShadeBorder1"
+msgstr "Shade 1 Border"
+
+msgid "__ShadeBorder1Desc"
+msgstr "Where the lit area turns into the first shade. Larger values widen the shadow."
+
+msgid "__ShadeBlur1"
+msgstr "Shade 1 Blur"
+
+msgid "__ShadeBlurDesc"
+msgstr "Lower values give the hard edge typical of anime style shading."
+
+msgid "__Shade1Color"
+msgstr "Shade 1 Multiply Color"
+
+msgid "__ShadeColorDesc"
+msgstr "Multiplied after the hue / saturation / value shift."
+
+msgid "__Shade1HueShift"
+msgstr "Shade 1 Hue Shift"
+
+msgid "__HueShiftDesc"
+msgstr "Shifting shadows toward cool hues gives a more illustrated look."
+
+msgid "__Shade1Saturation"
+msgstr "Shade 1 Saturation"
+
+msgid "__Shade1Value"
+msgstr "Shade 1 Value"
+
+msgid "__ShadeBorder2"
+msgstr "Shade 2 Border"
+
+msgid "__ShadeBorder2Desc"
+msgstr "Border between the first and the darker second shade. Values above Shade 1 Border are clamped."
+
+msgid "__ShadeBlur2"
+msgstr "Shade 2 Blur"
+
+msgid "__Shade2Color"
+msgstr "Shade 2 Multiply Color"
+
+msgid "__Shade2HueShift"
+msgstr "Shade 2 Hue Shift"
+
+msgid "__Shade2Saturation"
+msgstr "Shade 2 Saturation"
+
+msgid "__Shade2Value"
+msgstr "Shade 2 Value"
+
+msgid "__ShadeSteps"
+msgstr "Ramp Steps"
+
+msgid "__ShadeStepsDesc"
+msgstr "0 or 1 disables it. 2 and above quantize the blurred region into bands."
+
+msgid "__ShadowStrength"
+msgstr "Received Shadow Strength"
+
+msgid "__ShadowStrengthDesc"
+msgstr "How much realtime shadows contribute to the shading ramp."
+
+msgid "__ShadeMaskChannel"
+msgstr "Shade Mask Channel"
+
+msgid "__Specular"
+msgstr "Specular"
+
+msgid "__SpecularColor"
+msgstr "Specular Color"
+
+msgid "__SpecularBorder"
+msgstr "Specular Border"
+
+msgid "__SpecularBlur"
+msgstr "Specular Blur"
+
+msgid "__SpecularSmoothness"
+msgstr "Specular Sharpness"
+
+msgid "__SpecularMaskChannel"
+msgstr "Specular Mask Channel"
+
+msgid "__RimLight"
+msgstr "Rim Light"
+
+msgid "__RimColor"
+msgstr "Rim Light Color"
+
+msgid "__RimBorder"
+msgstr "Rim Light Border"
+
+msgid "__RimBlur"
+msgstr "Rim Light Blur"
+
+msgid "__RimLightAlign"
+msgstr "Follow Light Direction"
+
+msgid "__RimLightAlignDesc"
+msgstr "At 1 the rim light only appears on the lit side."
+
+msgid "__RimMaskChannel"
+msgstr "Rim Light Mask Channel"
+
+msgid "__Emission"
+msgstr "Emission"
+
+msgid "__EmissionMap"
+msgstr "Emission Texture"
+
+msgid "__EmissionColor"
+msgstr "Emission Color"
+
+msgid "__Outline"
+msgstr "Outline"
+
+msgid "__OutlineEnabled"
+msgstr "Draw Outline"
+
+msgid "__OutlineWidth"
+msgstr "Outline Width"
+
+msgid "__OutlineWidthDesc"
+msgstr "Width in model scale. 1.0 is roughly 1cm."
+
+msgid "__OutlineColor"
+msgstr "Outline Color"
+
+msgid "__OutlineAlbedoBlend"
+msgstr "Base Color Blend"
+
+msgid "__OutlineAlbedoBlendDesc"
+msgstr "Closer to 1 makes the outline take on the base color of each part."
+
+msgid "__OutlineHueShift"
+msgstr "Outline Hue Shift"
+
+msgid "__OutlineSaturation"
+msgstr "Outline Saturation"
+
+msgid "__OutlineValue"
+msgstr "Outline Value"
+
+msgid "__OutlineFixedWidth"
+msgstr "Distance Compensation"
+
+msgid "__OutlineFixedWidthDesc"
+msgstr "At 1 the outline keeps a nearly constant width on screen regardless of distance."
+
+msgid "__OutlineVertexColorChannel"
+msgstr "Width Mask Vertex Color"
+
+msgid "__OutlineVertexColorChannelDesc"
+msgstr "Which vertex color channel scales the outline width. None always uses the full width."
+
+msgid "__LightSettings"
+msgstr "Lighting"
+
+msgid "__LightMinLimit"
+msgstr "Brightness Min"
+
+msgid "__LightMinLimitDesc"
+msgstr "Floor that keeps the material readable in dark worlds."
+
+msgid "__LightMaxLimit"
+msgstr "Brightness Max"
+
+msgid "__LightMaxLimitDesc"
+msgstr "Ceiling that prevents blowout in very bright worlds."
+
+msgid "__MonochromeLighting"
+msgstr "Monochrome Lighting"
+
+msgid "__MonochromeLightingDesc"
+msgstr "At 1 the material no longer picks up the color of world lights."
+
+msgid "__AsUnlit"
+msgstr "As Unlit"
+
+msgid "__AsUnlitDesc"
+msgstr "At 1 lighting is ignored and textures are shown at their original brightness."
+
+msgid "__SHLightWeight"
+msgstr "Probe Directional Weight"
+
+msgid "__SHLightWeightDesc"
+msgstr "How much of the directional part of light probes feeds the shading."
+
+msgid "__SHLightDirectionWeight"
+msgstr "Probe Direction Influence"
+
+msgid "__SHLightDirectionWeightDesc"
+msgstr "How much light probes influence the direction the shadows fall in."
+
+msgid "__Grading"
+msgstr "Grading"
+
+msgid "__Saturation"
+msgstr "Saturation"
+
+msgid "__SaturationDesc"
+msgstr "Saturation of the final output. A slight boost reads as more illustrated."
+
+msgid "__Contrast"
+msgstr "Contrast"
+
+msgid "__ContrastDesc"
+msgstr "Contrast of the final output."
