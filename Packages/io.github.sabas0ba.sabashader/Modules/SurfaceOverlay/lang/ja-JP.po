@@ -1,0 +1,66 @@
+msgid ""
+msgstr ""
+"Language: ja-JP\n"
+
+msgid "__SurfaceOverlay"
+msgstr "表面の重ね掛け"
+
+msgid "__Amount"
+msgstr "強さ"
+
+msgid "__AmountDesc"
+msgstr "0 で無効。雨・汗・雪・汚れをまとめてこの 1 つで増減します。"
+
+msgid "__Texture"
+msgstr "重ねるテクスチャ"
+
+msgid "__TextureDesc"
+msgstr "汚れや雪の模様。色は下の設定と掛け合わされます。"
+
+msgid "__Color"
+msgstr "重ねる色（アルファで色の置き換え量。雨や汗は 0）"
+
+msgid "__MaskChannel"
+msgstr "マスクチャンネル"
+
+msgid "__MaskChannelDesc"
+msgstr "共有マスクテクスチャのどの色を使うか。None で全面に乗ります。"
+
+msgid "__UpBias"
+msgstr "上向き面への寄り"
+
+msgid "__UpBiasDesc"
+msgstr "1 に近いほど上を向いた面だけに乗ります。雪や埃は高め、汚れは低めが目安です。"
+
+msgid "__Border"
+msgstr "境界"
+
+msgid "__BorderDesc"
+msgstr "どれだけ覆われたら乗せるか。上げるほど範囲が狭くなります。"
+
+msgid "__Blur"
+msgstr "境界のぼかし"
+
+msgid "__Darken"
+msgstr "濡れの沈み"
+
+msgid "__DarkenDesc"
+msgstr "覆われた部分の素の色を暗く濃くします。雨や汗に使います。"
+
+msgid "__Flatten"
+msgstr "積もりの丸み"
+
+msgid "__FlattenDesc"
+msgstr "覆われた部分の法線を上向きに寝かせます。雪の積もりに使います。"
+
+msgid "__Streak"
+msgstr "垂れ"
+
+msgid "__StreakDesc"
+msgstr "被覆の形を縦に流れる筋へ寄せます。雨だれや汗に使います。"
+
+msgid "__StreakScale"
+msgstr "垂れの細かさ"
+
+msgid "__StreakSpeed"
+msgstr "垂れの速さ"

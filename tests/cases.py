@@ -19,6 +19,8 @@ MODE_LIGHT_LIMIT = 3
 MODE_BOX = 4
 MODE_TORUS = 5
 MODE_CAPSULE = 6
+# モジュール（表面の重ね掛け）
+MODE_OVERLAY = 7
 
 DEFAULT_STYLE: Dict[str, object] = {
     "shadeBorder1": 0.5,
@@ -49,6 +51,21 @@ DEFAULT_STYLE: Dict[str, object] = {
     "asUnlit": 0.0,
     "saturation": 1.05,
     "contrast": 1.02,
+}
+
+# SurfaceOverlayCore.hlsl の SBSOverlayStyle と一致させる。
+# ズレは test_core_render.py が検出する。
+DEFAULT_OVERLAY: Dict[str, object] = {
+    "amount": 1.0,
+    "upBias": 0.8,
+    "border": 0.6,
+    "blur": 0.15,
+    "darken": 0.0,
+    "flatten": 0.0,
+    "streak": 0.0,
+    "streakScale": 24.0,
+    "streakSpeed": 0.6,
+    "time": 0.0,
 }
 
 DEFAULT_OUTLINE: Dict[str, object] = {
@@ -105,6 +122,7 @@ class Case:
     description: str
     style: Dict[str, object] = field(default_factory=dict)
     outline: Dict[str, object] = field(default_factory=dict)
+    overlay: Dict[str, object] = field(default_factory=dict)
     light_dir: Sequence[float] = (0.55, 0.62, -0.56)
     light_color: Sequence[float] = (1.0, 0.97, 0.92)
     ambient: Sequence[float] = (0.16, 0.18, 0.24)
@@ -118,6 +136,11 @@ class Case:
     def resolved_outline(self) -> Dict[str, object]:
         merged = dict(DEFAULT_OUTLINE)
         merged.update(self.outline)
+        return merged
+
+    def resolved_overlay(self) -> Dict[str, object]:
+        merged = dict(DEFAULT_OVERLAY)
+        merged.update(self.overlay)
         return merged
 
     @property
@@ -232,6 +255,27 @@ CASES: List[Case] = [
         mode=MODE_LIGHT_LIMIT,
         description="横軸=入射光の明るさ のクランプ表。下限・上限の折れ位置を検証する。",
         style={"lightMinLimit": 0.25, "lightMaxLimit": 1.2},
+        resolution=(320, 160),
+    ),
+    Case(
+        name="overlay_snow",
+        mode=MODE_OVERLAY,
+        description="上向き面にだけ積もる設定。upBias と境界の効きを見る。",
+        overlay={"upBias": 1.0, "border": 0.62, "blur": 0.1},
+        resolution=(320, 160),
+    ),
+    Case(
+        name="overlay_wet",
+        mode=MODE_OVERLAY,
+        description="向きを問わず濡らす設定。darken が素の色をどれだけ沈めるか。",
+        overlay={"upBias": 0.5, "border": 0.45, "blur": 0.5, "darken": 1.0},
+        resolution=(320, 160),
+    ),
+    Case(
+        name="overlay_streak",
+        mode=MODE_OVERLAY,
+        description="垂れを足した状態。時間を固定して決定的に描く。",
+        overlay={"border": 0.35, "blur": 0.2, "streak": 1.0, "streakScale": 12.0, "time": 3.0},
         resolution=(320, 160),
     ),
 ]

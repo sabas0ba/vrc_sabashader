@@ -16,6 +16,7 @@ from harness.paths import LANG_DIR, PROPERTIES_HLSL, SCSHADER, SHADER_DIR
 from harness.scshader import (
     ShaderExpander,
     ensure_shadercore,
+    package_modules,
     package_roots,
     parse_properties,
     strip_comments,
@@ -127,7 +128,7 @@ def test_foldouts_are_balanced():
 
 
 def test_all_used_properties_are_declared():
-    expander = ShaderExpander(SCSHADER, {})
+    expander = ShaderExpander(SCSHADER, {}, package_modules())
     declared = set(expander.declared_property_names()) | EXTERNAL_NAMES
 
     used = used_property_names(_our_sources())
@@ -241,7 +242,7 @@ def expanded():
     shadercore = ensure_shadercore()
     if shadercore is None:
         pytest.skip("Shader Core を取得できませんでした (ネットワーク不通)")
-    return ShaderExpander(SCSHADER, package_roots(shadercore)).expand()
+    return ShaderExpander(SCSHADER, package_roots(shadercore), package_modules()).expand()
 
 
 def test_no_markers_left(expanded):

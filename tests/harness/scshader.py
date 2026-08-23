@@ -19,6 +19,7 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
 from .paths import (
+    MODULES_DIR,
     SHADERCORE_CACHE,
     SHADERCORE_COMMIT,
     SHADERCORE_PACKAGE_PATH,
@@ -306,6 +307,11 @@ def load_module(path: Path) -> Module:
 
 def discover_modules(root: Path) -> List[Module]:
     return [load_module(path) for path in sorted(root.rglob("*.scmodule"))]
+
+
+def package_modules() -> List[Module]:
+    """このパッケージが持つモジュール一式。"""
+    return discover_modules(MODULES_DIR) if MODULES_DIR.is_dir() else []
 
 
 def _phase_sort_key(pair: Tuple[Module, ModulePhase]):

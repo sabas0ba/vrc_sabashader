@@ -7,9 +7,9 @@
 from __future__ import annotations
 
 import re
-from typing import Dict, List, Sequence, Tuple
+from typing import Dict, List, Optional, Sequence, Tuple
 
-from .paths import CORE_HLSL, PRELUDE_GLSL, SCENE_FRAG
+from .paths import CORE_HLSL, MODULES_DIR, PRELUDE_GLSL, SCENE_FRAG
 
 _STRUCT_RE = r"struct\s+{name}\s*\{{(.*?)\}}\s*;"
 _FIELD_RE = re.compile(r"^\s*(half|half2|half3|half4|float|float2|float3|float4)\s+(\w+)\s*;")
@@ -20,6 +20,16 @@ _VECTOR_SIZES = {"half2": 2, "half3": 3, "half4": 4, "float2": 2, "float3": 3, "
 
 def read_core() -> str:
     return CORE_HLSL.read_text(encoding="utf-8")
+
+
+def module_cores() -> List[Tuple[str, str]]:
+    """モジュールの数式ファイル。シェーダー本体の Core と同じ制約で書かれている。"""
+    if not MODULES_DIR.is_dir():
+        return []
+    return [
+        (path.name, path.read_text(encoding="utf-8"))
+        for path in sorted(MODULES_DIR.rglob("*Core.hlsl"))
+    ]
 
 
 def parse_struct_fields(source: str, name: str) -> List[Tuple[str, str]]:
@@ -60,16 +70,22 @@ def _emit_value(field_type: str, value) -> str:
     return f"vec{size}({joined})"
 
 
-def emit_style(fields: Sequence[Tuple[str, str]], params: Dict[str, object]) -> str:
-    """SBSStyle を組み立てて返す GLSL 関数を生成する。"""
+def emit_style(
+    fields: Sequence[Tuple[str, str]],
+    params: Dict[str, object],
+    *,
+    struct: str = "SBSStyle",
+    function: str = "sceneStyle",
+) -> str:
+    """構造体を組み立てて返す GLSL 関数を生成する。"""
     missing = [name for _, name in fields if name not in params]
     if missing:
         raise KeyError(f"スタイルの指定が足りません: {', '.join(missing)}")
     unknown = [name for name in params if name not in {n for _, n in fields}]
     if unknown:
-        raise KeyError(f"SBSStyle に存在しないフィールドです: {', '.join(sorted(unknown))}")
+        raise KeyError(f"{struct} に存在しないフィールドです: {', '.join(sorted(unknown))}")
 
-    lines = ["SBSStyle sceneStyle()", "{", "    SBSStyle st;"]
+    lines = [f"{struct} {function}()", "{", f"    {struct} st;"]
     for field_type, name in fields:
         lines.append(f"    st.{name} = {_emit_value(field_type, params[name])};")
     lines.append("    return st;")
@@ -86,10 +102,24 @@ def build_scene_source(
     light_color: Sequence[float],
     ambient: Sequence[float],
     outline: Dict[str, object],
+    overlay: Optional[Dict[str, object]] = None,
     gamma: float = 2.2,
 ) -> str:
     core = read_core()
     fields = parse_struct_fields(core, "SBSStyle")
+
+    modules = module_cores()
+    module_source = "\n".join(f"// ---- {name} ----\n{body}" for name, body in modules)
+
+    # モジュールの数式もゴールデンで守るため、スタイルを同じ仕組みで注入する。
+    overlay_block = ""
+    for name, body in modules:
+        if "struct SBSOverlayStyle" not in body:
+            continue
+        overlay_fields = parse_struct_fields(body, "SBSOverlayStyle")
+        if overlay is None:
+            raise KeyError(f"{name} があるのに overlay のスタイルが渡されていません")
+        overlay_block = emit_style(overlay_fields, overlay, struct="SBSOverlayStyle", function="sceneOverlayStyle")
 
     header = "\n".join(
         [
@@ -106,6 +136,8 @@ def build_scene_source(
             f"const float SCENE_OUTLINE_VALUE = {_literal(outline['value'])};",
             "",
             emit_style(fields, style),
+            "",
+            overlay_block,
         ]
     )
 
@@ -114,6 +146,7 @@ def build_scene_source(
             PRELUDE_GLSL.read_text(encoding="utf-8"),
             "// ---- Packages/io.github.sabas0ba.sabashader/Shaders/Illust2D/Illust2DCore.hlsl ----",
             core,
+            module_source,
             header,
             "// ---- tests/harness/scene.frag ----",
             SCENE_FRAG.read_text(encoding="utf-8"),

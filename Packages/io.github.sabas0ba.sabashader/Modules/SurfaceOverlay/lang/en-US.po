@@ -1,0 +1,66 @@
+msgid ""
+msgstr ""
+"Language: en-US\n"
+
+msgid "__SurfaceOverlay"
+msgstr "Surface Overlay"
+
+msgid "__Amount"
+msgstr "Amount"
+
+msgid "__AmountDesc"
+msgstr "0 disables it. Rain, sweat, snow and dirt share this single control."
+
+msgid "__Texture"
+msgstr "Overlay Texture"
+
+msgid "__TextureDesc"
+msgstr "Pattern for dirt or snow. Multiplied by the color below."
+
+msgid "__Color"
+msgstr "Overlay Color (alpha controls color replacement; 0 for rain and sweat)"
+
+msgid "__MaskChannel"
+msgstr "Mask Channel"
+
+msgid "__MaskChannelDesc"
+msgstr "Which channel of the shared mask to use. None covers everything."
+
+msgid "__UpBias"
+msgstr "Upward Bias"
+
+msgid "__UpBiasDesc"
+msgstr "Higher values restrict the overlay to upward facing surfaces."
+
+msgid "__Border"
+msgstr "Border"
+
+msgid "__BorderDesc"
+msgstr "How much coverage is needed. Higher values shrink the area."
+
+msgid "__Blur"
+msgstr "Border Blur"
+
+msgid "__Darken"
+msgstr "Wet Darkening"
+
+msgid "__DarkenDesc"
+msgstr "Darkens the base color where covered. Use for rain and sweat."
+
+msgid "__Flatten"
+msgstr "Settled Roundness"
+
+msgid "__FlattenDesc"
+msgstr "Tilts the normal upward where covered. Use for settled snow."
+
+msgid "__Streak"
+msgstr "Streaks"
+
+msgid "__StreakDesc"
+msgstr "Shapes the coverage into vertical running streaks. Use for rain drips and sweat."
+
+msgid "__StreakScale"
+msgstr "Streak Density"
+
+msgid "__StreakSpeed"
+msgstr "Streak Speed"

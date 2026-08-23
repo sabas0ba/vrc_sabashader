@@ -14,6 +14,7 @@ C# 側の対応箇所:
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
 import pytest
@@ -317,3 +318,97 @@ def test_module_phase_files_are_reported_as_included(tmp_path: Path, shader: Pat
     path = write_module(tmp_path / "mod", "com.example.a", phases={"base": "// noop\n"})
     result = ShaderExpander(shader, {}, [load_module(path)]).expand()
     assert any(p.name == "phase_base.hlsl" for p in result.included_files)
+
+
+# --- パッケージが持つモジュール ------------------------------------------------
+
+# Shader Core やパイプラインが用意していて、モジュール側で宣言しないもの
+_EXTERNAL_NAMES = {
+    "_Time",
+    "_SinTime",
+    "_CosTime",
+    "_WorldSpaceLightPos0",
+    "_LightColor0",
+}
+
+
+def _package_modules():
+    from harness.scshader import package_modules
+
+    return package_modules()
+
+
+def test_package_modules_load():
+    modules = _package_modules()
+    assert modules, "Modules 配下にモジュールが見つかりません"
+    for module in modules:
+        assert module.phases, f"{module.unique_id}: フェーズがありません"
+
+
+@pytest.mark.parametrize("module", _package_modules(), ids=lambda m: m.unique_id)
+def test_package_module_only_uses_declared_properties(module):
+    """モジュールの HLSL は自分が宣言したプロパティだけを参照すること。
+
+    モジュール側は素の名前で書くので、宣言側も素の名前で突き合わせる。
+    """
+    from harness.scshader import strip_comments, used_property_names
+
+    declared = {p.original_name for p in module.properties if p.original_name}
+    declared |= {f"{p.original_name}_ST" for p in module.properties if p.type == "ScaleOffset"}
+
+    sources = [
+        (phase.path.name, phase.path.read_text(encoding="utf-8")) for phase in module.phases
+    ]
+    if module.includes:
+        sources.append(("includes.hlsl", module.includes))
+
+    used = used_property_names(sources)
+    undeclared = {
+        name: sorted(files)
+        for name, files in used.items()
+        if name not in declared and name not in _EXTERNAL_NAMES
+    }
+
+    assert not undeclared, (
+        f"{module.unique_id}: 宣言していないプロパティを参照しています "
+        f"(properties.hlsl に追加してください): {undeclared}"
+    )
+
+
+@pytest.mark.parametrize("module", _package_modules(), ids=lambda m: m.unique_id)
+def test_package_module_does_not_declare_sampler(module):
+    """自前のサンプラー宣言は uniqueID が前置きされて Unity の規約から外れる。"""
+    samplers = [p.original_name for p in module.properties if p.type == "SamplerState"]
+    assert not samplers, (
+        f"{module.unique_id}: サンプラーを宣言しています {samplers}。"
+        " SCSampleRepeat / SCSampleClamp か sampler_linear_repeat を使ってください。"
+    )
+
+
+@pytest.mark.parametrize("module", _package_modules(), ids=lambda m: m.unique_id)
+def test_package_module_localization_is_complete(module):
+    """表示名と説明のキーが po に揃っていること。"""
+    lang_dir = module.directory / "lang"
+    if not lang_dir.is_dir():
+        pytest.skip(f"{module.unique_id}: lang がありません")
+
+    keys = set()
+    for prop in module.properties:
+        for text in (prop.display, prop.description):
+            if not text:
+                continue
+            key = text.strip('"')
+            if key:
+                keys.add(key)
+        if prop.type == "Foldout" and prop.name:
+            keys.add(prop.name)
+
+    for po in sorted(lang_dir.glob("*.po")):
+        entries = dict(
+            re.findall(r'^msgid\s+"(.+)"\s*\nmsgstr\s+"(.*)"', po.read_text(encoding="utf-8"), re.MULTILINE)
+        )
+        missing = sorted(key for key in keys if key not in entries)
+        assert not missing, f"{module.unique_id}: {po.name} に翻訳がありません: {missing}"
+
+        unused = sorted(key for key in entries if key not in keys)
+        assert not unused, f"{module.unique_id}: {po.name} に使われていないキーがあります: {unused}"
