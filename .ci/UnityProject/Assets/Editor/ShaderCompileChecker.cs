@@ -17,7 +17,7 @@ namespace SabaShader.CI
     /// </summary>
     public static class ShaderCompileChecker
     {
-        public const string PackagePath = "Packages/jp.sabas0ba.sabashader";
+        public const string PackagePath = "Packages/io.github.sabas0ba.sabashader";
         public const string Illust2DPath = PackagePath + "/Shaders/Illust2D/Illust2D.scshader";
 
         public static readonly string[] ExpectedPasses =

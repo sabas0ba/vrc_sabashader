@@ -8,7 +8,7 @@ git tag 0.1.0
         │
         ▼
 build-release.yml
-  Packages/jp.sabas0ba.sabashader を zip 化
+  Packages/io.github.sabas0ba.sabashader を zip 化
   GitHub Release に zip と package.json を添付
         │
         ▼ (release published)
@@ -27,8 +27,8 @@ VCC が https://sabas0ba.github.io/vrc_sabashader/index.json を読む
 
 ## リリース手順
 
-1. `Packages/jp.sabas0ba.sabashader/package.json` の `version` を上げる
-2. `Packages/jp.sabas0ba.sabashader/CHANGELOG.md` に項目を足す
+1. `Packages/io.github.sabas0ba.sabashader/package.json` の `version` を上げる
+2. `Packages/io.github.sabas0ba.sabashader/CHANGELOG.md` に項目を足す
 3. ファイルを追加していたら `python tools/gen_meta.py` を実行して `.meta` をコミットする
 4. `python -m pytest tests -q` が緑になっていることを確認する
 5. `version` と同じ名前でタグを打って push する

@@ -5,7 +5,7 @@ Illust2D と同じ構成でシェーダーを増やす手順です。
 ## 1. ファイルを置く
 
 ```
-Packages/jp.sabas0ba.sabashader/Shaders/<名前>/
+Packages/io.github.sabas0ba.sabashader/Shaders/<名前>/
   <名前>.scshader            ShaderLab 本体
   <名前>_properties.hlsl     プロパティ定義（ファイル名は必ずこの形）
   sc_common.hlsl             Shader Core が要求するフック

@@ -1,5 +1,5 @@
 {
-  "name": "jp.sabas0ba.sabashader",
+  "name": "io.github.sabas0ba.sabashader",
   "displayName": "SabaShader",
   "version": "0.1.0",
   "unity": "2022.3",
@@ -10,7 +10,7 @@
   },
   "license": "MIT",
   "licensesUrl": "https://github.com/sabas0ba/vrc_sabashader/blob/main/LICENSE",
-  "changelogUrl": "https://github.com/sabas0ba/vrc_sabashader/blob/main/Packages/jp.sabas0ba.sabashader/CHANGELOG.md",
+  "changelogUrl": "https://github.com/sabas0ba/vrc_sabashader/blob/main/Packages/io.github.sabas0ba.sabashader/CHANGELOG.md",
   "documentationUrl": "https://github.com/sabas0ba/vrc_sabashader/blob/main/README.md",
   "keywords": [
     "vrchat",

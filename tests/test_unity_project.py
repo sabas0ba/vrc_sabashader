@@ -63,7 +63,7 @@ def test_asmdef_is_valid_json_and_references_test_runner():
 
 
 def test_project_version_matches_package_unity_version():
-    package = json.loads((REPO_ROOT / "Packages" / "jp.sabas0ba.sabashader" / "package.json").read_text("utf-8"))
+    package = json.loads((REPO_ROOT / "Packages" / "io.github.sabas0ba.sabashader" / "package.json").read_text("utf-8"))
     version = PROJECT_VERSION.read_text(encoding="utf-8")
 
     match = re.search(r"m_EditorVersion:\s*(\d+\.\d+)", version)
@@ -125,8 +125,8 @@ def test_required_properties_cover_each_property_kind(checker_source):
 
 
 def test_checker_targets_the_real_package_path(checker_source):
-    assert 'PackagePath = "Packages/jp.sabas0ba.sabashader"' in checker_source
-    relative = SCSHADER.relative_to(REPO_ROOT / "Packages" / "jp.sabas0ba.sabashader").as_posix()
+    assert 'PackagePath = "Packages/io.github.sabas0ba.sabashader"' in checker_source
+    relative = SCSHADER.relative_to(REPO_ROOT / "Packages" / "io.github.sabas0ba.sabashader").as_posix()
     assert relative in checker_source, f"Illust2DPath が {relative} を指していません"
 
 

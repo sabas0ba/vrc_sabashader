@@ -18,7 +18,7 @@ namespace SabaShader.Demo
     public static class AvatarDemoScene
     {
         const string ShaderName = "SabaShader/Illust2D";
-        const string ShaderPath = "Packages/jp.sabas0ba.sabashader/Shaders/Illust2D/Illust2D.scshader";
+        const string ShaderPath = "Packages/io.github.sabas0ba.sabashader/Shaders/Illust2D/Illust2D.scshader";
         const string AvatarDir = "Assets/Avatar";
         const string RootDir = "Assets/Demo";
         const string MaterialDir = RootDir + "/Materials";

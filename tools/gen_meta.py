@@ -18,7 +18,7 @@ from pathlib import Path
 from typing import Iterable, List
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-PACKAGE_DIR = REPO_ROOT / "Packages" / "jp.sabas0ba.sabashader"
+PACKAGE_DIR = REPO_ROOT / "Packages" / "io.github.sabas0ba.sabashader"
 
 # GUID 導出用の名前空間。変更すると全 GUID が変わるので絶対に触らないこと。
 GUID_NAMESPACE = uuid.UUID("6f5c9d6e-6a1e-5f0c-9f4d-1d0f8b2a7c31")

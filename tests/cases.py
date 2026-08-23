@@ -1,7 +1,7 @@
 """回帰テストのケース定義。
 
 `DEFAULT_STYLE` はマテリアルの初期値
-(Packages/jp.sabas0ba.sabashader/Shaders/Illust2D/Illust2D_properties.hlsl)
+(Packages/io.github.sabas0ba.sabashader/Shaders/Illust2D/Illust2D_properties.hlsl)
 と一致させる。ズレは test_scshader_structure.py が検出する。
 """
 

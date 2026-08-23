@@ -122,13 +122,13 @@ def test_build_listing_from_releases(listing_config, package):
         {
             "draft": False,
             "manifest": {**package, "version": "0.1.0"},
-            "zipUrl": "https://example.invalid/jp.sabas0ba.sabashader-0.1.0.zip",
+            "zipUrl": "https://example.invalid/io.github.sabas0ba.sabashader-0.1.0.zip",
             "zipSHA256": "a" * 64,
         },
         {
             "draft": False,
             "manifest": {**package, "version": "0.2.0"},
-            "zipUrl": "https://example.invalid/jp.sabas0ba.sabashader-0.2.0.zip",
+            "zipUrl": "https://example.invalid/io.github.sabas0ba.sabashader-0.2.0.zip",
             "zipSHA256": "b" * 64,
         },
         {"draft": True, "manifest": {**package, "version": "9.9.9"}, "zipUrl": "https://example.invalid/x.zip"},

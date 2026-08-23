@@ -21,7 +21,7 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 PROJECT_DIR = REPO_ROOT / ".ci" / "UnityProject"
-PACKAGE_DIR = REPO_ROOT / "Packages" / "jp.sabas0ba.sabashader"
+PACKAGE_DIR = REPO_ROOT / "Packages" / "io.github.sabas0ba.sabashader"
 
 SHADERCORE_URL = "https://github.com/lilxyzw/Shader-Core.git"
 # tests/harness/paths.py と同じコミットに固定する

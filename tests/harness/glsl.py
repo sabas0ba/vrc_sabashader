@@ -112,7 +112,7 @@ def build_scene_source(
     return "\n".join(
         [
             PRELUDE_GLSL.read_text(encoding="utf-8"),
-            "// ---- Packages/jp.sabas0ba.sabashader/Shaders/Illust2D/Illust2DCore.hlsl ----",
+            "// ---- Packages/io.github.sabas0ba.sabashader/Shaders/Illust2D/Illust2DCore.hlsl ----",
             core,
             header,
             "// ---- tests/harness/scene.frag ----",

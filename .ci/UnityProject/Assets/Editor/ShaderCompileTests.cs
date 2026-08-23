@@ -11,14 +11,14 @@ namespace SabaShader.CI
     public class ShaderCompileTests
     {
         [Test]
-        public void パッケージにシェーダーが存在する()
+        public void PackageContainsShaders()
         {
             var paths = ShaderCompileChecker.FindShaderPaths();
             Assert.That(paths, Is.Not.Empty, $"{ShaderCompileChecker.PackagePath} にシェーダーが見つかりません");
         }
 
         [Test]
-        public void Illust2Dがシェーダーとしてインポートできる()
+        public void Illust2DImportsAsShader()
         {
             var shader = ShaderCompileChecker.ImportAndLoad(ShaderCompileChecker.Illust2DPath);
             Assert.That(shader, Is.Not.Null,
@@ -27,14 +27,14 @@ namespace SabaShader.CI
         }
 
         [Test]
-        public void すべてのシェーダーがエラー無くコンパイルされる()
+        public void AllShadersCompileWithoutErrors()
         {
             var failures = ShaderCompileChecker.CollectFailures();
             Assert.That(failures, Is.Empty, string.Join("\n", failures));
         }
 
         [Test]
-        public void Illust2Dが4つのパスを持つ()
+        public void Illust2DDeclaresExpectedPasses()
         {
             var shader = ShaderCompileChecker.ImportAndLoad(ShaderCompileChecker.Illust2DPath);
             Assert.That(shader, Is.Not.Null);
@@ -44,7 +44,7 @@ namespace SabaShader.CI
         }
 
         [Test]
-        public void Illust2Dのマテリアルに必要なプロパティが生成される()
+        public void Illust2DMaterialExposesRequiredProperties()
         {
             var shader = ShaderCompileChecker.ImportAndLoad(ShaderCompileChecker.Illust2DPath);
             Assert.That(shader, Is.Not.Null);

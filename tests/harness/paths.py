@@ -8,7 +8,7 @@ HARNESS_DIR = Path(__file__).resolve().parent
 TESTS_DIR = HARNESS_DIR.parent
 REPO_ROOT = TESTS_DIR.parent
 
-PACKAGE_DIR = REPO_ROOT / "Packages" / "jp.sabas0ba.sabashader"
+PACKAGE_DIR = REPO_ROOT / "Packages" / "io.github.sabas0ba.sabashader"
 SHADER_DIR = PACKAGE_DIR / "Shaders" / "Illust2D"
 
 CORE_HLSL = SHADER_DIR / "Illust2DCore.hlsl"

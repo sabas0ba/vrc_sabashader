@@ -16,7 +16,7 @@
    ```
 
    > リリースを 1 度も作っていない間は上記 URL がまだ存在しません。
-   > 手元で試す場合は `Packages/jp.sabas0ba.sabashader` をプロジェクトの
+   > 手元で試す場合は `Packages/io.github.sabas0ba.sabashader` をプロジェクトの
    > `Packages/` にコピーしても動きます。
 
 2. あわせて Shader Core のリスティングも追加します（依存パッケージのため）。
@@ -34,7 +34,7 @@
 
 | パス | 中身 |
 | --- | --- |
-| `Packages/jp.sabas0ba.sabashader/` | 配布する VPM パッケージ本体 |
+| `Packages/io.github.sabas0ba.sabashader/` | 配布する VPM パッケージ本体 |
 | `Packages/.../Shaders/Illust2D/` | Illust2D シェーダー一式 |
 | `tests/` | ヘッドレス描画による回帰テストと構造チェック |
 | `.ci/UnityProject/` | Unity でのコンパイル検証用プロジェクトの雛形 |

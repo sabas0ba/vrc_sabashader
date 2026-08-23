@@ -1,6 +1,6 @@
 {
   "name": "SabaShader",
-  "id": "jp.sabas0ba.vpm",
+  "id": "io.github.sabas0ba.vpm",
   "url": "https://sabas0ba.github.io/vrc_sabashader/index.json",
   "author": "sabas0ba",
   "description": "Shader Core をベースにした VRChat 向けシェーダー集",
@@ -10,6 +10,6 @@
   },
   "repository": "sabas0ba/vrc_sabashader",
   "packages": [
-    "jp.sabas0ba.sabashader"
+    "io.github.sabas0ba.sabashader"
   ]
 }
