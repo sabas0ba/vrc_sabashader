@@ -190,6 +190,12 @@ CASES: List[Case] = [
         description="自己遮蔽のある形。内側に落ちる影が shadowStrength の経路を通る。",
     ),
     Case(
+        name="torus_posterized",
+        mode=MODE_TORUS,
+        description="曲率が連続的に変わる面での 4 段ポスタライズ。段の間隔が見える。",
+        style={"shadeBlur1": 0.55, "shadeBlur2": 0.55, "shadeSteps": 4.0},
+    ),
+    Case(
         name="capsule_rim_specular",
         mode=MODE_CAPSULE,
         description="押し出した曲面と半球の継ぎ目。リムとハイライトの伸び方を見る。",
