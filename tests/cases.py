@@ -21,6 +21,7 @@ MODE_TORUS = 5
 MODE_CAPSULE = 6
 # モジュール（表面の重ね掛け）
 MODE_OVERLAY = 7
+MODE_PIXEL = 8
 
 DEFAULT_STYLE: Dict[str, object] = {
     "shadeBorder1": 0.5,
@@ -53,8 +54,11 @@ DEFAULT_STYLE: Dict[str, object] = {
     "contrast": 1.02,
 }
 
-# SurfaceOverlayCore.hlsl の SBSOverlayStyle と一致させる。
+# モジュールの数式ファイルにある SBSXxxStyle と一致させる。
 # ズレは test_core_render.py が検出する。
+MODULE_STYLE_DEFAULTS: Dict[str, Dict[str, object]] = {}
+
+# SurfaceOverlayCore.hlsl の SBSOverlayStyle
 DEFAULT_OVERLAY: Dict[str, object] = {
     "amount": 1.0,
     "upBias": 0.8,
@@ -67,6 +71,19 @@ DEFAULT_OVERLAY: Dict[str, object] = {
     "streakSpeed": 0.6,
     "time": 0.0,
 }
+
+MODULE_STYLE_DEFAULTS["SBSOverlayStyle"] = DEFAULT_OVERLAY
+
+# PixelArtCore.hlsl の SBSPixelStyle
+DEFAULT_PIXEL: Dict[str, object] = {
+    "amount": 1.0,
+    "levels": 6.0,
+    "dither": 1.0,
+    "cellSize": 4.0,
+    "palette": 0.0,
+}
+
+MODULE_STYLE_DEFAULTS["SBSPixelStyle"] = DEFAULT_PIXEL
 
 DEFAULT_OUTLINE: Dict[str, object] = {
     "color": (0.15, 0.10, 0.13),
@@ -122,7 +139,8 @@ class Case:
     description: str
     style: Dict[str, object] = field(default_factory=dict)
     outline: Dict[str, object] = field(default_factory=dict)
-    overlay: Dict[str, object] = field(default_factory=dict)
+    # モジュールのスタイル。{構造体名: 上書きしたい値}
+    module_styles: Dict[str, Dict[str, object]] = field(default_factory=dict)
     light_dir: Sequence[float] = (0.55, 0.62, -0.56)
     light_color: Sequence[float] = (1.0, 0.97, 0.92)
     ambient: Sequence[float] = (0.16, 0.18, 0.24)
@@ -138,9 +156,12 @@ class Case:
         merged.update(self.outline)
         return merged
 
-    def resolved_overlay(self) -> Dict[str, object]:
-        merged = dict(DEFAULT_OVERLAY)
-        merged.update(self.overlay)
+    def resolved_module_styles(self) -> Dict[str, Dict[str, object]]:
+        merged: Dict[str, Dict[str, object]] = {}
+        for struct, defaults in MODULE_STYLE_DEFAULTS.items():
+            values = dict(defaults)
+            values.update(self.module_styles.get(struct, {}))
+            merged[struct] = values
         return merged
 
     @property
@@ -261,21 +282,42 @@ CASES: List[Case] = [
         name="overlay_snow",
         mode=MODE_OVERLAY,
         description="上向き面にだけ積もる設定。upBias と境界の効きを見る。",
-        overlay={"upBias": 1.0, "border": 0.62, "blur": 0.1},
+        module_styles={"SBSOverlayStyle": {"upBias": 1.0, "border": 0.62, "blur": 0.1}},
         resolution=(320, 160),
     ),
     Case(
         name="overlay_wet",
         mode=MODE_OVERLAY,
         description="向きを問わず濡らす設定。darken が素の色をどれだけ沈めるか。",
-        overlay={"upBias": 0.5, "border": 0.45, "blur": 0.5, "darken": 1.0},
+        module_styles={"SBSOverlayStyle": {"upBias": 0.5, "border": 0.45, "blur": 0.5, "darken": 1.0}},
         resolution=(320, 160),
     ),
     Case(
         name="overlay_streak",
         mode=MODE_OVERLAY,
         description="垂れを足した状態。時間を固定して決定的に描く。",
-        overlay={"border": 0.35, "blur": 0.2, "streak": 1.0, "streakScale": 12.0, "time": 3.0},
+        module_styles={"SBSOverlayStyle": {"border": 0.35, "blur": 0.2, "streak": 1.0, "streakScale": 12.0, "time": 3.0}},
+        resolution=(320, 160),
+    ),
+    Case(
+        name="pixel_levels",
+        mode=MODE_PIXEL,
+        description="色数を落としただけの状態。段の位置がずれると落ちる。",
+        module_styles={"SBSPixelStyle": {"levels": 4.0, "dither": 0.0}},
+        resolution=(320, 160),
+    ),
+    Case(
+        name="pixel_dither",
+        mode=MODE_PIXEL,
+        description="同じ色数に整列ディザをかけた状態。升目の大きさが効く。",
+        module_styles={"SBSPixelStyle": {"levels": 4.0, "dither": 1.0, "cellSize": 4.0}},
+        resolution=(320, 160),
+    ),
+    Case(
+        name="pixel_palette",
+        mode=MODE_PIXEL,
+        description="明るさでパレットに寄せた状態。色が置き換わる。",
+        module_styles={"SBSPixelStyle": {"levels": 8.0, "palette": 1.0}},
         resolution=(320, 160),
     ),
 ]

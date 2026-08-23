@@ -25,6 +25,10 @@ namespace SabaShader.CI
         const string MeshDir = RootDir + "/Meshes";
         const string ScenePath = RootDir + "/Illust2DCheck.unity";
 
+        // カメラの構図はこの縦横比を前提に決める。撮影時に変えると構図がずれる。
+        const int CaptureWidth = 2400;
+        const int CaptureHeight = 1400;
+
         // tests/cases.py の Case 既定値
         static readonly Vector3 LightDirection = new Vector3(0.55f, 0.62f, -0.56f);
         static readonly Color LightColor = new Color(1.00f, 0.97f, 0.92f);
@@ -79,6 +83,46 @@ namespace SabaShader.CI
             {
                 Name = "no_shadow",
                 Floats = { { "_ShadowStrength", 0.0f } },
+            },
+            // ここから下はモジュール。プロパティ名には uniqueID が前置きされる。
+            new Variant
+            {
+                Name = "snow",
+                Floats =
+                {
+                    { "_io_github_sabas0ba_surfaceoverlay_Amount", 1.0f },
+                    { "_io_github_sabas0ba_surfaceoverlay_UpBias", 1.0f },
+                    { "_io_github_sabas0ba_surfaceoverlay_Border", 0.62f },
+                    { "_io_github_sabas0ba_surfaceoverlay_Blur", 0.1f },
+                    { "_io_github_sabas0ba_surfaceoverlay_Flatten", 0.8f },
+                },
+                Colors = { { "_io_github_sabas0ba_surfaceoverlay_Color", new Color(0.94f, 0.96f, 1.0f, 1.0f) } },
+            },
+            new Variant
+            {
+                Name = "wet",
+                Floats =
+                {
+                    { "_io_github_sabas0ba_surfaceoverlay_Amount", 1.0f },
+                    { "_io_github_sabas0ba_surfaceoverlay_UpBias", 0.5f },
+                    { "_io_github_sabas0ba_surfaceoverlay_Border", 0.4f },
+                    { "_io_github_sabas0ba_surfaceoverlay_Blur", 0.5f },
+                    { "_io_github_sabas0ba_surfaceoverlay_Darken", 1.0f },
+                    { "_io_github_sabas0ba_surfaceoverlay_Streak", 0.7f },
+                },
+                // アルファ 0 で色は置き換えず、沈みと垂れだけを効かせる
+                Colors = { { "_io_github_sabas0ba_surfaceoverlay_Color", new Color(1.0f, 1.0f, 1.0f, 0.0f) } },
+            },
+            new Variant
+            {
+                Name = "pixel",
+                Floats =
+                {
+                    { "_io_github_sabas0ba_pixelart_Amount", 1.0f },
+                    { "_io_github_sabas0ba_pixelart_Levels", 5.0f },
+                    { "_io_github_sabas0ba_pixelart_CellSize", 6.0f },
+                    { "_io_github_sabas0ba_pixelart_Dither", 0.7f },
+                },
             },
         };
 
@@ -179,8 +223,8 @@ namespace SabaShader.CI
             }
 
             // グリッドの縦横比 (列 6 / 行 5) に合わせる
-            const int width = 1680;
-            const int height = 1400;
+            const int width = CaptureWidth;
+            const int height = CaptureHeight;
             var target = new RenderTexture(width, height, 24, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB);
             var texture = new Texture2D(width, height, TextureFormat.RGBA32, false);
 
@@ -447,7 +491,9 @@ namespace SabaShader.CI
             // 正射投影だと _OutlineFixedWidth の経路が実運用と変わってしまう。
             // 歪みを抑えた狭い画角の透視投影にして、遠くから引きで撮る。
             const float fieldOfView = 20.0f;
-            var halfHeight = rowOffset + 0.75f;
+            // 縦だけで合わせると列が増えたときに横がはみ出す。両方から必要量を取る。
+            var aspect = CaptureWidth / (float)CaptureHeight;
+            var halfHeight = Mathf.Max(rowOffset + 0.75f, (columnOffset + 0.75f) / aspect);
             var distance = halfHeight / Mathf.Tan(fieldOfView * 0.5f * Mathf.Deg2Rad);
 
             camera.orthographic = false;

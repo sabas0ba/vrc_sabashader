@@ -1,0 +1,39 @@
+msgid ""
+msgstr ""
+"Language: en-US\n"
+
+msgid "__PixelArt"
+msgstr "Pixel Art"
+
+msgid "__Amount"
+msgstr "Amount"
+
+msgid "__AmountDesc"
+msgstr "0 disables it. 1 replaces the color completely."
+
+msgid "__Levels"
+msgstr "Color Levels"
+
+msgid "__LevelsDesc"
+msgstr "Steps per channel. 2 is black and white, 4 gives 64 colors."
+
+msgid "__CellSize"
+msgstr "Cell Size"
+
+msgid "__CellSizeDesc"
+msgstr "Dither cell size in screen pixels. The screen itself cannot be downsampled."
+
+msgid "__Dither"
+msgstr "Dither"
+
+msgid "__DitherDesc"
+msgstr "Scatters the banding from color reduction with an ordered dither."
+
+msgid "__Palette"
+msgstr "Palette"
+
+msgid "__PaletteDesc"
+msgstr "Horizontal gradient image. Looked up by brightness to replace colors."
+
+msgid "__PaletteBlend"
+msgstr "Palette Blend"

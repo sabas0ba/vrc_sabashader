@@ -31,7 +31,7 @@ def _render(case) -> "object":
         light_color=case.light_color,
         ambient=case.ambient,
         outline=case.resolved_outline(),
-        overlay=case.resolved_overlay(),
+        module_styles=case.resolved_module_styles(),
     )
     return render_fragment(source, case.resolution)
 

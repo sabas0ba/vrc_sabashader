@@ -264,13 +264,37 @@ vec4 sceneOverlaySwatch(vec2 uv)
     return vec4(SBSOverlayAlbedo(albedo, overlay, tint, coverage, ost), 1.0);
 }
 
+// mode 8: 横軸 = 明るさ、縦軸 = ベースカラー のドット絵化表
+//
+// PixelArtCore.hlsl の量子化とディザをそのまま通す。
+// 画面座標に依存するので、決定的になるよう解像度から作った座標を渡す。
+vec4 scenePixelSwatch(vec2 uv)
+{
+    int row = int(floor(uv.y * 8.0));
+    vec3 albedo = sceneSwatchColor(row) * (uv.x * 1.2);
+
+    SBSPixelStyle pst = scenePixelStyle();
+
+    vec2 screen = uv * SCENE_RESOLUTION;
+    float threshold = SBSPixelThreshold(screen, pst);
+
+    vec3 quantized = SBSPixelQuantize(albedo, threshold, pst);
+
+    // パレットはテクスチャの代わりに虹色のグラデーションで代用する
+    float coord = SBSPixelPaletteCoord(albedo, threshold, pst);
+    vec3 palette = SBSHsvToRgb(vec3(coord, 0.65, 0.55 + 0.45 * coord));
+
+    return vec4(SBSPixelApply(albedo, quantized, palette, pst), 1.0);
+}
+
 void main()
 {
     vec2 uv = gl_FragCoord.xy / SCENE_RESOLUTION;
     vec2 ndc = uv * 2.0 - 1.0;
 
     vec4 col;
-    if (SCENE_MODE == 7) col = sceneOverlaySwatch(uv);
+    if (SCENE_MODE == 8) col = scenePixelSwatch(uv);
+    else if (SCENE_MODE == 7) col = sceneOverlaySwatch(uv);
     else if (SCENE_MODE == 0) col = sceneSphere(ndc);
     else if (SCENE_MODE == 1) col = sceneRampSwatch(uv);
     else if (SCENE_MODE == 2) col = sceneOutlineSwatch(uv);

@@ -102,7 +102,7 @@ def build_scene_source(
     light_color: Sequence[float],
     ambient: Sequence[float],
     outline: Dict[str, object],
-    overlay: Optional[Dict[str, object]] = None,
+    module_styles: Optional[Dict[str, Dict[str, object]]] = None,
     gamma: float = 2.2,
 ) -> str:
     core = read_core()
@@ -111,15 +111,22 @@ def build_scene_source(
     modules = module_cores()
     module_source = "\n".join(f"// ---- {name} ----\n{body}" for name, body in modules)
 
-    # モジュールの数式もゴールデンで守るため、スタイルを同じ仕組みで注入する。
-    overlay_block = ""
+    # モジュールの数式もゴールデンで守るため、スタイルを本体と同じ仕組みで注入する。
+    # SBSXxxStyle という構造体を見つけたら sceneXxxStyle() を生成する。
+    module_styles = module_styles or {}
+    style_blocks: List[str] = []
     for name, body in modules:
-        if "struct SBSOverlayStyle" not in body:
-            continue
-        overlay_fields = parse_struct_fields(body, "SBSOverlayStyle")
-        if overlay is None:
-            raise KeyError(f"{name} があるのに overlay のスタイルが渡されていません")
-        overlay_block = emit_style(overlay_fields, overlay, struct="SBSOverlayStyle", function="sceneOverlayStyle")
+        for struct in sorted(set(re.findall(r"struct\s+(SBS\w+Style)\s*\{", body))):
+            if struct not in module_styles:
+                raise KeyError(f"{name} の {struct} に対応するスタイルが渡されていません")
+            style_blocks.append(
+                emit_style(
+                    parse_struct_fields(body, struct),
+                    module_styles[struct],
+                    struct=struct,
+                    function="scene" + struct[3:],
+                )
+            )
 
     header = "\n".join(
         [
@@ -137,7 +144,7 @@ def build_scene_source(
             "",
             emit_style(fields, style),
             "",
-            overlay_block,
+            "\n\n".join(style_blocks),
         ]
     )
 
