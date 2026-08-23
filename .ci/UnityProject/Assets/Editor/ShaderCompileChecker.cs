@@ -132,16 +132,23 @@ namespace SabaShader.CI
 
         public static List<string> PassNames(Shader shader)
         {
-            var found = new List<string>();
-            for (var subShader = 0; subShader < shader.subshaderCount; subShader++)
+            // UnityEngine.Shader にパス名を取る API は無いので Material 経由で列挙する。
+            // Material.passCount は有効な SubShader のパスだけを数える。
+            var material = new Material(shader);
+            try
             {
-                for (var pass = 0; pass < shader.GetPassCountInSubshader(subShader); pass++)
+                var found = new List<string>();
+                for (var pass = 0; pass < material.passCount; pass++)
                 {
-                    found.Add(shader.GetPassName(subShader, pass));
+                    found.Add(material.GetPassName(pass));
                 }
-            }
 
-            return found;
+                return found;
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(material);
+            }
         }
 
         private static bool IsIllust2D(string path)
