@@ -6,12 +6,16 @@
 // -----------------------------------------------------------------------------
 // 色数を落としてドット絵の質感に寄せる数式。
 //
-// できることの範囲について:
-//   モジュールは「本体が描いた結果」の上に乗るだけで、隣接ピクセルを読めない。
-//   そのため **画面を実際に間引く（低解像度化）ことはできない**。
-//   GrabPass を使えば可能だが、このリポジトリでは使わない方針。
-//   代わりに、色数の量子化・パレット・画面基準の整列ディザで
-//   ドット絵の見え方に寄せる。「解像度」はディザの升目の大きさを指す。
+// どうやって升目状にしているか:
+//   モジュールは隣接ピクセルを読めないので、画面を撮り直して間引くことはできない。
+//   代わりに **升目の中心での値を勾配 (ddx/ddy) から 1 次近似で推定** し、
+//   シェーディングの入力（ベースカラー・法線・UV）をその値に差し替える。
+//   入力が升目内で一定になるので、そこから先の計算結果も升目内で一定になり、
+//   描画結果が升目状になる。
+//
+//   法線や UV は面の上で滑らかなので、この近似はよく合う。
+//   一方でシルエット（形の縁）は頂点の位置で決まるため升目状にはならない。
+//   テクスチャの模様の境目のように急に変わるところでは近似が外れる。
 //
 // Unity / レンダーパイプライン / Shader Core のどれにも依存しない。
 // HLSL としても、tests/harness/prelude.glsl を前置した GLSL 3.30 core としても
@@ -33,6 +37,46 @@ struct SBSPixelStyle
     // パレットへの寄せ具合。0 で素の色のまま。
     half palette;
 };
+
+// -----------------------------------------------------------------------------
+// 升目への吸着
+// -----------------------------------------------------------------------------
+
+// 今のピクセルから升目の中心までの、画面上のずれ。
+half2 SBSPixelCellDelta(half2 screenPosition, SBSPixelStyle st)
+{
+    half cell = max(st.cellSize, 1.0);
+    half2 center = (floor(screenPosition / cell) + half2(0.5, 0.5)) * cell;
+    return center - screenPosition;
+}
+
+// 升目の中心での値を勾配から推定して差し替える。
+//
+// シルエットの縁のように勾配が急なところでは 1 次近似が大きく外れるので、
+// 補正量に上限を設けて元の値へ寄せる。これをしないと縁に黒い点が散る。
+half SBSPixelSnap1(half value, half2 delta, half amount)
+{
+    half correction = ddx(value) * delta.x + ddy(value) * delta.y;
+    half magnitude = abs(correction);
+    correction *= (magnitude > 1.0) ? (1.0 / magnitude) : 1.0;
+    return lerp(value, value + correction, saturate(amount));
+}
+
+half2 SBSPixelSnap2(half2 value, half2 delta, half amount)
+{
+    half2 correction = ddx(value) * delta.x + ddy(value) * delta.y;
+    half magnitude = length(correction);
+    correction *= (magnitude > 1.0) ? (1.0 / magnitude) : 1.0;
+    return lerp(value, value + correction, saturate(amount));
+}
+
+half3 SBSPixelSnap3(half3 value, half2 delta, half amount)
+{
+    half3 correction = ddx(value) * delta.x + ddy(value) * delta.y;
+    half magnitude = length(correction);
+    correction *= (magnitude > 1.0) ? (1.0 / magnitude) : 1.0;
+    return lerp(value, value + correction, saturate(amount));
+}
 
 // -----------------------------------------------------------------------------
 // ディザ
@@ -71,12 +115,18 @@ half SBSPixelQuantizeChannel(half value, half levels, half threshold, half dithe
     return saturate(floor(saturate(value) * steps + 0.5 + offset) / steps);
 }
 
+// 色を段に落とす。
+//
+// チャンネルごとに独立して落とすと、隣り合う升目で R/G/B が別々の段へ飛び、
+// 肌色の上に黄や赤の点が散るような色ノイズになる。明るさだけを段に落として
+// 色味の比を保つと、段差が付いたまま色が破綻しない。
 half3 SBSPixelQuantize(half3 c, half threshold, SBSPixelStyle st)
 {
-    return half3(
-        SBSPixelQuantizeChannel(c.r, st.levels, threshold, st.dither),
-        SBSPixelQuantizeChannel(c.g, st.levels, threshold, st.dither),
-        SBSPixelQuantizeChannel(c.b, st.levels, threshold, st.dither));
+    half3 col = saturate(c);
+    half lum = dot(col, half3(0.2126, 0.7152, 0.0722));
+    half quantized = SBSPixelQuantizeChannel(lum, st.levels, threshold, st.dither);
+    half scale = quantized / max(lum, 1.0e-3);
+    return saturate(col * scale);
 }
 
 // -----------------------------------------------------------------------------

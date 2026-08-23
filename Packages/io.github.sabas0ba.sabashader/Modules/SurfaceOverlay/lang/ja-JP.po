@@ -53,6 +53,33 @@ msgstr "積もりの丸み"
 msgid "__FlattenDesc"
 msgstr "覆われた部分の法線を上向きに寝かせます。雪の積もりに使います。"
 
+msgid "__Thickness"
+msgstr "積もりの厚み"
+
+msgid "__ThicknessDesc"
+msgstr "頂点を押し出して厚みを出します。単位はメートル。形が変わるので入れすぎに注意してください。"
+
+msgid "__VertexMaskChannel"
+msgstr "頂点カラーのマスク"
+
+msgid "__VertexMaskChannelDesc"
+msgstr "厚みを抑える頂点カラーのチャンネル。頂点シェーダーではテクスチャを引けないため、マスクは頂点カラーで指定します。"
+
+msgid "__Droplet"
+msgstr "水滴の付着"
+
+msgid "__DropletDesc"
+msgstr "面に付く水の粒。濡れて見えるかどうかはこれが効きます。"
+
+msgid "__DropletScale"
+msgstr "粒の細かさ"
+
+msgid "__DropletBump"
+msgstr "粒の盛り上がり"
+
+msgid "__DropletBumpDesc"
+msgstr "粒で法線を歪めます。本体のハイライトが粒を光らせるので、これが 0 だと濡れて見えません。"
+
 msgid "__Streak"
 msgstr "垂れ"
 

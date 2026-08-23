@@ -11,6 +11,10 @@
     overlayStyle.blur = _Blur;
     overlayStyle.darken = _Darken;
     overlayStyle.flatten = _Flatten;
+    overlayStyle.thickness = _Thickness;
+    overlayStyle.droplet = _Droplet;
+    overlayStyle.dropletScale = _DropletScale;
+    overlayStyle.dropletBump = _DropletBump;
     overlayStyle.streak = _Streak;
     overlayStyle.streakScale = _StreakScale;
     overlayStyle.streakSpeed = _StreakSpeed;
@@ -37,4 +41,9 @@
     half3 upTangent = mul(vertex.TBN, worldUp);
     sd.N = SBSOverlayNormal(sd.N, upTangent, overlayCoverage, overlayStyle);
     sd.N_detail = SBSOverlayNormal(sd.N_detail, upTangent, overlayCoverage, overlayStyle);
+
+    // 粒の盛り上がりで法線を歪める。base フェーズの sd.N は接空間なので、
+    // xy をずらすだけで粒の向きになる。ここが濡れの見え方を決める。
+    sd.N = SBSOverlayDropletNormal(sd.N, overlayUV, overlayStyle);
+    sd.N_detail = SBSOverlayDropletNormal(sd.N_detail, overlayUV, overlayStyle);
 }

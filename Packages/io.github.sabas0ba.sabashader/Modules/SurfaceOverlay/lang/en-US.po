@@ -53,6 +53,33 @@ msgstr "Settled Roundness"
 msgid "__FlattenDesc"
 msgstr "Tilts the normal upward where covered. Use for settled snow."
 
+msgid "__Thickness"
+msgstr "Settled Thickness"
+
+msgid "__ThicknessDesc"
+msgstr "Pushes vertices out to give the layer thickness, in meters. Changes the silhouette, so keep it small."
+
+msgid "__VertexMaskChannel"
+msgstr "Vertex Color Mask"
+
+msgid "__VertexMaskChannelDesc"
+msgstr "Vertex color channel that limits the thickness. Textures cannot be sampled in a vertex shader, so the mask comes from vertex colors."
+
+msgid "__Droplet"
+msgstr "Droplets"
+
+msgid "__DropletDesc"
+msgstr "Water beads on the surface. This is what makes it read as wet."
+
+msgid "__DropletScale"
+msgstr "Droplet Density"
+
+msgid "__DropletBump"
+msgstr "Droplet Bump"
+
+msgid "__DropletBumpDesc"
+msgstr "Perturbs the normal per droplet so the body's specular lights them up. At 0 it will not look wet."
+
 msgid "__Streak"
 msgstr "Streaks"
 

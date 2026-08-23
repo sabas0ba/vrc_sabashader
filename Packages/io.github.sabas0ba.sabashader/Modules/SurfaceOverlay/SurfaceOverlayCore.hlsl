@@ -38,7 +38,16 @@ struct SBSOverlayStyle
     // 積もりの表現。法線をどれだけ上向きに寝かせるか。
     half flatten;
 
-    // 垂れ（雨だれ・汗）の強さと細かさと速さ。
+    // 積もりの厚み（メートル）。頂点を法線方向へ押し出す量。
+    half thickness;
+
+    // 水滴の付着。粒の量と細かさ、法線をどれだけ歪めるか。
+    // 濡れて見えるかどうかは、色を暗くするより粒のハイライトで決まる。
+    half droplet;
+    half dropletScale;
+    half dropletBump;
+
+    // したたり（雨だれ・汗）の強さと細かさと速さ。
     half streak;
     half streakScale;
     half streakSpeed;
@@ -79,8 +88,31 @@ half SBSOverlayFacing(half3 N, half3 up, half upBias)
     return lerp(1.0, facing, saturate(upBias));
 }
 
-// 縦に流れる筋。雨だれと汗はこれで向きが出る。
-// uv.y を下向きに流し、横方向は列ごとに位相をずらす。
+// 付着した水滴。升目ごとに 1 粒置き、中心からの距離で丸い盛り上がりを作る。
+// 戻り値の x が高さ、yz が中心からのずれ（法線を歪めるのに使う）。
+half3 SBSOverlayDroplet(half2 uv, SBSOverlayStyle st)
+{
+    half scale = max(st.dropletScale, 1.0e-3);
+    half2 grid = uv * scale;
+    half2 cell = floor(grid);
+    half2 local = frac(grid) - half2(0.5, 0.5);
+
+    // 升目ごとに位置と大きさを散らす。等間隔に並ぶと粒に見えない。
+    half2 jitter = half2(
+        SBSOverlayHash(cell) - 0.5,
+        SBSOverlayHash(cell + half2(37.0, 11.0)) - 0.5) * 0.7;
+    half radius = 0.16 + 0.24 * SBSOverlayHash(cell + half2(5.0, 23.0));
+
+    half2 offset = local - jitter;
+    half distance = length(offset);
+    half fall = saturate(1.0 - distance / max(radius, 1.0e-3));
+
+    // 球冠の断面。縁で急に落ちるので粒の輪郭が立つ。
+    half height = fall * fall;
+    return half3(height, offset.x * fall, offset.y * fall);
+}
+
+// 縦に流れるしたたり。uv.y を下向きに流し、横方向は列ごとに位相をずらす。
 half SBSOverlayStreak(half2 uv, SBSOverlayStyle st)
 {
     half scale = max(st.streakScale, 1.0e-3);
@@ -104,10 +136,14 @@ half SBSOverlayCoverage(half3 N, half3 up, half mask, half2 uv, SBSOverlayStyle 
     half facing = SBSOverlayFacing(N, up, st.upBias);
     half base = facing * saturate(mask);
 
-    // 垂れは「足す」のではなく「被覆の形を筋に寄せる」。足すと面の向きで
+    // したたりは「足す」のではなく「被覆の形を筋に寄せる」。足すと面の向きで
     // 既に高い被覆に上乗せされて飽和し、筋が見えなくなる。
     half streak = SBSOverlayStreak(uv, st);
     base = lerp(base, streak, saturate(st.streak));
+
+    // 付着した粒は、したたりとは別に上乗せする。粒は面の向きに関係なく付く。
+    half droplet = SBSOverlayDroplet(uv, st).x;
+    base = saturate(base + droplet * saturate(st.droplet));
 
     return saturate(SBSOverlayStep(base, st.border, st.blur) * saturate(st.amount));
 }
@@ -125,6 +161,36 @@ half3 SBSOverlayAlbedo(half3 albedo, half3 overlay, half tint, half coverage, SB
 {
     half3 wet = albedo * lerp(1.0, 0.45, saturate(st.darken) * coverage);
     return lerp(wet, overlay, coverage * saturate(tint));
+}
+
+// 頂点をどれだけ押し出すか。頂点シェーダーから呼ぶ。
+//
+// ピクセル側と同じ被覆率の計算を使いたいが、頂点シェーダーでは
+// マスクテクスチャを引けない。面の向きと頂点カラーだけで決める。
+half SBSOverlayDisplacement(half3 N, half3 up, half mask, SBSOverlayStyle st)
+{
+    half facing = SBSOverlayFacing(N, up, st.upBias);
+    half base = facing * saturate(mask);
+    half coverage = saturate(SBSOverlayStep(base, st.border, st.blur) * saturate(st.amount));
+    return coverage * st.thickness;
+}
+
+// 水滴の盛り上がりで法線を歪める。接空間で呼ぶこと。
+//
+// 濡れて見えるかどうかは、色を暗くするより「粒がハイライトを拾うか」で決まる。
+// 法線を歪めておくと、本体側のスペキュラが勝手に粒を光らせてくれる。
+half3 SBSOverlayDropletNormal(half3 N, half2 uv, SBSOverlayStyle st)
+{
+    half3 droplet = SBSOverlayDroplet(uv, st);
+    half strength = saturate(st.droplet) * st.dropletBump;
+
+    half3 bumped = half3(
+        N.x - droplet.y * strength,
+        N.y - droplet.z * strength,
+        N.z);
+
+    half len = length(bumped);
+    return (len > 1.0e-4) ? (bumped / len) : normalize(N);
 }
 
 // 積もったぶん法線を上向きに寝かせる。雪の丸みはこれで出る。
