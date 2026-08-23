@@ -175,21 +175,19 @@ CASES: List[Case] = [
         description="平らな面と鋭い稜線。面ごとに塗りが段になるので境界の位置が分かる。",
     ),
     Case(
-        name="box_hard_cel",
+        name="box_band_per_face",
         mode=MODE_BOX,
-        description="ぼかしを 0 にした立方体。平面上で境界がどこに来るかを厳密に見る。",
-        style={"shadeBlur1": 0.0, "shadeBlur2": 0.0, "shadeBorder1": 0.58, "shadeBorder2": 0.34},
+        # 見える 3 面の half-lambert 値は 0.224 / 0.642 / 0.892。
+        # 境界をその間に置くと 1 面ずつ別の帯に入るので、境界の位置がずれると
+        # 面の色が入れ替わって一目で分かる。平面は面内で値が一定なので、
+        # ぼかしを変えても絵が動かない（それでは回帰テストにならない）。
+        description="見える 3 面がそれぞれ別の帯に入る設定。境界位置のずれが面の色の入れ替わりとして出る。",
+        style={"shadeBlur1": 0.0, "shadeBlur2": 0.0, "shadeBorder1": 0.75, "shadeBorder2": 0.45},
     ),
     Case(
         name="torus_default",
         mode=MODE_TORUS,
         description="自己遮蔽のある形。内側に落ちる影が shadowStrength の経路を通る。",
-    ),
-    Case(
-        name="torus_posterized",
-        mode=MODE_TORUS,
-        description="曲率が連続的に変わる面での 4 段ポスタライズ。段の間隔が見える。",
-        style={"shadeBlur1": 0.55, "shadeBlur2": 0.55, "shadeSteps": 4.0},
     ),
     Case(
         name="capsule_rim_specular",
