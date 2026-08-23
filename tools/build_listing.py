@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import html
 import json
 import os
 import sys
@@ -25,9 +26,11 @@ DEFAULT_CONFIG = REPO_ROOT / "listing.json"
 DEFAULT_DOCS = REPO_ROOT / "docs"
 
 # `python tools/build_listing.py` で直接動かしたときも
-# `tools.render_docs` を import できるようにする。
+# `tools.site_theme` / `tools.render_docs` を import できるようにする。
 if __package__ in (None, ""):
     sys.path.insert(0, str(REPO_ROOT))
+
+from tools import site_theme  # noqa: E402  （sys.path を通してから読む）
 
 GITHUB_API = "https://api.github.com"
 
@@ -140,8 +143,12 @@ def build_listing(config: dict, versions: Dict[str, Dict[str, dict]]) -> dict:
 
 
 def render_page(listing: dict, docs: Optional[List[Tuple[str, str]]] = None) -> str:
-    """GitHub Pages に置く案内ページ。VCC にリスティングを登録するリンクを出す。"""
+    """GitHub Pages に置く案内ページ。VCC にリスティングを登録するリンクを出す。
+
+    ガワと配色は docs のページと共通（`tools/site_theme.py`）。
+    """
     add_link = f"vcc://vpm/addRepo?url={listing['url']}"
+    docs = list(docs or [])
 
     rows = []
     for name, package in listing["packages"].items():
@@ -149,52 +156,49 @@ def render_page(listing: dict, docs: Optional[List[Tuple[str, str]]] = None) -> 
         latest = package["versions"][versions[0]] if versions else {}
         rows.append(
             "<tr>"
-            f"<td><code>{name}</code></td>"
-            f"<td>{latest.get('displayName', '')}</td>"
-            f"<td>{versions[0] if versions else '-'}</td>"
+            f"<td><code>{html.escape(name)}</code></td>"
+            f"<td>{html.escape(latest.get('displayName', ''))}</td>"
+            f"<td><code>{html.escape(versions[0]) if versions else '-'}</code></td>"
             f"<td>{len(versions)}</td>"
             "</tr>"
         )
 
     table = "\n".join(rows) or '<tr><td colspan="4">まだリリースがありません</td></tr>'
-    description = listing.get("description", "")
+    description = html.escape(listing.get("description", ""))
+    listing_url = html.escape(listing["url"])
+
+    nav = site_theme.render_nav([("index.html", "リスティング")] + docs, "index.html")
 
     docs_section = ""
     if docs:
-        items = "".join(f'<li><a href="{href}">{label}</a></li>' for href, label in docs)
-        docs_section = f"<h2>ドキュメント</h2>\n<ul>{items}</ul>"
+        items = "".join(
+            f'<li><a href="{html.escape(href, quote=True)}">{html.escape(label)}</a></li>' for href, label in docs
+        )
+        docs_section = f'<h2>ドキュメント</h2>\n<ul class="doc-list">{items}</ul>'
 
-    return f"""<!DOCTYPE html>
-<html lang="ja">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{listing['name']} VPM Listing</title>
-<style>
-  body {{ font-family: system-ui, sans-serif; max-width: 46rem; margin: 3rem auto; padding: 0 1rem; line-height: 1.7; }}
-  code {{ background: #f0f0f3; padding: 0.1em 0.35em; border-radius: 4px; }}
-  table {{ border-collapse: collapse; width: 100%; margin: 1.5rem 0; }}
-  th, td {{ border-bottom: 1px solid #ddd; padding: 0.5rem; text-align: left; }}
-  .cta {{ display: inline-block; background: #1c1c22; color: #fff; padding: 0.6rem 1.2rem;
-          border-radius: 6px; text-decoration: none; }}
-</style>
-</head>
-<body>
-<h1>{listing['name']}</h1>
-<p>{description}</p>
-<p><a class="cta" href="{add_link}">VCC にこのリスティングを追加</a></p>
-<p>うまく動かない場合は VCC の Settings &gt; Packages &gt; Add Repository に
-<code>{listing['url']}</code> を貼り付けてください。</p>
+    body = f"""<h1>{html.escape(listing['name'])}</h1>
+<p class="lede">{description}</p>
+<p><a class="cta" href="{html.escape(add_link, quote=True)}">VCC にこのリスティングを追加</a></p>
+<p class="note">うまく動かない場合は VCC の Settings &gt; Packages &gt; Add Repository に
+<code>{listing_url}</code> を貼り付けてください。</p>
+
+<h2>パッケージ</h2>
+<div class="card">
+<div class="table-scroll">
 <table>
 <thead><tr><th>パッケージ</th><th>表示名</th><th>最新</th><th>バージョン数</th></tr></thead>
 <tbody>
 {table}
 </tbody>
 </table>
-{docs_section}
-</body>
-</html>
-"""
+</div>
+</div>
+
+{docs_section}"""
+
+    return site_theme.render_document(
+        f"{listing['name']} VPM Listing", body, nav, home_href="index.html"
+    )
 
 
 def main() -> int:

@@ -90,3 +90,20 @@ https://lilxyzw.github.io/vpm-repos/vpm.json
 
 Pages に配信される案内ページ（`index.html`）には
 `vcc://vpm/addRepo?url=...` のワンクリック追加リンクを置いてあります。
+
+## サイトの見た目
+
+案内ページと docs のページは同じガワで出しています。ヘッダー・ナビ・
+フッター・配色は `tools/site_theme.py` に集約してあるので、
+見た目を変えるときはこの 1 ファイルだけを触ってください。
+片方だけに CSS を足すと 2 つのページがズレます。
+
+ダークモードは 2 段構えです。
+
+- 既定は OS の設定に追従する（`prefers-color-scheme`）
+- 右上の「テーマ」ボタンで明示的に切り替えると `localStorage` に覚える
+
+色は素の `:root` に定義し、`@media (prefers-color-scheme: dark)` と
+`:root[data-theme="dark"]` では**上書きだけ**をします。
+片方でしか定義していない変数を作ると、もう一方のテーマで色が抜け落ちます。
+明暗で定義が食い違っていないことは `tests/test_docs_site.py` が検査します。
