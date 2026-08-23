@@ -22,6 +22,7 @@ namespace SabaShader.CI
         const string ShaderPath = ShaderCompileChecker.Illust2DPath;
         const string RootDir = "Assets/Illust2DCheck";
         const string MaterialDir = RootDir + "/Materials";
+        const string MeshDir = RootDir + "/Meshes";
         const string ScenePath = RootDir + "/Illust2DCheck.unity";
 
         // tests/cases.py の Case 既定値
@@ -81,6 +82,53 @@ namespace SabaShader.CI
             },
         };
 
+        /// <summary>
+        /// 並べる立体。球だけだと平らな面・鋭いエッジ・自己遮蔽での見え方が分からないので、
+        /// 曲面（球）・平面と稜線（立方体）・押し出し曲面（カプセル / 円柱）・
+        /// 自己遮蔽のある形（トーラス）を揃える。
+        /// </summary>
+        sealed class Shape
+        {
+            public string Name;
+            // null のときは手続きで作るトーラス
+            public PrimitiveType? Primitive;
+            public Vector3 Scale = Vector3.one;
+            public Vector3 Euler = Vector3.zero;
+        }
+
+        static readonly Shape[] Shapes =
+        {
+            // 球だけは tests/golden/sphere_*.png と直接比較できるよう向きを変えない
+            new Shape { Name = "sphere", Primitive = PrimitiveType.Sphere },
+            new Shape
+            {
+                Name = "cube",
+                Primitive = PrimitiveType.Cube,
+                Scale = Vector3.one * 0.58f,
+                Euler = new Vector3(25.0f, 35.0f, 0.0f),
+            },
+            new Shape
+            {
+                Name = "capsule",
+                Primitive = PrimitiveType.Capsule,
+                Scale = Vector3.one * 0.40f,
+                Euler = new Vector3(15.0f, 0.0f, 20.0f),
+            },
+            new Shape
+            {
+                Name = "cylinder",
+                Primitive = PrimitiveType.Cylinder,
+                Scale = new Vector3(0.45f, 0.40f, 0.45f),
+                Euler = new Vector3(18.0f, 0.0f, 12.0f),
+            },
+            new Shape
+            {
+                Name = "torus",
+                Primitive = null,
+                Euler = new Vector3(62.0f, 0.0f, 10.0f),
+            },
+        };
+
         [MenuItem("Tools/SabaShader/Illust2D 確認シーンを生成")]
         public static void BuildFromMenu()
         {
@@ -130,8 +178,9 @@ namespace SabaShader.CI
                 return;
             }
 
-            const int width = 1600;
-            const int height = 400;
+            // グリッドの縦横比 (列 6 / 行 5) に合わせる
+            const int width = 1680;
+            const int height = 1400;
             var target = new RenderTexture(width, height, 24, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB);
             var texture = new Texture2D(width, height, TextureFormat.RGBA32, false);
 
@@ -157,6 +206,15 @@ namespace SabaShader.CI
         public static void Build()
         {
             Failed = false;
+
+            // ProjectSettings は追跡していないので、見た目が環境に左右されないよう
+            // VRChat と同じ Linear に固定する。Gamma のままだと陰の濃さが変わる。
+            if (PlayerSettings.colorSpace != ColorSpace.Linear)
+            {
+                PlayerSettings.colorSpace = ColorSpace.Linear;
+                Debug.Log("[Illust2DCheckScene] カラースペースを Linear に変更しました。");
+            }
+
             AssetDatabase.Refresh();
 
             var shader = ShaderCompileChecker.ImportAndLoad(ShaderPath);
@@ -219,6 +277,76 @@ namespace SabaShader.CI
         {
             if (!AssetDatabase.IsValidFolder(RootDir)) AssetDatabase.CreateFolder("Assets", "Illust2DCheck");
             if (!AssetDatabase.IsValidFolder(MaterialDir)) AssetDatabase.CreateFolder(RootDir, "Materials");
+            if (!AssetDatabase.IsValidFolder(MeshDir)) AssetDatabase.CreateFolder(RootDir, "Meshes");
+        }
+
+        /// <summary>
+        /// トーラス。Unity の組み込みプリミティブに無いので手続きで作る。
+        /// 自己遮蔽と内側の曲面があり、トゥーン塗りの破綻が出やすい。
+        /// </summary>
+        static Mesh CreateTorusMesh(float major, float minor, int majorSegments, int minorSegments)
+        {
+            var stride = minorSegments + 1;
+            var vertices = new Vector3[(majorSegments + 1) * stride];
+            var normals = new Vector3[vertices.Length];
+            var uv = new Vector2[vertices.Length];
+            var triangles = new int[majorSegments * minorSegments * 6];
+
+            var v = 0;
+            for (var i = 0; i <= majorSegments; i++)
+            {
+                var u = (float)i / majorSegments;
+                var theta = u * Mathf.PI * 2.0f;
+                var outward = new Vector3(Mathf.Cos(theta), 0.0f, Mathf.Sin(theta));
+                var center = outward * major;
+
+                for (var j = 0; j <= minorSegments; j++)
+                {
+                    var w = (float)j / minorSegments;
+                    var phi = w * Mathf.PI * 2.0f;
+                    var n = outward * Mathf.Cos(phi) + Vector3.up * Mathf.Sin(phi);
+
+                    vertices[v] = center + n * minor;
+                    normals[v] = n;
+                    uv[v] = new Vector2(u, w);
+                    v++;
+                }
+            }
+
+            var t = 0;
+            for (var i = 0; i < majorSegments; i++)
+            {
+                for (var j = 0; j < minorSegments; j++)
+                {
+                    var a = i * stride + j;
+                    var b = a + stride;
+
+                    triangles[t++] = a;
+                    triangles[t++] = a + 1;
+                    triangles[t++] = b;
+
+                    triangles[t++] = a + 1;
+                    triangles[t++] = b + 1;
+                    triangles[t++] = b;
+                }
+            }
+
+            var mesh = new Mesh { name = "Torus" };
+            mesh.vertices = vertices;
+            mesh.normals = normals;
+            mesh.uv = uv;
+            mesh.triangles = triangles;
+            mesh.RecalculateBounds();
+            mesh.RecalculateTangents();
+            return mesh;
+        }
+
+        static Mesh EnsureTorusAsset()
+        {
+            const string path = MeshDir + "/Torus.asset";
+            AssetDatabase.DeleteAsset(path);
+            AssetDatabase.CreateAsset(CreateTorusMesh(0.34f, 0.14f, 72, 28), path);
+            return AssetDatabase.LoadAssetAtPath<Mesh>(path);
         }
 
         static Material CreateMaterial(Shader shader, Variant variant)
@@ -243,6 +371,16 @@ namespace SabaShader.CI
             return AssetDatabase.LoadAssetAtPath<Material>(path);
         }
 
+        static GameObject CreateSubject(Shape shape, Mesh torus)
+        {
+            if (shape.Primitive.HasValue) return GameObject.CreatePrimitive(shape.Primitive.Value);
+
+            var go = new GameObject();
+            go.AddComponent<MeshFilter>().sharedMesh = torus;
+            go.AddComponent<MeshRenderer>();
+            return go;
+        }
+
         static void PopulateScene(IReadOnlyList<Material> materials)
         {
             RenderSettings.ambientMode = AmbientMode.Flat;
@@ -257,30 +395,45 @@ namespace SabaShader.CI
             // cases.py の light_dir は面から光源へ向くベクトル。Unity の forward はその逆。
             lightObject.transform.rotation = Quaternion.LookRotation(-LightDirection.normalized);
 
-            const float spacing = 1.3f;
+            // 列 = バリエーション、行 = 立体。左上が sphere / default。
+            const float columnPitch = 1.5f;
+            const float rowPitch = 1.5f;
             const float radius = 0.5f;
-            var offset = spacing * (materials.Count - 1) * 0.5f;
 
-            for (var i = 0; i < materials.Count; i++)
+            var torus = EnsureTorusAsset();
+            var columnOffset = columnPitch * (materials.Count - 1) * 0.5f;
+            var rowOffset = rowPitch * (Shapes.Length - 1) * 0.5f;
+
+            for (var row = 0; row < Shapes.Length; row++)
             {
-                var position = new Vector3(i * spacing - offset, 0.0f, 0.0f);
+                var shape = Shapes[row];
 
-                var sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-                sphere.name = "Illust2D_" + Variants[i].Name;
-                sphere.transform.position = position;
-                sphere.GetComponent<MeshRenderer>().sharedMaterial = materials[i];
+                for (var column = 0; column < materials.Count; column++)
+                {
+                    var position = new Vector3(
+                        column * columnPitch - columnOffset,
+                        rowOffset - row * rowPitch,
+                        0.0f);
 
-                // 落ち影を作る遮蔽物。_ShadowStrength の違いを見るために必ず置く。
-                // 位置と大きさは tests/harness/scene.frag の
-                // step(0.34, length(pos.xy - vec2(-0.42, 0.30))) に合わせてある。
-                var blocker = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-                blocker.name = sphere.name + "_Blocker";
-                blocker.transform.position =
-                    position
-                    + new Vector3(-0.42f, 0.30f, 0.0f) * radius
-                    + LightDirection.normalized * 1.4f;
-                blocker.transform.localScale = Vector3.one * (0.34f * radius * 2.0f);
-                blocker.GetComponent<MeshRenderer>().shadowCastingMode = ShadowCastingMode.ShadowsOnly;
+                    var subject = CreateSubject(shape, torus);
+                    subject.name = "Illust2D_" + shape.Name + "_" + Variants[column].Name;
+                    subject.transform.position = position;
+                    subject.transform.localScale = shape.Scale;
+                    subject.transform.rotation = Quaternion.Euler(shape.Euler);
+                    subject.GetComponent<MeshRenderer>().sharedMaterial = materials[column];
+
+                    // 落ち影を作る遮蔽物。_ShadowStrength の違いを見るために必ず置く。
+                    // 位置と大きさは tests/harness/scene.frag の
+                    // step(0.34, length(pos.xy - vec2(-0.42, 0.30))) に合わせてある。
+                    var blocker = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                    blocker.name = subject.name + "_Blocker";
+                    blocker.transform.position =
+                        position
+                        + new Vector3(-0.42f, 0.30f, 0.0f) * radius
+                        + LightDirection.normalized * 1.4f;
+                    blocker.transform.localScale = Vector3.one * (0.34f * radius * 2.0f);
+                    blocker.GetComponent<MeshRenderer>().shadowCastingMode = ShadowCastingMode.ShadowsOnly;
+                }
             }
 
             var cameraObject = new GameObject("Main Camera");
@@ -289,10 +442,19 @@ namespace SabaShader.CI
             camera.clearFlags = CameraClearFlags.SolidColor;
             // ゴールデン画像と同じ背景色にして見比べやすくする。
             camera.backgroundColor = new Color(0.34f, 0.35f, 0.42f);
-            camera.orthographic = true;
-            camera.orthographicSize = 1.0f;
-            camera.nearClipPlane = 0.01f;
-            camera.transform.position = new Vector3(0.0f, 0.0f, -5.0f);
+
+            // アウトラインは頂点をビュー方向に押し出すパスなので、
+            // 正射投影だと _OutlineFixedWidth の経路が実運用と変わってしまう。
+            // 歪みを抑えた狭い画角の透視投影にして、遠くから引きで撮る。
+            const float fieldOfView = 20.0f;
+            var halfHeight = rowOffset + 0.75f;
+            var distance = halfHeight / Mathf.Tan(fieldOfView * 0.5f * Mathf.Deg2Rad);
+
+            camera.orthographic = false;
+            camera.fieldOfView = fieldOfView;
+            camera.nearClipPlane = 0.1f;
+            camera.farClipPlane = distance * 2.0f;
+            camera.transform.position = new Vector3(0.0f, 0.0f, -distance);
             camera.transform.rotation = Quaternion.identity;
         }
     }
