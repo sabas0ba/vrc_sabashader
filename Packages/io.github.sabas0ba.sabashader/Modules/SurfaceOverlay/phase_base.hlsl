@@ -27,18 +27,25 @@
 
     // 垂れる向きを重力に合わせる。
     //
-    // ワールド座標をそのまま使うとモデルが動いたときに模様が滑るので、
-    // 模様は UV に固定したまま、**流れる向きだけ**を重力から取る。
-    // ワールドの下方向を接空間へ落とすと、UV 上でどちらが下かが分かる。
-    half3 downTangent = mul(vertex.TBN, -worldUp);
-    half2 flowDirection = downTangent.xy;
-    half flowLength = length(flowDirection);
-    flowDirection = (flowLength > 1.0e-4) ? (flowDirection / flowLength) : half2(0.0, -1.0);
+    // 以前は UV を接空間の下方向で回していたが、接空間はメッシュの UV に
+    // 従うため、面ごとに向きが変わってオブジェクトの Y を向いて見えた。
+    // ここではワールドの下方向をそのまま使う。
+    //
+    // 位置の基準はオブジェクトの原点にする。ワールド座標をそのまま使うと
+    // モデルが移動したときに模様が滑るため。向きはワールド、位置は
+    // オブジェクト基準、という組み合わせにしている。
+    half3 overlayLocal = vertex.position - headBone.position;
 
-    // x = 流れに直交する向き、y = 流れに沿う向き
-    float2 overlayCoord = float2(
-        dot(overlayUV, half2(flowDirection.y, -flowDirection.x)),
-        dot(overlayUV, flowDirection));
+    // 流れに沿う向き = 重力方向（下を正にする）
+    half along = -dot(overlayLocal, worldUp);
+
+    // 流れに直交する向き = 面に沿って水平な向き
+    half3 sideAxis = cross(worldUp, vertex.N);
+    half sideLength = length(sideAxis);
+    sideAxis = (sideLength > 1.0e-4) ? (sideAxis / sideLength) : normalize(vertex.T);
+    half across = dot(overlayLocal, sideAxis);
+
+    float2 overlayCoord = float2(across, along) * _FlowScale;
 
     half overlayCoverage = SBSOverlayCoverage(
         vertex.N, worldUp, overlayMask, overlayCoord, overlayStyle);

@@ -107,18 +107,21 @@ namespace SabaShader.CI
                 Floats =
                 {
                     { "_io_github_sabas0ba_surfaceoverlay_Amount", 1.0f },
-                    { "_io_github_sabas0ba_surfaceoverlay_UpBias", 0.5f },
-                    { "_io_github_sabas0ba_surfaceoverlay_Border", 0.4f },
-                    { "_io_github_sabas0ba_surfaceoverlay_Blur", 0.5f },
-                    { "_io_github_sabas0ba_surfaceoverlay_Darken", 1.0f },
-                    { "_io_github_sabas0ba_surfaceoverlay_Droplet", 0.9f },
-                    { "_io_github_sabas0ba_surfaceoverlay_DropletScale", 30.0f },
-                    { "_io_github_sabas0ba_surfaceoverlay_DropletSize", 0.26f },
-                    { "_io_github_sabas0ba_surfaceoverlay_DropletVariance", 0.8f },
-                    { "_io_github_sabas0ba_surfaceoverlay_DropletBump", 2.5f },
+                    { "_io_github_sabas0ba_surfaceoverlay_UpBias", 0.35f },
+                    // 面の被覆を控えめにして、粒が乾いた面の上に見えるようにする
+                    { "_io_github_sabas0ba_surfaceoverlay_Border", 0.6f },
+                    { "_io_github_sabas0ba_surfaceoverlay_Blur", 0.3f },
+                    { "_io_github_sabas0ba_surfaceoverlay_Darken", 0.9f },
+                    { "_io_github_sabas0ba_surfaceoverlay_Droplet", 1.0f },
+                    // 模様の細かさはオブジェクトの大きさ（直径 1m 前後）に合わせる
+                    { "_io_github_sabas0ba_surfaceoverlay_FlowScale", 3.0f },
+                    { "_io_github_sabas0ba_surfaceoverlay_DropletScale", 3.0f },
+                    { "_io_github_sabas0ba_surfaceoverlay_DropletSize", 0.42f },
+                    { "_io_github_sabas0ba_surfaceoverlay_DropletVariance", 0.9f },
+                    { "_io_github_sabas0ba_surfaceoverlay_DropletBump", 3.0f },
                     // 一部の列だけ流れ出す。止まる粒と流れる粒が混ざる。
-                    { "_io_github_sabas0ba_surfaceoverlay_Mobility", 0.4f },
-                    { "_io_github_sabas0ba_surfaceoverlay_Streak", 0.5f },
+                    { "_io_github_sabas0ba_surfaceoverlay_Mobility", 0.45f },
+                    { "_io_github_sabas0ba_surfaceoverlay_Streak", 0.6f },
                 },
                 // アルファ 0 で色は置き換えず、沈みと垂れだけを効かせる
                 Colors = { { "_io_github_sabas0ba_surfaceoverlay_Color", new Color(1.0f, 1.0f, 1.0f, 0.0f) } },

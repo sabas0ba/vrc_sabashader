@@ -65,6 +65,18 @@ msgstr "頂点カラーのマスク"
 msgid "__VertexMaskChannelDesc"
 msgstr "厚みを抑える頂点カラーのチャンネル。頂点シェーダーではテクスチャを引けないため、マスクは頂点カラーで指定します。"
 
+msgid "__FlowScale"
+msgstr "模様の細かさ"
+
+msgid "__FlowScaleDesc"
+msgstr "粒と筋の全体の細かさ。オブジェクトの大きさに合わせて調整します。"
+
+msgid "__DropletScaleDesc"
+msgstr "粒を置く格子の細かさ。下げると粒が大きく、まばらになります。"
+
+msgid "__DropletSizeDesc"
+msgstr "格子に対する粒の大きさ。1 に近づけると粒同士がくっつきます。"
+
 msgid "__Droplet"
 msgstr "水滴の付着"
 

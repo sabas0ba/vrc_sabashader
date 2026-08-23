@@ -96,6 +96,18 @@ half SBSOverlayFacing(half3 N, half3 up, half upBias)
     return lerp(1.0, facing, saturate(upBias));
 }
 
+// 落ちた距離。動き出しはゆっくりで、やがて等速に落ち着く。
+//
+// 等速のままだと機械的に見える。加速だけだと際限なく速くなる。
+// 指数で繋ぐと、初速 0 から滑らかに加速し、時間が経つと
+// 傾きが 1 に漸近して等速になる。
+half SBSOverlayTravel(half t, half accel)
+{
+    half a = max(accel, 1.0e-3);
+    half decay = exp2(-(t / a) * 1.4426950);
+    return t - a * (1.0 - decay);
+}
+
 // 付着した水滴。
 //
 // coord は「重力に沿う向き」を y、それに直交する向きを x に取った座標。
@@ -120,9 +132,13 @@ half3 SBSOverlayDroplet(half2 coord, SBSOverlayStyle st)
     half rollSize = SBSOverlayHash(half2(column, 29.0));
 
     // 流れる列だけ、時間で下へずらす。止まる列は座標を動かさない。
+    //
+    // 列ごとに速さと始まりをずらし、さらに落下は初速 0 から加速させる。
+    // 全部の粒が同じ速さで一斉に動くと、板が滑っているように見える。
     half moving = step(1.0 - saturate(st.mobility), rollMove);
-    half speed = st.streakSpeed * (0.35 + 0.65 * rollSize);
-    half flow = moving * (st.time * speed + rollPhase);
+    half speed = st.streakSpeed * (0.3 + 1.4 * rollSize * rollSize);
+    half cycle = frac(st.time * speed * 0.25 + rollPhase) * 4.0;
+    half flow = moving * SBSOverlayTravel(cycle, 0.8) * (0.6 + 0.8 * rollMove);
 
     half2 flowed = half2(grid.x, grid.y + flow);
     half2 cell = floor(flowed);
@@ -206,7 +222,11 @@ half SBSOverlayDisplacement(half3 N, half3 up, half mask, SBSOverlayStyle st)
     // 振り切れて面が三角形に割れて見える。頂点はメッシュの粗さでしか
     // 標本化できないので、変位はなだらかにする。
     half soft = SBSOverlayStep(base, st.border, max(st.blur, 0.45));
-    return soft * soft * saturate(st.amount) * st.thickness;
+
+    // 縁で急に切れると断面が立って見える。両端で傾きが 0 になる形にすると、
+    // 積もりの縁が丸まって「切り口」に見えなくなる。
+    half profile = soft * soft * (3.0 - 2.0 * soft);
+    return profile * saturate(st.amount) * st.thickness;
 }
 
 // 水滴の盛り上がりで法線を歪める。接空間で呼ぶこと。
