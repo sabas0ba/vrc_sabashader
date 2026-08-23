@@ -7,6 +7,7 @@
     pixelBaseStyle.dither = _Dither;
     pixelBaseStyle.cellSize = _CellSize;
     pixelBaseStyle.palette = _PaletteBlend;
+    pixelBaseStyle.preset = _PalettePreset;
 
     half2 pixelBaseDelta = SBSPixelCellDelta(vertex.positionRaw.xy, pixelBaseStyle);
 

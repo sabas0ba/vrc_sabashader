@@ -22,6 +22,7 @@ MODE_CAPSULE = 6
 # モジュール（表面の重ね掛け）
 MODE_OVERLAY = 7
 MODE_PIXEL = 8
+MODE_DROPLET = 9
 
 DEFAULT_STYLE: Dict[str, object] = {
     "shadeBorder1": 0.5,
@@ -70,8 +71,10 @@ DEFAULT_OVERLAY: Dict[str, object] = {
     "droplet": 0.0,
     "dropletScale": 40.0,
     "dropletBump": 1.0,
+    "dropletSize": 0.28,
+    "dropletVariance": 0.6,
+    "mobility": 0.0,
     "streak": 0.0,
-    "streakScale": 24.0,
     "streakSpeed": 0.6,
     "time": 0.0,
 }
@@ -85,6 +88,7 @@ DEFAULT_PIXEL: Dict[str, object] = {
     "dither": 1.0,
     "cellSize": 4.0,
     "palette": 0.0,
+    "preset": 0.0,
 }
 
 MODULE_STYLE_DEFAULTS["SBSPixelStyle"] = DEFAULT_PIXEL
@@ -297,10 +301,36 @@ CASES: List[Case] = [
         resolution=(320, 160),
     ),
     Case(
-        name="overlay_streak",
-        mode=MODE_OVERLAY,
-        description="垂れを足した状態。時間を固定して決定的に描く。",
-        module_styles={"SBSOverlayStyle": {"border": 0.35, "blur": 0.2, "streak": 1.0, "streakScale": 12.0, "time": 3.0}},
+        name="overlay_droplet",
+        mode=MODE_DROPLET,
+        description="付着した粒だけの状態。動かないので大きさのばらつきが見える。",
+        module_styles={
+            "SBSOverlayStyle": {
+                "upBias": 0.0,
+                "border": 0.3,
+                "blur": 0.1,
+                "droplet": 1.0,
+                "dropletScale": 14.0,
+            }
+        },
+        resolution=(320, 160),
+    ),
+    Case(
+        name="overlay_runoff",
+        mode=MODE_DROPLET,
+        description="半分の列が流れ出した状態。止まる粒と流れる粒が混ざる。時間は固定。",
+        module_styles={
+            "SBSOverlayStyle": {
+                "upBias": 0.0,
+                "border": 0.3,
+                "blur": 0.1,
+                "droplet": 1.0,
+                "dropletScale": 14.0,
+                "mobility": 0.5,
+                "streak": 1.0,
+                "time": 3.0,
+            }
+        },
         resolution=(320, 160),
     ),
     Case(
@@ -322,6 +352,20 @@ CASES: List[Case] = [
         mode=MODE_PIXEL,
         description="明るさでパレットに寄せた状態。色が置き換わる。",
         module_styles={"SBSPixelStyle": {"levels": 8.0, "palette": 1.0}},
+        resolution=(320, 160),
+    ),
+    Case(
+        name="pixel_preset_lcd",
+        mode=MODE_PIXEL,
+        description="組み込みパレットの単色 LCD。明るさをランプに載せ替える。",
+        module_styles={"SBSPixelStyle": {"levels": 8.0, "dither": 0.0, "palette": 1.0, "preset": 1.0}},
+        resolution=(320, 160),
+    ),
+    Case(
+        name="pixel_preset_8bit",
+        mode=MODE_PIXEL,
+        description="組み込みパレットの 8bit。色そのものを段に落とすので色相が残る。",
+        module_styles={"SBSPixelStyle": {"levels": 8.0, "dither": 0.0, "palette": 1.0, "preset": 7.0}},
         resolution=(320, 160),
     ),
 ]

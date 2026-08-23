@@ -80,14 +80,26 @@ msgstr "粒の盛り上がり"
 msgid "__DropletBumpDesc"
 msgstr "粒で法線を歪めます。本体のハイライトが粒を光らせるので、これが 0 だと濡れて見えません。"
 
+msgid "__DropletSize"
+msgstr "粒の大きさ"
+
+msgid "__DropletVariance"
+msgstr "粒の大きさのばらつき"
+
+msgid "__DropletVarianceDesc"
+msgstr "0 で粒が揃い、1 で大小が混ざります。"
+
+msgid "__Mobility"
+msgstr "垂れやすさ"
+
+msgid "__MobilityDesc"
+msgstr "0 で全部その場に留まり、1 で全部が流れ出します。途中の値では、付いたまま動かない粒と流れる粒が混ざります。マスクで場所ごとに変えられます。"
+
 msgid "__Streak"
 msgstr "垂れ"
 
 msgid "__StreakDesc"
-msgstr "被覆の形を縦に流れる筋へ寄せます。雨だれや汗に使います。"
-
-msgid "__StreakScale"
-msgstr "垂れの細かさ"
+msgstr "流れる粒が通った跡を細く残します。垂れやすさと合わせて使います。"
 
 msgid "__StreakSpeed"
 msgstr "垂れの速さ"

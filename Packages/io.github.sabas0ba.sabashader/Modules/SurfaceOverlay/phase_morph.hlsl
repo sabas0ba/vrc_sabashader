@@ -16,8 +16,10 @@
     morphStyle.droplet = _Droplet;
     morphStyle.dropletScale = _DropletScale;
     morphStyle.dropletBump = _DropletBump;
+    morphStyle.dropletSize = _DropletSize;
+    morphStyle.dropletVariance = _DropletVariance;
+    morphStyle.mobility = _Mobility;
     morphStyle.streak = _Streak;
-    morphStyle.streakScale = _StreakScale;
     morphStyle.streakSpeed = _StreakSpeed;
     morphStyle.time = SCTime();
 

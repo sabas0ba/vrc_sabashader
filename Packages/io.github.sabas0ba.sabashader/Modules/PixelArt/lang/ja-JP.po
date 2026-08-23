@@ -29,6 +29,12 @@ msgstr "ディザ"
 msgid "__DitherDesc"
 msgstr "色数を落としたときの段差を、整列ディザで散らします。"
 
+msgid "__PalettePreset"
+msgstr "パレットの種類"
+
+msgid "__PalettePresetDesc"
+msgstr "組み込みのパレットを選びます。Texture を選ぶと下のテクスチャを引きます。8bit だけは明るさではなく色そのものを段に落とすので色相が残ります。"
+
 msgid "__Palette"
 msgstr "パレット"
 

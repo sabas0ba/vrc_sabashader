@@ -36,6 +36,9 @@ struct SBSPixelStyle
 
     // パレットへの寄せ具合。0 で素の色のまま。
     half palette;
+
+    // 組み込みパレットの番号。0 でテクスチャを使う。
+    half preset;
 };
 
 // -----------------------------------------------------------------------------
@@ -139,6 +142,78 @@ half SBSPixelPaletteCoord(half3 c, half threshold, SBSPixelStyle st)
 {
     half lum = dot(saturate(c), half3(0.2126, 0.7152, 0.0722));
     return SBSPixelQuantizeChannel(lum, st.levels, threshold, st.dither);
+}
+
+// -----------------------------------------------------------------------------
+// 組み込みパレット
+// -----------------------------------------------------------------------------
+
+// 3 点のランプ。暗部・中間・明部を指定して間を埋める。
+half3 SBSPixelRamp(half3 dark, half3 mid, half3 bright, half t)
+{
+    half v = saturate(t);
+    return (v < 0.5) ? lerp(dark, mid, v * 2.0) : lerp(mid, bright, v * 2.0 - 1.0);
+}
+
+// 番号で組み込みパレットを引く。coord は量子化済みの明るさ。
+//
+// テクスチャを用意しなくても代表的な見た目を出せるようにしてある。
+// 8bit だけは明るさではなく色そのものを段に落とす（RGB332 相当）ので、
+// 他と違って色相が保たれる。
+half3 SBSPixelPalettePreset(half3 color, half coord, SBSPixelStyle st)
+{
+    half preset = st.preset;
+
+    if (preset < 0.5) return color;
+
+    // 単色 LCD（緑）
+    if (preset < 1.5)
+        return SBSPixelRamp(half3(0.05, 0.12, 0.06), half3(0.20, 0.55, 0.20), half3(0.72, 0.95, 0.45), coord);
+
+    // レトロゲーム風（4 階調の緑）
+    if (preset < 2.5)
+    {
+        half stepped = floor(saturate(coord) * 3.999) / 3.0;
+        return SBSPixelRamp(half3(0.06, 0.22, 0.06), half3(0.34, 0.60, 0.20), half3(0.88, 0.97, 0.60), stepped);
+    }
+
+    // モノクロ（コントラストを立てた白黒）
+    if (preset < 3.5)
+    {
+        half mono = saturate((coord - 0.5) * 1.6 + 0.5);
+        return half3(mono, mono, mono);
+    }
+
+    // セピア
+    if (preset < 4.5)
+        return SBSPixelRamp(half3(0.12, 0.08, 0.05), half3(0.55, 0.42, 0.28), half3(0.98, 0.92, 0.80), coord);
+
+    // グレー（素直な灰色階調）
+    if (preset < 5.5) return half3(coord, coord, coord);
+
+    // 1bit（白と黒だけ）
+    if (preset < 6.5)
+    {
+        half bit = step(0.5, coord);
+        return half3(bit, bit, bit);
+    }
+
+    // 8bit（RGB332 相当。色相が残る）
+    if (preset < 7.5)
+    {
+        half3 c = saturate(color);
+        return half3(
+            floor(c.r * 7.0 + 0.5) / 7.0,
+            floor(c.g * 7.0 + 0.5) / 7.0,
+            floor(c.b * 3.0 + 0.5) / 3.0);
+    }
+
+    // ネオン
+    if (preset < 8.5)
+        return SBSPixelRamp(half3(0.06, 0.02, 0.14), half3(0.85, 0.10, 0.75), half3(0.35, 0.98, 0.95), coord);
+
+    // 夕焼け
+    return SBSPixelRamp(half3(0.10, 0.09, 0.28), half3(0.78, 0.30, 0.32), half3(1.00, 0.86, 0.45), coord);
 }
 
 // 素の色とパレット色を混ぜる。

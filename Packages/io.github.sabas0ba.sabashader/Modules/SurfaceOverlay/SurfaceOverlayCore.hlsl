@@ -47,9 +47,17 @@ struct SBSOverlayStyle
     half dropletScale;
     half dropletBump;
 
-    // したたり（雨だれ・汗）の強さと細かさと速さ。
+    // 粒の大きさと、そのばらつき。
+    half dropletSize;
+    half dropletVariance;
+
+    // 垂れやすさ。0 で全部その場に留まり、1 で全部が流れ出す。
+    // 実際に流れる列は列ごとの乱数で決まるので、途中の値では
+    // 「付いたまま動かない粒」と「流れる粒」が混ざる。
+    half mobility;
+
+    // したたりの尾の強さと速さ。
     half streak;
-    half streakScale;
     half streakSpeed;
 
     // 時間。テストから固定値を渡せるようにスタイル側に持たせる。
@@ -88,62 +96,84 @@ half SBSOverlayFacing(half3 N, half3 up, half upBias)
     return lerp(1.0, facing, saturate(upBias));
 }
 
-// 付着した水滴。升目ごとに 1 粒置き、中心からの距離で丸い盛り上がりを作る。
+// 付着した水滴。
+//
+// coord は「重力に沿う向き」を y、それに直交する向きを x に取った座標。
+// 呼び出し側が接空間へ落とした重力方向から作るので、モデルが傾いても
+// 粒は下へ流れる。
+//
+// 列ごとに乱数で性質を決める。
+//   * 流れるかどうか（mobility との比較）
+//   * 大きさ（dropletSize と dropletVariance）
+//   * 速さ（大きい粒ほど速く落ちる）
+// これで「付いたまま動かない粒」と「流れる粒」が同じ面の上に混ざる。
+//
 // 戻り値の x が高さ、yz が中心からのずれ（法線を歪めるのに使う）。
-half3 SBSOverlayDroplet(half2 uv, SBSOverlayStyle st)
+half3 SBSOverlayDroplet(half2 coord, SBSOverlayStyle st)
 {
     half scale = max(st.dropletScale, 1.0e-3);
-    half2 grid = uv * scale;
-    half2 cell = floor(grid);
-    half2 local = frac(grid) - half2(0.5, 0.5);
+    half2 grid = coord * scale;
+    half column = floor(grid.x);
 
-    // 升目ごとに位置と大きさを散らす。等間隔に並ぶと粒に見えない。
+    half rollMove = SBSOverlayHash(half2(column, 3.0));
+    half rollPhase = SBSOverlayHash(half2(column, 11.0));
+    half rollSize = SBSOverlayHash(half2(column, 29.0));
+
+    // 流れる列だけ、時間で下へずらす。止まる列は座標を動かさない。
+    half moving = step(1.0 - saturate(st.mobility), rollMove);
+    half speed = st.streakSpeed * (0.35 + 0.65 * rollSize);
+    half flow = moving * (st.time * speed + rollPhase);
+
+    half2 flowed = half2(grid.x, grid.y + flow);
+    half2 cell = floor(flowed);
+    half2 local = frac(flowed) - half2(0.5, 0.5);
+
+    // 升目ごとに位置を散らす。等間隔に並ぶと粒に見えない。
     half2 jitter = half2(
         SBSOverlayHash(cell) - 0.5,
         SBSOverlayHash(cell + half2(37.0, 11.0)) - 0.5) * 0.7;
-    half radius = 0.16 + 0.24 * SBSOverlayHash(cell + half2(5.0, 23.0));
+
+    half variance = SBSOverlayHash(cell + half2(5.0, 23.0)) - 0.5;
+    half radius = max(st.dropletSize * (1.0 + variance * st.dropletVariance * 2.0), 0.02);
 
     half2 offset = local - jitter;
     half distance = length(offset);
-    half fall = saturate(1.0 - distance / max(radius, 1.0e-3));
+    half fall = saturate(1.0 - distance / radius);
 
     // 球冠の断面。縁で急に落ちるので粒の輪郭が立つ。
     half height = fall * fall;
     return half3(height, offset.x * fall, offset.y * fall);
 }
 
-// 縦に流れるしたたり。uv.y を下向きに流し、横方向は列ごとに位相をずらす。
-half SBSOverlayStreak(half2 uv, SBSOverlayStyle st)
+// したたりの尾。流れる列にだけ、粒が通った跡を細く残す。
+half SBSOverlayTrail(half2 coord, SBSOverlayStyle st)
 {
-    half scale = max(st.streakScale, 1.0e-3);
-    half column = floor(uv.x * scale);
-    half phase = SBSOverlayHash(half2(column, 17.0));
+    half scale = max(st.dropletScale, 1.0e-3);
+    half2 grid = coord * scale;
+    half column = floor(grid.x);
 
-    half travel = uv.y * scale - st.time * st.streakSpeed * (0.5 + phase);
-    half drop = frac(travel + phase);
+    half rollMove = SBSOverlayHash(half2(column, 3.0));
+    half moving = step(1.0 - saturate(st.mobility), rollMove);
 
-    // 頭が濃く尾を引く形。pow で先端に寄せる。
-    half body = pow(saturate(1.0 - drop), 3.0);
-    half width = abs(frac(uv.x * scale) - 0.5) * 2.0;
-    half across = saturate(1.0 - width);
+    // 列の中心に近いほど濃い、細い筋。
+    // 変数名に line は使えない。HLSL の予約語で、GLSL では通るため
+    // 描画テストをすり抜けて Unity のコンパイルで初めて落ちる。
+    half across = abs(frac(grid.x) - 0.5) * 2.0;
+    half stripe = saturate(1.0 - across / 0.35);
 
-    return saturate(body * across);
+    return saturate(stripe * moving * saturate(st.streak));
 }
 
 // 最終的な被覆率。mask は頂点カラーやマスクテクスチャから来る 0-1。
-half SBSOverlayCoverage(half3 N, half3 up, half mask, half2 uv, SBSOverlayStyle st)
+half SBSOverlayCoverage(half3 N, half3 up, half mask, half2 coord, SBSOverlayStyle st)
 {
     half facing = SBSOverlayFacing(N, up, st.upBias);
     half base = facing * saturate(mask);
 
-    // したたりは「足す」のではなく「被覆の形を筋に寄せる」。足すと面の向きで
-    // 既に高い被覆に上乗せされて飽和し、筋が見えなくなる。
-    half streak = SBSOverlayStreak(uv, st);
-    base = lerp(base, streak, saturate(st.streak));
-
-    // 付着した粒は、したたりとは別に上乗せする。粒は面の向きに関係なく付く。
-    half droplet = SBSOverlayDroplet(uv, st).x;
-    base = saturate(base + droplet * saturate(st.droplet));
+    // 粒と尾は面の向きに関係なく付くので、面の被覆に上乗せする。
+    half droplet = SBSOverlayDroplet(coord, st).x * saturate(st.droplet);
+    half trail = SBSOverlayTrail(coord, st);
+    base = saturate(base + max(droplet, trail));
 
     return saturate(SBSOverlayStep(base, st.border, st.blur) * saturate(st.amount));
 }
@@ -171,17 +201,21 @@ half SBSOverlayDisplacement(half3 N, half3 up, half mask, SBSOverlayStyle st)
 {
     half facing = SBSOverlayFacing(N, up, st.upBias);
     half base = facing * saturate(mask);
-    half coverage = saturate(SBSOverlayStep(base, st.border, st.blur) * saturate(st.amount));
-    return coverage * st.thickness;
+
+    // ピクセル側と同じ硬いしきい値を使うと、隣り合う頂点が 0 と最大厚みに
+    // 振り切れて面が三角形に割れて見える。頂点はメッシュの粗さでしか
+    // 標本化できないので、変位はなだらかにする。
+    half soft = SBSOverlayStep(base, st.border, max(st.blur, 0.45));
+    return soft * soft * saturate(st.amount) * st.thickness;
 }
 
 // 水滴の盛り上がりで法線を歪める。接空間で呼ぶこと。
 //
 // 濡れて見えるかどうかは、色を暗くするより「粒がハイライトを拾うか」で決まる。
 // 法線を歪めておくと、本体側のスペキュラが勝手に粒を光らせてくれる。
-half3 SBSOverlayDropletNormal(half3 N, half2 uv, SBSOverlayStyle st)
+half3 SBSOverlayDropletNormal(half3 N, half2 coord, SBSOverlayStyle st)
 {
-    half3 droplet = SBSOverlayDroplet(uv, st);
+    half3 droplet = SBSOverlayDroplet(coord, st);
     half strength = saturate(st.droplet) * st.dropletBump;
 
     half3 bumped = half3(

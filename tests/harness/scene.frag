@@ -255,6 +255,7 @@ vec4 sceneOverlaySwatch(vec2 uv)
     vec3 up = vec3(0.0, 1.0, 0.0);
 
     SBSOverlayStyle ost = sceneOverlayStyle();
+    // coord は「流れに直交する向き / 流れに沿う向き」。テストでは uv をそのまま使う。
     float coverage = SBSOverlayCoverage(N, up, 1.0, uv, ost);
     vec3 overlay = vec3(0.86, 0.88, 0.92);
 
@@ -280,11 +281,33 @@ vec4 scenePixelSwatch(vec2 uv)
 
     vec3 quantized = SBSPixelQuantize(albedo, threshold, pst);
 
-    // パレットはテクスチャの代わりに虹色のグラデーションで代用する
+    // 組み込みパレットを通す。preset が 0 のときはテクスチャの代わりに
+    // 虹色のグラデーションで代用する。
     float coord = SBSPixelPaletteCoord(albedo, threshold, pst);
-    vec3 palette = SBSHsvToRgb(vec3(coord, 0.65, 0.55 + 0.45 * coord));
+    vec3 palette = SBSPixelPalettePreset(albedo, coord, pst);
+    if (pst.preset < 0.5) palette = SBSHsvToRgb(vec3(coord, 0.65, 0.55 + 0.45 * coord));
 
     return vec4(SBSPixelApply(albedo, quantized, palette, pst), 1.0);
+}
+
+// mode 9: 水滴とその跡だけを見る
+//
+// 面の被覆（向き x マスク）を 0 にして、粒と尾だけが被覆に効くようにする。
+// mode 7 のように面の被覆が 1 だと飽和して粒が見えない。
+vec4 sceneDropletSwatch(vec2 uv)
+{
+    SBSOverlayStyle ost = sceneOverlayStyle();
+
+    vec3 N = vec3(0.0, 0.0, -1.0);
+    vec3 up = vec3(0.0, 1.0, 0.0);
+
+    // x = 流れに直交する向き、y = 流れに沿う向き
+    float coverage = SBSOverlayCoverage(N, up, 0.0, uv, ost);
+
+    vec3 albedo = vec3(0.30, 0.34, 0.42);
+    vec3 water = vec3(0.82, 0.88, 0.95);
+
+    return vec4(SBSOverlayAlbedo(albedo, water, 1.0, coverage, ost), 1.0);
 }
 
 void main()
@@ -293,7 +316,8 @@ void main()
     vec2 ndc = uv * 2.0 - 1.0;
 
     vec4 col;
-    if (SCENE_MODE == 8) col = scenePixelSwatch(uv);
+    if (SCENE_MODE == 9) col = sceneDropletSwatch(uv);
+    else if (SCENE_MODE == 8) col = scenePixelSwatch(uv);
     else if (SCENE_MODE == 7) col = sceneOverlaySwatch(uv);
     else if (SCENE_MODE == 0) col = sceneSphere(ndc);
     else if (SCENE_MODE == 1) col = sceneRampSwatch(uv);

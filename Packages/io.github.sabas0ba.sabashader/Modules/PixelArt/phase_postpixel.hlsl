@@ -7,12 +7,17 @@
     pixelStyle.dither = _Dither;
     pixelStyle.cellSize = _CellSize;
     pixelStyle.palette = _PaletteBlend;
+    pixelStyle.preset = _PalettePreset;
 
     half pixelThreshold = SBSPixelThreshold(vertex.positionRaw.xy, pixelStyle);
     half3 pixelQuantized = SBSPixelQuantize(sd.col.rgb, pixelThreshold, pixelStyle);
 
     half pixelCoord = SBSPixelPaletteCoord(sd.col.rgb, pixelThreshold, pixelStyle);
-    half3 pixelPalette = SCSampleClamp(_Palette, float2(pixelCoord, 0.5)).rgb;
+
+    // 番号を選んでいれば組み込みパレット、0 ならテクスチャを引く。
+    half3 pixelPalette = (_PalettePreset < 1)
+        ? SCSampleClamp(_Palette, float2(pixelCoord, 0.5)).rgb
+        : SBSPixelPalettePreset(sd.col.rgb, pixelCoord, pixelStyle);
 
     sd.col.rgb = SBSPixelApply(sd.col.rgb, pixelQuantized, pixelPalette, pixelStyle);
 }

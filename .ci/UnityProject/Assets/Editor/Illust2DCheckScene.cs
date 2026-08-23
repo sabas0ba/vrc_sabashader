@@ -26,7 +26,7 @@ namespace SabaShader.CI
         const string ScenePath = RootDir + "/Illust2DCheck.unity";
 
         // カメラの構図はこの縦横比を前提に決める。撮影時に変えると構図がずれる。
-        const int CaptureWidth = 2400;
+        const int CaptureWidth = 2900;
         const int CaptureHeight = 1400;
 
         // tests/cases.py の Case 既定値
@@ -44,6 +44,8 @@ namespace SabaShader.CI
         {
             public string Name;
             public Dictionary<string, float> Floats = new Dictionary<string, float>();
+            // SC_uint のプロパティは m_Ints に入るので SetFloat では効かない。
+            public Dictionary<string, int> Ints = new Dictionary<string, int>();
             public Dictionary<string, Color> Colors = new Dictionary<string, Color>();
         }
 
@@ -110,10 +112,13 @@ namespace SabaShader.CI
                     { "_io_github_sabas0ba_surfaceoverlay_Blur", 0.5f },
                     { "_io_github_sabas0ba_surfaceoverlay_Darken", 1.0f },
                     { "_io_github_sabas0ba_surfaceoverlay_Droplet", 0.9f },
-                    { "_io_github_sabas0ba_surfaceoverlay_DropletScale", 45.0f },
+                    { "_io_github_sabas0ba_surfaceoverlay_DropletScale", 30.0f },
+                    { "_io_github_sabas0ba_surfaceoverlay_DropletSize", 0.26f },
+                    { "_io_github_sabas0ba_surfaceoverlay_DropletVariance", 0.8f },
                     { "_io_github_sabas0ba_surfaceoverlay_DropletBump", 2.5f },
-                    { "_io_github_sabas0ba_surfaceoverlay_Streak", 0.35f },
-                    { "_io_github_sabas0ba_surfaceoverlay_StreakScale", 16.0f },
+                    // 一部の列だけ流れ出す。止まる粒と流れる粒が混ざる。
+                    { "_io_github_sabas0ba_surfaceoverlay_Mobility", 0.4f },
+                    { "_io_github_sabas0ba_surfaceoverlay_Streak", 0.5f },
                 },
                 // アルファ 0 で色は置き換えず、沈みと垂れだけを効かせる
                 Colors = { { "_io_github_sabas0ba_surfaceoverlay_Color", new Color(1.0f, 1.0f, 1.0f, 0.0f) } },
@@ -128,6 +133,34 @@ namespace SabaShader.CI
                     { "_io_github_sabas0ba_pixelart_CellSize", 8.0f },
                     { "_io_github_sabas0ba_pixelart_Dither", 0.0f },
                 },
+            },
+            new Variant
+            {
+                Name = "pixel_lcd",
+                Floats =
+                {
+                    { "_io_github_sabas0ba_pixelart_Amount", 1.0f },
+                    { "_io_github_sabas0ba_pixelart_Levels", 8.0f },
+                    { "_io_github_sabas0ba_pixelart_CellSize", 8.0f },
+                    { "_io_github_sabas0ba_pixelart_Dither", 0.0f },
+                    { "_io_github_sabas0ba_pixelart_PaletteBlend", 1.0f },
+                },
+                // 1 = 単色 LCD
+                Ints = { { "_io_github_sabas0ba_pixelart_PalettePreset", 1 } },
+            },
+            new Variant
+            {
+                Name = "pixel_sunset",
+                Floats =
+                {
+                    { "_io_github_sabas0ba_pixelart_Amount", 1.0f },
+                    { "_io_github_sabas0ba_pixelart_Levels", 8.0f },
+                    { "_io_github_sabas0ba_pixelart_CellSize", 8.0f },
+                    { "_io_github_sabas0ba_pixelart_Dither", 0.0f },
+                    { "_io_github_sabas0ba_pixelart_PaletteBlend", 1.0f },
+                },
+                // 9 = 夕焼け
+                Ints = { { "_io_github_sabas0ba_pixelart_PalettePreset", 9 } },
             },
         };
 
@@ -409,6 +442,14 @@ namespace SabaShader.CI
                 if (!material.HasProperty(entry.Key)) { Fail("未定義のプロパティ: " + entry.Key); continue; }
                 material.SetFloat(entry.Key, entry.Value);
             }
+            foreach (var entry in variant.Ints)
+            {
+                if (!material.HasProperty(entry.Key)) { Fail("未定義のプロパティ: " + entry.Key); continue; }
+                // SetInt は非推奨で float 側に書き込む。int プロパティへ
+                // 入れるには SetInteger を使う。
+                material.SetInteger(entry.Key, entry.Value);
+            }
+
             foreach (var entry in variant.Colors)
             {
                 if (!material.HasProperty(entry.Key)) { Fail("未定義のプロパティ: " + entry.Key); continue; }

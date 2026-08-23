@@ -80,14 +80,26 @@ msgstr "Droplet Bump"
 msgid "__DropletBumpDesc"
 msgstr "Perturbs the normal per droplet so the body's specular lights them up. At 0 it will not look wet."
 
+msgid "__DropletSize"
+msgstr "Droplet Size"
+
+msgid "__DropletVariance"
+msgstr "Size Variance"
+
+msgid "__DropletVarianceDesc"
+msgstr "0 makes every droplet the same size, 1 mixes large and small."
+
+msgid "__Mobility"
+msgstr "Run-off"
+
+msgid "__MobilityDesc"
+msgstr "0 keeps every droplet in place, 1 makes them all run. In between, stuck and running droplets mix. Can be varied per area with the mask."
+
 msgid "__Streak"
 msgstr "Streaks"
 
 msgid "__StreakDesc"
-msgstr "Shapes the coverage into vertical running streaks. Use for rain drips and sweat."
-
-msgid "__StreakScale"
-msgstr "Streak Density"
+msgstr "Leaves a thin trail where running droplets passed. Use together with Run-off."
 
 msgid "__StreakSpeed"
 msgstr "Streak Speed"

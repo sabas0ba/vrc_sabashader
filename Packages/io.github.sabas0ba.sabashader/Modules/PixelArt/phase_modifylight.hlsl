@@ -11,6 +11,7 @@
     pixelLightStyle.dither = _Dither;
     pixelLightStyle.cellSize = _CellSize;
     pixelLightStyle.palette = _PaletteBlend;
+    pixelLightStyle.preset = _PalettePreset;
 
     half2 pixelLightDelta = SBSPixelCellDelta(vertex.positionRaw.xy, pixelLightStyle);
 
