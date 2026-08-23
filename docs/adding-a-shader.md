@@ -18,6 +18,12 @@ Packages/jp.sabas0ba.sabashader/Shaders/<名前>/
 > `{シェーダー名}_properties.hlsl` を探す仕様なので固定です
 > （ドキュメントには `properties.hlsl` と書かれていますが、実装はこちらです）。
 
+> `_properties.hlsl` に **コメントは書けません**。
+> Shader Core 0.1.9 の `SCProperty.Parse` は空行以外で `SC_` から始まらない行を
+> すべて例外にするため、`//` を 1 行でも置くとインポートが
+> `Exception: Property error.` で失敗します。行末コメントも同様です。
+> 説明はこのドキュメント側に書いてください。
+
 ## 2. Shader Core 側の約束
 
 `sc_common.hlsl` には以下が必要です。BiRP のパスから include されます。

@@ -126,7 +126,9 @@ class Property:
 def parse_properties(path: Path) -> List[Property]:
     props: List[Property] = []
     for lineno, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
-        if not line.strip() or line.strip().startswith("//"):
+        # Shader Core の SCProperty.Parse は空行以外の解釈できない行で例外を投げる。
+        # コメント行も例外になるので、ここでも読み飛ばさない。
+        if not line.strip():
             continue
 
         match = _REG_PROPERTY.match(line)

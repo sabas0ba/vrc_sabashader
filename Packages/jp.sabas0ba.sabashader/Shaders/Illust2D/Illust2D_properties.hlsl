@@ -1,8 +1,3 @@
-// Illust2D のマテリアルプロパティ定義
-// 記法は Shader Core の docs/properties.md に準拠する。
-// 表示名が __ で始まるものは Shader Core 組み込みの翻訳キー、
-// それ以外は lang/*.po のキーとして扱われる。
-
 SC_Texture2D(_BaseTexture, "white", [SCMainTexture], "__Texture", "")
 SC_ScaleOffset(_BaseTexture)
 SC_SamplerState(sampler_BaseTexture)
