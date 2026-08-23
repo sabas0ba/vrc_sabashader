@@ -77,6 +77,131 @@ vec4 sceneSphere(vec2 ndc)
     return vec4(SBSComposeIllust(s, sceneStyle()), 1.0);
 }
 
+// -----------------------------------------------------------------------------
+// mode 4-6: 球以外の立体
+//
+// 球は解析的に解けるが、平らな面・鋭い稜線・自己遮蔽は球では出てこない。
+// これらは距離関数のレイマーチで描く。カメラは球モードと同じく
+// -Z から +Z を向く平行投影で、V = (0, 0, -1) の前提を崩さない。
+// -----------------------------------------------------------------------------
+
+const float SCENE_SOLID_YAW = 0.75;
+const float SCENE_SOLID_PITCH = -0.42;
+const float SCENE_SOLID_EPSILON = 0.0008;
+const float SCENE_SOLID_FAR = 6.0;
+
+// ワールド座標を立体のローカル座標へ。行列の並び順に依存しないよう成分で書く。
+vec3 sceneToObject(vec3 p)
+{
+    float cy = cos(SCENE_SOLID_YAW);
+    float sy = sin(SCENE_SOLID_YAW);
+    vec3 a = vec3(p.x * cy - p.z * sy, p.y, p.x * sy + p.z * cy);
+
+    float cx = cos(SCENE_SOLID_PITCH);
+    float sx = sin(SCENE_SOLID_PITCH);
+    return vec3(a.x, a.y * cx - a.z * sx, a.y * sx + a.z * cx);
+}
+
+float sceneSdBox(vec3 p, vec3 b)
+{
+    vec3 q = abs(p) - b;
+    return length(max(q, vec3(0.0, 0.0, 0.0))) + min(max(q.x, max(q.y, q.z)), 0.0);
+}
+
+float sceneSdTorus(vec3 p, float major, float minor)
+{
+    vec2 q = vec2(length(p.xz) - major, p.y);
+    return length(q) - minor;
+}
+
+float sceneSdCapsule(vec3 p, float half_height, float radius)
+{
+    vec3 q = vec3(p.x, p.y - clamp(p.y, -half_height, half_height), p.z);
+    return length(q) - radius;
+}
+
+float sceneSolidSdf(vec3 p)
+{
+    vec3 q = sceneToObject(p);
+    if (SCENE_MODE == 4) return sceneSdBox(q, vec3(0.58, 0.58, 0.58));
+    if (SCENE_MODE == 5) return sceneSdTorus(q, 0.60, 0.26);
+    return sceneSdCapsule(q, 0.36, 0.42);
+}
+
+vec3 sceneSolidNormal(vec3 p)
+{
+    vec2 e = vec2(0.0015, 0.0);
+    return normalize(vec3(
+        sceneSolidSdf(p + e.xyy) - sceneSolidSdf(p - e.xyy),
+        sceneSolidSdf(p + e.yxy) - sceneSolidSdf(p - e.yxy),
+        sceneSolidSdf(p + e.yyx) - sceneSolidSdf(p - e.yyx)));
+}
+
+// 自己遮蔽。トーラスの内側などで shadowStrength の経路を通す。
+float sceneSolidShadow(vec3 p, vec3 L)
+{
+    float t = 0.03;
+    for (int i = 0; i < 48; i++)
+    {
+        float d = sceneSolidSdf(p + L * t);
+        if (d < SCENE_SOLID_EPSILON) return 0.0;
+        t += max(d, 0.004);
+        if (t > 3.0) break;
+    }
+    return 1.0;
+}
+
+// 立体に貼るベースカラー。球と同じく市松と上下の色替えで色相シフトを見せる。
+vec3 sceneSolidAlbedo(vec3 q)
+{
+    float checker = mod(floor(q.x * 5.0) + floor(q.y * 5.0) + floor(q.z * 5.0), 2.0);
+    vec3 top = vec3(0.92, 0.78, 0.70);
+    vec3 bottom = vec3(0.30, 0.48, 0.82);
+    vec3 c = mix(bottom, top, step(0.0, q.y));
+    return c * (0.84 + 0.16 * checker);
+}
+
+vec3 sceneSolidSample(vec2 ndc)
+{
+    vec3 ro = vec3(ndc * 1.25, -3.0);
+    vec3 rd = vec3(0.0, 0.0, 1.0);
+
+    float t = 0.0;
+    for (int i = 0; i < 96; i++)
+    {
+        vec3 p = ro + rd * t;
+        float d = sceneSolidSdf(p);
+        if (d < SCENE_SOLID_EPSILON)
+        {
+            SBSSurface s = sceneDefaultSurface();
+            s.albedo = sceneSolidAlbedo(sceneToObject(p));
+            s.N = sceneSolidNormal(p);
+            s.attenuation = sceneSolidShadow(p, s.L);
+            return SBSComposeIllust(s, sceneStyle());
+        }
+
+        t += d;
+        if (t > SCENE_SOLID_FAR) break;
+    }
+
+    return SCENE_BACKGROUND;
+}
+
+// レイマーチはシルエットの 1 ピクセルが行き来しやすい。ゴールデン比較が
+// 誤差幅で落ちないよう、2x2 で平均してから返す。
+vec4 sceneSolid(vec2 ndc)
+{
+    vec2 texel = 1.0 / SCENE_RESOLUTION;
+    vec3 sum = vec3(0.0, 0.0, 0.0);
+
+    sum += sceneSolidSample(ndc + vec2(-0.25, -0.25) * texel);
+    sum += sceneSolidSample(ndc + vec2(0.25, -0.25) * texel);
+    sum += sceneSolidSample(ndc + vec2(-0.25, 0.25) * texel);
+    sum += sceneSolidSample(ndc + vec2(0.25, 0.25) * texel);
+
+    return vec4(sum * 0.25, 1.0);
+}
+
 // mode 1: 横軸 = ライトの当たり具合、縦軸 = ベースカラー のランプ表
 vec4 sceneRampSwatch(vec2 uv)
 {
@@ -124,7 +249,8 @@ void main()
     if (SCENE_MODE == 0) col = sceneSphere(ndc);
     else if (SCENE_MODE == 1) col = sceneRampSwatch(uv);
     else if (SCENE_MODE == 2) col = sceneOutlineSwatch(uv);
-    else col = sceneLightLimitSwatch(uv);
+    else if (SCENE_MODE == 3) col = sceneLightLimitSwatch(uv);
+    else col = sceneSolid(ndc);
 
     col.rgb = pow(max(col.rgb, vec3(0.0)), vec3(1.0 / SCENE_GAMMA));
     fragColor = vec4(clamp(col.rgb, 0.0, 1.0), 1.0);

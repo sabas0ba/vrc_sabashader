@@ -1,9 +1,22 @@
 # vrc_sabashader
 
-[Shader Core](https://github.com/lilxyzw/Shader-Core) をベースにした VRChat 向けシェーダー集と、
-それを VCC（VRChat Creator Companion）で配布するためのリポジトリです。
+**VCC（VRChat Creator Companion）にリポジトリ URL を 1 本足すだけで導入できる、
+VRChat 向けシェーダー集です。**
 
-第一弾として、3D モデルを 2D イラスト調に見せるトゥーンシェーダー **Illust2D** を収録しています。
+[![tests](https://github.com/sabas0ba/vrc_sabashader/actions/workflows/tests.yml/badge.svg)](https://github.com/sabas0ba/vrc_sabashader/actions/workflows/tests.yml)
+[![unity compile](https://github.com/sabas0ba/vrc_sabashader/actions/workflows/unity-compile.yml/badge.svg)](https://github.com/sabas0ba/vrc_sabashader/actions/workflows/unity-compile.yml)
+[![build listing](https://github.com/sabas0ba/vrc_sabashader/actions/workflows/build-listing.yml/badge.svg)](https://github.com/sabas0ba/vrc_sabashader/actions/workflows/build-listing.yml)
+[![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
+[![Unity](https://img.shields.io/badge/Unity-2022.3-black.svg?logo=unity)](https://unity.com/)
+
+収録しているのは、3D モデルを 2D イラスト調に見せるトゥーンシェーダー **Illust2D** です。
+[Shader Core](https://github.com/lilxyzw/Shader-Core) をベースにしています。
+
+シェーディングの数式は
+[ヘッドレス描画による回帰テスト](docs/testing.md)で、
+HLSL が実際にコンパイルできるかは
+[Unity 上での検証](docs/testing.md#5-unity-でのコンパイル検証)で守っています。
+出荷されるコードとテストされるコードは同一のファイルです。
 
 ---
 
@@ -82,7 +95,7 @@ python tools/gen_meta.py
 
 ## ライセンス
 
-MIT License（[LICENSE](LICENSE)）。
+Apache License 2.0（[LICENSE](LICENSE)、[NOTICE](NOTICE)）。
 
 依存する [Shader Core](https://github.com/lilxyzw/Shader-Core) は本リポジトリには含まれず、
 VCC 経由で別途導入されます。

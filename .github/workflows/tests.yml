@@ -5,6 +5,11 @@ on:
     branches: [main]
   pull_request:
   workflow_dispatch:
+    inputs:
+      update_goldens:
+        description: "ゴールデン画像を生成してアーティファクトに上げる（比較はしない）"
+        type: boolean
+        default: false
 
 jobs:
   shader-regression:
@@ -37,7 +42,22 @@ jobs:
         run: python -c "import sys; sys.path.insert(0, 'tests'); from harness.render import renderer_info; print(renderer_info())"
 
       - name: テストを実行する
+        if: ${{ inputs.update_goldens != true }}
         run: python -m pytest tests -q
+
+      # ゴールデン画像は llvmpipe で作る必要がある。手元の GPU で作ると
+      # ドライバ差で CI と一致しないので、生成もこのランナーで行う。
+      - name: ゴールデン画像を生成する
+        if: ${{ inputs.update_goldens == true }}
+        run: python -m pytest tests -k render -q --update-goldens
+
+      - name: ゴールデン画像をアップロードする
+        if: ${{ inputs.update_goldens == true }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: goldens
+          path: tests/golden/
+          retention-days: 14
 
       - name: 差分画像をアップロードする
         if: failure()

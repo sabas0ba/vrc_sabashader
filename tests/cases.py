@@ -15,6 +15,10 @@ MODE_SPHERE = 0
 MODE_RAMP = 1
 MODE_OUTLINE = 2
 MODE_LIGHT_LIMIT = 3
+# 球では出てこない平らな面・鋭い稜線・自己遮蔽を見るための立体
+MODE_BOX = 4
+MODE_TORUS = 5
+MODE_CAPSULE = 6
 
 DEFAULT_STYLE: Dict[str, object] = {
     "shadeBorder1": 0.5,
@@ -164,6 +168,40 @@ CASES: List[Case] = [
         mode=MODE_SPHERE,
         description="落ち影を無視する設定。shadowStrength の分岐を検証する。",
         style={"shadowStrength": 0.0},
+    ),
+    Case(
+        name="box_default",
+        mode=MODE_BOX,
+        description="平らな面と鋭い稜線。面ごとに塗りが段になるので境界の位置が分かる。",
+    ),
+    Case(
+        name="box_hard_cel",
+        mode=MODE_BOX,
+        description="ぼかしを 0 にした立方体。平面上で境界がどこに来るかを厳密に見る。",
+        style={"shadeBlur1": 0.0, "shadeBlur2": 0.0, "shadeBorder1": 0.58, "shadeBorder2": 0.34},
+    ),
+    Case(
+        name="torus_default",
+        mode=MODE_TORUS,
+        description="自己遮蔽のある形。内側に落ちる影が shadowStrength の経路を通る。",
+    ),
+    Case(
+        name="torus_posterized",
+        mode=MODE_TORUS,
+        description="曲率が連続的に変わる面での 4 段ポスタライズ。段の間隔が見える。",
+        style={"shadeBlur1": 0.55, "shadeBlur2": 0.55, "shadeSteps": 4.0},
+    ),
+    Case(
+        name="capsule_rim_specular",
+        mode=MODE_CAPSULE,
+        description="押し出した曲面と半球の継ぎ目。リムとハイライトの伸び方を見る。",
+        style={
+            "rimColor": (0.85, 0.72, 1.0),
+            "rimBorder": 0.6,
+            "rimBlur": 0.25,
+            "specularColor": (1.4, 1.35, 1.2),
+            "specularBorder": 0.35,
+        },
     ),
     Case(
         name="swatch_ramp",
