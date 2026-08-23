@@ -27,6 +27,11 @@ _site/
 !.ci/UnityProject/ProjectSettings/ProjectVersion.txt
 unity-test-results/
 
+# アバターデモ。第三者のアバターとその派生データ（マテリアル・シーン・
+# レンダリング結果）が入るため、プロジェクトごと追跡対象から外す。
+# 追跡するのは tools/ 側の組み立てスクリプトと Editor スクリプトだけ。
+.demo/
+
 # OS
 .DS_Store
 Thumbs.db

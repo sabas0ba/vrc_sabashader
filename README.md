@@ -46,6 +46,7 @@
 
 - [Illust2D のパラメータ](docs/shader-illust2d.md)
 - [テストの仕組みと動かし方](docs/testing.md)
+- [アバターに適用して確認する](docs/avatar-demo.md)
 - [配布のしくみとリリース手順](docs/distribution.md)
 - [シェーダーを追加する](docs/adding-a-shader.md)
 
