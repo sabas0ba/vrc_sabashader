@@ -20,6 +20,8 @@ _site/
 .ci/UnityProject/Packages/jp.sabas0ba.sabashader/
 .ci/UnityProject/Packages/jp.lilxyzw.shadercore/
 .ci/UnityProject/Packages/packages-lock.json
+.ci/UnityProject/Assets/Illust2DCheck/
+.ci/UnityProject/Assets/Illust2DCheck.meta
 .ci/UnityProject/ProjectSettings/*
 !.ci/UnityProject/ProjectSettings/ProjectVersion.txt
 unity-test-results/
