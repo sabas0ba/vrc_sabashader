@@ -27,7 +27,16 @@
     half morphMask = (_VertexMaskChannel < 4) ? vertex.color[_VertexMaskChannel] : 1.0;
     half morphAmount = SBSOverlayDisplacement(vertex.N, morphUp, morphMask, morphStyle);
 
-    // 法線方向に押し出しつつ、上向きへ少し寄せると積もりらしくなる。
-    half3 morphDirection = normalize(lerp(normalize(vertex.N), morphUp, saturate(_Flatten) * 0.5));
+    // 押し出す向き。1 で真上、0 で面の法線。
+    //
+    // 雪は重力で積もるので、既定では真上寄りにしてある。法線方向に押し出すと、
+    // 傾いた面では厚みが面から生えたように見える。
+    //
+    // なお **頂点変位だけでは積もりの縁を丸められない**。丸めるには
+    // ジオメトリを足す必要があるが、Shader Core のモジュールはパスを
+    // 追加できず、テッセレーションのフックも無い。縁をなだらかにしたい
+    // 場合は、頂点カラー（_VertexMaskChannel）で厚みを落とすか、
+    // モデル側に縁のジオメトリを用意してください。
+    half3 morphDirection = normalize(lerp(normalize(vertex.N), morphUp, saturate(_ThicknessUp)));
     vertex.position += morphDirection * morphAmount;
 }

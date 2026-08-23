@@ -140,7 +140,10 @@ half3 SBSOverlayDroplet(half2 coord, SBSOverlayStyle st)
     half cycle = frac(st.time * speed * 0.25 + rollPhase) * 4.0;
     half flow = moving * SBSOverlayTravel(cycle, 0.8) * (0.6 + 0.8 * rollMove);
 
-    half2 flowed = half2(grid.x, grid.y + flow);
+    // 座標は「下ほど大きい」向きに取ってある。ここで足すと、その点で
+    // 見えるパターンが下側のものに入れ替わり、模様は上へ流れてしまう。
+    // 引くことで模様が下へ流れる。
+    half2 flowed = half2(grid.x, grid.y - flow);
     half2 cell = floor(flowed);
     half2 local = frac(flowed) - half2(0.5, 0.5);
 

@@ -59,6 +59,12 @@ msgstr "積もりの厚み"
 msgid "__ThicknessDesc"
 msgstr "頂点を押し出して厚みを出します。単位はメートル。形が変わるので入れすぎに注意してください。"
 
+msgid "__ThicknessUp"
+msgstr "厚みの向き"
+
+msgid "__ThicknessUpDesc"
+msgstr "1 で真上、0 で面の法線に沿って押し出します。雪は重力で積もるので真上寄りが自然です。頂点変位だけでは縁を丸められないので、なだらかにしたい場合は頂点カラーで厚みを落としてください。"
+
 msgid "__VertexMaskChannel"
 msgstr "頂点カラーのマスク"
 

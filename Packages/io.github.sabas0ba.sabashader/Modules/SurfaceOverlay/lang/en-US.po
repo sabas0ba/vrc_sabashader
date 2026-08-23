@@ -59,6 +59,12 @@ msgstr "Settled Thickness"
 msgid "__ThicknessDesc"
 msgstr "Pushes vertices out to give the layer thickness, in meters. Changes the silhouette, so keep it small."
 
+msgid "__ThicknessUp"
+msgstr "Thickness Direction"
+
+msgid "__ThicknessUpDesc"
+msgstr "1 pushes straight up, 0 follows the surface normal. Snow settles by gravity, so up is usually right. Vertex displacement alone cannot round the edge; use vertex colors to taper it."
+
 msgid "__VertexMaskChannel"
 msgstr "Vertex Color Mask"
 
