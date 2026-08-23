@@ -13,6 +13,46 @@
 
 ---
 
+## 開発環境
+
+harness と tools はコンテナか nix の中で動かします。**ホスト OS に直接
+Python やヘッドレス OpenGL を入れる運用はしません。**環境差が
+ゴールデン画像の比較に出るためです。
+
+### コンテナ（podman / docker）
+
+`Containerfile` が基準環境です。CI もこのイメージを組み立てて、その中でテストを回します。
+
+```bash
+tools/dev.sh                                  # テスト一式
+tools/dev.sh python tools/gen_meta.py --check # 任意のコマンド
+tools/dev.sh --build                          # Containerfile を変えたら作り直す
+```
+
+`podman` が無ければ `docker` を使います。`CONTAINER_ENGINE` で明示もできます。
+Windows の Git Bash から使う場合は `MSYS_NO_PATHCONV=1` を付けてください。
+
+### nix
+
+`flake.nix` の devShell でも同じことができます。`flake.lock` で nixpkgs を固定しています。
+
+```bash
+nix develop --command python -m pytest tests -q
+```
+
+### 2 つの環境の違い
+
+Mesa のバージョンが違います。それでも同じゴールデン画像で通ることを確認しています。
+
+| 環境 | Mesa | LLVM |
+| --- | --- | --- |
+| コンテナ（Ubuntu 24.04） | 25.2.8 | 20.1.2 |
+| nix（nixpkgs 24.11） | 24.2.8 | 18.1.8 |
+
+ゴールデンを更新するときは、CI と同じコンテナ側で作ってください。
+
+---
+
 ## 1. 描画回帰テスト（ヘッドレス）
 
 ### 何をしているか
@@ -53,14 +93,22 @@ GPU もディスプレイも不要なので、ローカルでも GitHub Actions 
 ### 動かす
 
 ```bash
-python -m pytest tests -q                          # 比較
-python -m pytest tests -k render --update-goldens  # ゴールデンを更新
+tools/dev.sh                                       # テスト一式
+tools/dev.sh python -m pytest tests -k render      # 描画だけ
 ```
 
-ゴールデン画像は **llvmpipe で作る必要があります**。手元の GPU で作ると
-ドライバ差で CI と一致しません。CI と同じ環境で作るには、
-`tests` ワークフローを `update_goldens` を有効にして手動実行し、
-`goldens` アーティファクトを落として `tests/golden/` に置いてください。
+実行環境については [開発環境](#開発環境) を参照してください。
+ホスト OS に Python やヘッドレス OpenGL を入れる必要はありません。
+
+ゴールデン画像は **Mesa のバージョンに依存します**。基準環境は `Containerfile`
+で、CI もこのイメージの中でテストを回します。更新はコンテナの中で行ってください。
+
+```bash
+tools/dev.sh python -m pytest tests -k render -q --update-goldens
+```
+
+CI 側で作らせて受け取ることもできます。`goldens` アーティファクトを落として
+`tests/golden/` に置いてください。
 
 ```bash
 gh workflow run tests.yml --ref <branch> -f update_goldens=true

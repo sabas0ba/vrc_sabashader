@@ -22,6 +22,12 @@ from typing import Dict, Iterable, List, Optional, Tuple
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_CONFIG = REPO_ROOT / "listing.json"
+DEFAULT_DOCS = REPO_ROOT / "docs"
+
+# `python tools/build_listing.py` で直接動かしたときも
+# `tools.render_docs` を import できるようにする。
+if __package__ in (None, ""):
+    sys.path.insert(0, str(REPO_ROOT))
 
 GITHUB_API = "https://api.github.com"
 
@@ -133,7 +139,7 @@ def build_listing(config: dict, versions: Dict[str, Dict[str, dict]]) -> dict:
     return listing
 
 
-def render_page(listing: dict) -> str:
+def render_page(listing: dict, docs: Optional[List[Tuple[str, str]]] = None) -> str:
     """GitHub Pages に置く案内ページ。VCC にリスティングを登録するリンクを出す。"""
     add_link = f"vcc://vpm/addRepo?url={listing['url']}"
 
@@ -152,6 +158,11 @@ def render_page(listing: dict) -> str:
 
     table = "\n".join(rows) or '<tr><td colspan="4">まだリリースがありません</td></tr>'
     description = listing.get("description", "")
+
+    docs_section = ""
+    if docs:
+        items = "".join(f'<li><a href="{href}">{label}</a></li>' for href, label in docs)
+        docs_section = f"<h2>ドキュメント</h2>\n<ul>{items}</ul>"
 
     return f"""<!DOCTYPE html>
 <html lang="ja">
@@ -180,6 +191,7 @@ def render_page(listing: dict) -> str:
 {table}
 </tbody>
 </table>
+{docs_section}
 </body>
 </html>
 """
@@ -190,6 +202,7 @@ def main() -> int:
     parser.add_argument("--config", type=Path, default=DEFAULT_CONFIG)
     parser.add_argument("--output", type=Path, default=REPO_ROOT / "_site" / "index.json")
     parser.add_argument("--html", type=Path, help="案内ページの出力先")
+    parser.add_argument("--docs", type=Path, help="docs/*.md を HTML にして書き出す先")
     parser.add_argument("--releases", type=Path, help="GitHub API を叩かずこの JSON を使う")
     args = parser.parse_args()
 
@@ -209,9 +222,20 @@ def main() -> int:
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(listing, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
+    docs_links: List[Tuple[str, str]] = []
+    if args.docs:
+        from tools.render_docs import build as build_docs, document_title
+
+        written = build_docs(DEFAULT_DOCS, args.docs, extra_nav=[("../index.html", "リスティング")])
+        relative = args.docs.name
+        for name in sorted(written):
+            title = document_title((DEFAULT_DOCS / name).read_text(encoding="utf-8"))
+            docs_links.append((f"{relative}/{name[:-3]}.html", title))
+        print(f"{args.docs} に {len(written)} ページ書き出しました")
+
     if args.html:
         args.html.parent.mkdir(parents=True, exist_ok=True)
-        args.html.write_text(render_page(listing), encoding="utf-8")
+        args.html.write_text(render_page(listing, docs_links), encoding="utf-8")
 
     total = sum(len(entry["versions"]) for entry in listing["packages"].values())
     print(f"{args.output} を書き出しました（{len(listing['packages'])} パッケージ / {total} バージョン）")

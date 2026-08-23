@@ -53,6 +53,7 @@ HLSL が実際にコンパイルできるかは
 | `.ci/UnityProject/` | Unity でのコンパイル検証用プロジェクトの雛形 |
 | `tools/` | `.meta` 生成・VPM リスティング生成・Unity プロジェクト組み立て |
 | `listing.json` | 配信するリスティングのメタ情報 |
+| `Containerfile` / `flake.nix` | harness と tools を動かす環境（CI もこれを使う） |
 | `.github/workflows/` | テスト・リリース・Pages 配信 |
 
 ## ドキュメント
@@ -65,32 +66,36 @@ HLSL が実際にコンパイルできるかは
 
 ## 開発
 
+harness と tools は**コンテナか nix の中で動かします**。ホスト OS に
+Python やヘッドレス OpenGL を入れる必要はありません。環境差が
+ゴールデン画像の比較に出るため、実行環境を固定しています。
+
 ```bash
-# 依存パッケージ
-pip install -r tests/requirements.txt
+# コンテナ（podman / docker）。Containerfile が基準環境で、CI も同じイメージを使う
+tools/dev.sh                                       # 全テスト
+tools/dev.sh python -m pytest tests -k render      # 描画だけ
+tools/dev.sh python tools/expand_shader.py --output /tmp/Illust2D.shader
 
-# ヘッドレス OpenGL（Ubuntu の場合）
-sudo apt-get install -y libegl1 libgles2 libgl1-mesa-dri libglvnd0
+# nix
+nix develop --command python -m pytest tests -q
+```
 
-# 全テスト
-python -m pytest tests -q
+見た目を意図的に変えたときは、CI と同じコンテナでゴールデンを更新し、
+**差分を必ず目視してから**コミットしてください。
 
-# 見た目を意図的に変えたとき（差分を必ず目視してからコミットする）
-python -m pytest tests -k render --update-goldens
-
-# .scshader が Unity からどう見えるかを書き出す
-python tools/expand_shader.py --output /tmp/Illust2D.shader
+```bash
+tools/dev.sh python -m pytest tests -k render -q --update-goldens
 ```
 
 HLSL が実際にコンパイルできるかは Unity でしか確認できません。
 `.github/workflows/unity-compile.yml` がその検証をしますが、
 Unity のライセンス secret が設定されるまではスキップされます。
-設定方法とローカルでの回し方は [docs/testing.md](docs/testing.md#4-unity-でのコンパイル検証) を参照してください。
+設定方法とローカルでの回し方は [docs/testing.md](docs/testing.md#5-unity-でのコンパイル検証) を参照してください。
 
 `.meta` は Unity 無しでも生成できます。ファイルを足したら忘れずに実行してください。
 
 ```bash
-python tools/gen_meta.py
+tools/dev.sh python tools/gen_meta.py
 ```
 
 ## ライセンス
