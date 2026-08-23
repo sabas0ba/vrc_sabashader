@@ -27,6 +27,13 @@ from typing import Callable, Dict, List, Optional
 REPO_ROOT = Path(__file__).resolve().parent.parent
 DOCS_DIR = REPO_ROOT / "docs"
 
+# `python tools/render_docs.py` で直接動かしたときも
+# `tools.site_theme` を import できるようにする。
+if __package__ in (None, ""):
+    sys.path.insert(0, str(REPO_ROOT))
+
+from tools import site_theme  # noqa: E402  （sys.path を通してから読む）
+
 GITHUB_BLOB = "https://github.com/sabas0ba/vrc_sabashader/blob/main"
 
 _FENCE = re.compile(r"^```([A-Za-z0-9_+-]*)\s*$")
@@ -188,7 +195,11 @@ class _Renderer:
         rows = "".join(
             "<tr>" + "".join(f"<td>{self.inline(cell)}</td>" for cell in row) + "</tr>" for row in body
         )
-        self.out.append(f"<table><thead><tr>{head_html}</tr></thead><tbody>{rows}</tbody></table>")
+        # 横長の表はページごと横スクロールさせず、この箱の中だけで動かす
+        self.out.append(
+            '<div class="table-scroll"><table><thead><tr>'
+            f"{head_html}</tr></thead><tbody>{rows}</tbody></table></div>"
+        )
         return index
 
     def _quote(self, lines: List[str], index: int) -> int:
@@ -245,51 +256,12 @@ def render_markdown(text: str, link: Callable[[str], str] = default_link) -> tup
     return "".join(renderer.out), renderer.headings
 
 
-PAGE_STYLE = """
-  :root { color-scheme: light dark; }
-  body { font-family: system-ui, sans-serif; max-width: 52rem; margin: 0 auto;
-         padding: 2rem 1rem 4rem; line-height: 1.75; }
-  nav.site { display: flex; flex-wrap: wrap; gap: 0.75rem; padding-bottom: 1rem;
-             border-bottom: 1px solid #8884; margin-bottom: 2rem; }
-  nav.site a { text-decoration: none; }
-  code { background: #8881; padding: 0.1em 0.35em; border-radius: 4px; }
-  pre { background: #8881; padding: 0.9rem 1rem; border-radius: 6px; overflow-x: auto; }
-  pre code { background: none; padding: 0; }
-  table { border-collapse: collapse; width: 100%; margin: 1.5rem 0; display: block; overflow-x: auto; }
-  th, td { border-bottom: 1px solid #8884; padding: 0.5rem; text-align: left; vertical-align: top; }
-  blockquote { margin: 1.2rem 0; padding: 0.1rem 1rem; border-left: 3px solid #8886; }
-  h1, h2, h3 { line-height: 1.35; }
-  hr { border: none; border-top: 1px solid #8884; margin: 2.5rem 0; }
-  .cta { display: inline-block; background: #1c1c22; color: #fff; padding: 0.6rem 1.2rem;
-         border-radius: 6px; text-decoration: none; }
-"""
-
-
 def render_nav(pages: List[tuple[str, str]], current: Optional[str]) -> str:
-    links = []
-    for href, label in pages:
-        if href == current:
-            links.append(f"<strong>{html.escape(label)}</strong>")
-        else:
-            links.append(f'<a href="{html.escape(href, quote=True)}">{html.escape(label)}</a>')
-    return '<nav class="site">' + "".join(links) + "</nav>"
+    return site_theme.render_nav(pages, current)
 
 
-def render_page(title: str, body: str, nav: str) -> str:
-    return f"""<!DOCTYPE html>
-<html lang="ja">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{html.escape(title)}</title>
-<style>{PAGE_STYLE}</style>
-</head>
-<body>
-{nav}
-{body}
-</body>
-</html>
-"""
+def render_page(title: str, body: str, nav: str, *, home_href: str = "../index.html") -> str:
+    return site_theme.render_document(title, body, nav, home_href=home_href)
 
 
 def document_title(text: str) -> str:
@@ -300,7 +272,12 @@ def document_title(text: str) -> str:
     return "docs"
 
 
-def build(docs_dir: Path, output_dir: Path, extra_nav: Optional[List[tuple[str, str]]] = None) -> Dict[str, Path]:
+def build(
+    docs_dir: Path,
+    output_dir: Path,
+    extra_nav: Optional[List[tuple[str, str]]] = None,
+    home_href: str = "../index.html",
+) -> Dict[str, Path]:
     sources = sorted(docs_dir.glob("*.md"))
     if not sources:
         raise SystemExit(f"docs が見つかりません: {docs_dir}")
@@ -318,7 +295,12 @@ def build(docs_dir: Path, output_dir: Path, extra_nav: Optional[List[tuple[str, 
         body, _ = render_markdown(text)
         target = output_dir / (source.stem + ".html")
         target.write_text(
-            render_page(document_title(text), body, render_nav(pages, source.stem + ".html")),
+            render_page(
+                document_title(text),
+                body,
+                render_nav(pages, source.stem + ".html"),
+                home_href=home_href,
+            ),
             encoding="utf-8",
         )
         written[source.name] = target

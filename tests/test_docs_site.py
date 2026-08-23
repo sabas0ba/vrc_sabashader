@@ -114,3 +114,70 @@ def test_repository_links_go_to_github():
 def test_slug_matches_heading_anchor():
     body, _ = render_markdown("## ライセンス表記")
     assert f'id="{slugify("ライセンス表記")}"' in body
+
+
+# --- 共通のガワとダークモード ---------------------------------------------
+
+
+@pytest.fixture(scope="module")
+def listing_page() -> str:
+    """リスティング案内ページ。docs と同じガワで出ているかを見る。"""
+    from tools.build_listing import render_page
+
+    listing = {
+        "name": "SabaShader",
+        "url": "https://example.invalid/index.json",
+        "description": "説明",
+        "packages": {
+            "io.github.sabas0ba.sabashader": {
+                "versions": {"1.0.0": {"displayName": "SabaShader"}},
+            }
+        },
+    }
+    return render_page(listing, [("docs/testing.html", "テストの仕組み")])
+
+
+def test_listing_and_docs_share_the_shell(site, listing_page):
+    """ヘッダー・ナビ・フッター・スタイルが 2 種類に分かれていないこと。"""
+    from tools.site_theme import PAGE_STYLE
+
+    for name, text in list(site.items()) + [("index.html", listing_page)]:
+        assert PAGE_STYLE in text, f"{name} が共通スタイルを使っていません"
+        assert '<header class="site-header">' in text, f"{name} にヘッダーがありません"
+        assert '<nav class="site">' in text, f"{name} にナビがありません"
+        assert '<footer class="site-footer">' in text, f"{name} にフッターがありません"
+
+
+def test_listing_links_to_docs(listing_page):
+    assert 'href="docs/testing.html"' in listing_page
+
+
+def test_docs_link_back_to_listing(site):
+    for name, text in site.items():
+        assert 'href="../index.html"' in text, f"{name} からリスティングに戻れません"
+
+
+def test_dark_mode_follows_the_os_and_the_toggle(site, listing_page):
+    """OS 追従と明示切り替えの両方が効くこと。"""
+    for name, text in list(site.items()) + [("index.html", listing_page)]:
+        assert "prefers-color-scheme: dark" in text, f"{name} が OS の設定に追従しません"
+        assert ':root[data-theme="dark"]' in text, f"{name} に明示的なダーク指定がありません"
+        assert 'id="theme-toggle"' in text, f"{name} に切り替えボタンがありません"
+
+
+def test_colors_are_defined_for_both_themes():
+    """色は素の :root に定義し、暗い側では上書きだけにすること。
+
+    片方のブロックでしか定義していない変数があると、
+    もう片方のテーマで色が抜け落ちる。
+    """
+    from tools.site_theme import PAGE_STYLE
+
+    def variables(block: str) -> set:
+        return set(re.findall(r"(--[\w-]+):", block))
+
+    root = PAGE_STYLE.split(":root {", 1)[1].split("}", 1)[0]
+    dark = PAGE_STYLE.split(':root[data-theme="dark"] {', 1)[1].split("}", 1)[0]
+
+    assert variables(root), "既定のテーマに色が定義されていません"
+    assert variables(dark) == variables(root), "明暗で定義されている色が食い違っています"

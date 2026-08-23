@@ -51,7 +51,7 @@ HLSL が実際にコンパイルできるかは
 | `Packages/.../Shaders/Illust2D/` | Illust2D シェーダー一式 |
 | `tests/` | ヘッドレス描画による回帰テストと構造チェック |
 | `.ci/UnityProject/` | Unity でのコンパイル検証用プロジェクトの雛形 |
-| `tools/` | `.meta` 生成・VPM リスティング生成・Unity プロジェクト組み立て |
+| `tools/` | `.meta` 生成・VPM リスティング生成・Pages のサイト生成・Unity プロジェクト組み立て |
 | `listing.json` | 配信するリスティングのメタ情報 |
 | `Containerfile` / `flake.nix` | harness と tools を動かす環境（CI もこれを使う） |
 | `.github/workflows/` | テスト・リリース・Pages 配信 |
