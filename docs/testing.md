@@ -117,6 +117,26 @@ gh workflow run tests.yml --ref <branch> -f update_goldens=true
 見た目を意図的に変えたときは `--update-goldens` で更新し、
 **差分画像を目で見てから**コミットしてください。
 
+### 画像として書き出す
+
+ドキュメント用の図や、数式をいじったときの当たり確認には
+`tools/render_preview.py` を使います。**Unity もディスプレイも要りません。**
+テストと同じヘッドレス描画をそのまま呼ぶので、CI と同じ絵が出ます。
+
+```bash
+tools/dev.sh python tools/render_preview.py --list
+tools/dev.sh python tools/render_preview.py --case sphere_default --output _preview
+tools/dev.sh python tools/render_preview.py --sheet _preview/sheet.png
+tools/dev.sh python tools/render_preview.py --all --compare --output _preview
+```
+
+`--sheet` は全ケースを名前つきで 1 枚に並べます。`--compare` はゴールデンとの
+差を数値で出し、違えば差分画像も書き出します。出力先の `_preview/` は
+`.gitignore` 済みです。
+
+見ているのは `*Core.hlsl` の数式で、Unity のマテリアルそのものではありません。
+テクスチャや実際のメッシュを含めた確認は `.ci/UnityProject` の確認シーンを使います。
+
 ### ケースを足すときの基準
 
 新しいケースは、**既存のケースとの差が許容誤差を明確に超えている**必要があります。
@@ -171,6 +191,13 @@ Shader Core 本体はテスト時に `.cache/Shader-Core` へ shallow clone し�
 - `SCShadingData` の初期化漏れ（テクスチャを含む構造体なので `(SCShadingData)0` が使えない）
 - `lang/*.po` の翻訳漏れ・不要キー
 - `tests/cases.py` の初期値とマテリアル初期値のズレ
+
+モジュール（`.scmodule`）も同じ層で見ます。
+
+- `uniqueID` の欠落、フェーズのファイルの欠落
+- プロパティ名が `uniqueID` で書き換わっているか
+- 同一フェーズ内の `befores` / `afters` の矛盾と循環
+- モジュールが宣言していないプロパティを参照していないか
 
 ### できないこと
 

@@ -4,12 +4,14 @@ Unity なしで .scshader を最終的な ShaderLab まで展開し、
 「マーカーの取りこぼし」「include の解決漏れ」「未宣言のプロパティ参照」といった
 Unity に入れるまで気付けない種類の壊れ方を CI で捕まえるためのもの。
 
-C# 側 (Editor/Importer/SCShaderImporter*.cs, Editor/Core/SCProperty.cs) の
-挙動に合わせてあるが、モジュール(.scmodule)の読み込みまでは再現しない。
+C# 側 (Editor/Importer/SCShaderImporter*.cs, Editor/Core/SCProperty.cs,
+Editor/Core/SCModule.cs) の挙動に合わせてある。モジュール(.scmodule)の
+読み込みとフェーズへの差し込み、プロパティ名の uniqueID による書き換えも再現する。
 """
 
 from __future__ import annotations
 
+import json
 import re
 import subprocess
 from dataclasses import dataclass, field
@@ -17,6 +19,7 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
 from .paths import (
+    MODULES_DIR,
     SHADERCORE_CACHE,
     SHADERCORE_COMMIT,
     SHADERCORE_PACKAGE_PATH,
@@ -79,6 +82,9 @@ class Property:
     attributes: List[str] = field(default_factory=list)
     display: Optional[str] = None
     description: Optional[str] = None
+    # uniqueID を付ける前の名前。モジュールの HLSL 内の参照を
+    # 書き換えるときに使う（SCPhase.LoadHLSL と同じ）。
+    original_name: Optional[str] = None
 
     @property
     def is_layout(self) -> bool:
@@ -123,7 +129,9 @@ class Property:
         return [self.name]
 
 
-def parse_properties(path: Path) -> List[Property]:
+def parse_properties(path: Path, unique_id: str = "") -> List[Property]:
+    """SCProperty.FromFile と同じ。unique_id を渡すとプロパティ名に前置きする。"""
+    prefix = "_" + unique_id.replace(".", "_") if unique_id else ""
     props: List[Property] = []
     for lineno, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
         # Shader Core の SCProperty.Parse は空行以外の解釈できない行で例外を投げる。
@@ -137,11 +145,12 @@ def parse_properties(path: Path) -> List[Property]:
             props.append(
                 Property(
                     type=match.group(1),
-                    name=match.group(2),
+                    name=prefix + match.group(2),
                     default=match.group(3),
                     attributes=[a for a in attributes if a != "[]"],
                     display=match.group(5),
                     description=match.group(6),
+                    original_name=match.group(2),
                 )
             )
             continue
@@ -149,7 +158,9 @@ def parse_properties(path: Path) -> List[Property]:
         for pattern, ptype in ((_REG_SAMPLER, "SamplerState"), (_REG_SCALE_OFFSET, "ScaleOffset")):
             simple = pattern.match(line)
             if simple:
-                props.append(Property(type=ptype, name=simple.group(1)))
+                props.append(
+                    Property(type=ptype, name=prefix + simple.group(1), original_name=simple.group(1))
+                )
                 break
         else:
             if _REG_BOX.match(line):
@@ -167,6 +178,185 @@ def parse_properties(path: Path) -> List[Property]:
     return props
 
 
+# --- .scmodule の読み込み -----------------------------------------------------
+
+
+class ModuleLoadError(ValueError):
+    pass
+
+
+@dataclass
+class ModulePhase:
+    """SCPhase 相当。どのフェーズにどのファイルを差し込むか。"""
+
+    phase: str
+    path: Path
+    name: str
+    befores: List[str] = field(default_factory=list)
+    afters: List[str] = field(default_factory=list)
+
+
+@dataclass
+class Module:
+    """SCModule 相当。"""
+
+    unique_id: str
+    name: str
+    path: Path
+    phases: List[ModulePhase] = field(default_factory=list)
+    properties: List[Property] = field(default_factory=list)
+    includes: Optional[str] = None
+    keep_property_names: bool = False
+
+    @property
+    def directory(self) -> Path:
+        return self.path.parent
+
+    def declared_property_names(self) -> List[str]:
+        names: List[str] = []
+        for prop in self.properties:
+            names.extend(prop.declared_names())
+        return names
+
+    def rename_properties(self, line: str) -> str:
+        """モジュールの HLSL 内のプロパティ参照を uniqueID 付きの名前へ書き換える。
+
+        SCPhase.LoadHLSL と同じ。モジュール側は素の名前で書き、
+        インポータが衝突しない名前に直す、という約束になっている。
+        """
+        for prop in self.properties:
+            if not prop.original_name or prop.original_name == prop.name:
+                continue
+            suffix = "_ST" if prop.type == "ScaleOffset" else ""
+            line = re.sub(
+                r"(?<![\w])" + re.escape(prop.original_name) + suffix + r"(?![\w])",
+                prop.name + suffix,
+                line,
+            )
+        return line
+
+
+def load_module(path: Path) -> Module:
+    try:
+        raw = json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as error:
+        raise ModuleLoadError(f"{path.name}: JSON として読めません: {error}") from error
+
+    unique_id = raw.get("uniqueID")
+    if not unique_id:
+        raise ModuleLoadError(f"{path.name}: uniqueID がありません")
+
+    name = raw.get("name") or path.stem
+    keep = bool(raw.get("keepPropertyNames", False))
+    directory = path.parent
+
+    properties: List[Property] = []
+    properties_path = directory / "properties.hlsl"
+    if properties_path.is_file():
+        properties = parse_properties(properties_path, "" if keep else unique_id)
+
+    includes: Optional[str] = None
+    includes_path = directory / "includes.hlsl"
+    if includes_path.is_file():
+        includes = includes_path.read_text(encoding="utf-8")
+
+    phases: List[ModulePhase] = []
+    declared: set = set()
+    for entry in raw.get("phases", []):
+        phase = entry.get("phase")
+        if not phase:
+            raise ModuleLoadError(f"{path.name}: phase の指定がありません")
+        relative = entry.get("path") or f"phase_{phase}.hlsl"
+        phases.append(
+            ModulePhase(
+                phase=phase,
+                path=directory / relative,
+                name=entry.get("name") or name,
+                befores=list(entry.get("befores", [])),
+                afters=list(entry.get("afters", [])),
+            )
+        )
+        declared.add(relative)
+
+    # phase_<フェーズ名>.hlsl は JSON に書かなくても拾われる
+    for candidate in sorted(directory.glob("phase_*.hlsl")):
+        if candidate.name in declared:
+            continue
+        phases.append(
+            ModulePhase(
+                phase=re.match(r"phase_(\w+)\.hlsl", candidate.name).group(1),
+                path=candidate,
+                name=name,
+            )
+        )
+
+    missing = [str(phase.path) for phase in phases if not phase.path.is_file()]
+    if missing:
+        raise ModuleLoadError(f"{path.name}: フェーズのファイルがありません: {', '.join(missing)}")
+
+    return Module(
+        unique_id=unique_id,
+        name=name,
+        path=path,
+        phases=phases,
+        properties=properties,
+        includes=includes,
+        keep_property_names=keep,
+    )
+
+
+def discover_modules(root: Path) -> List[Module]:
+    return [load_module(path) for path in sorted(root.rglob("*.scmodule"))]
+
+
+def package_modules() -> List[Module]:
+    """このパッケージが持つモジュール一式。"""
+    return discover_modules(MODULES_DIR) if MODULES_DIR.is_dir() else []
+
+
+def _phase_sort_key(pair: Tuple[Module, ModulePhase]):
+    return (pair[1].phase, pair[1].name)
+
+
+def order_phases(modules: List[Module], phase: str) -> List[Tuple[Module, ModulePhase]]:
+    """同一フェーズ内の並び。befores / afters を尊重し、無ければ名前順。
+
+    SCPhase.CompareTo と同じ判断をするが、比較関数ではなく
+    依存関係を解いてから安定ソートする（同じ結果になり、循環を検出できる）。
+    """
+    pairs = [(m, p) for m in modules for p in m.phases if p.phase == phase]
+    pairs.sort(key=_phase_sort_key)
+
+    order = {id(pair): index for index, pair in enumerate(pairs)}
+    changed = True
+    guard = 0
+    while changed:
+        changed = False
+        guard += 1
+        if guard > len(pairs) + 2:
+            raise ModuleLoadError(f"フェーズ {phase} の前後関係が循環しています")
+        for a in pairs:
+            for b in pairs:
+                if a is b:
+                    continue
+                a_after = b[1].name in a[1].afters or a[1].name in b[1].befores
+                b_after = a[1].name in b[1].afters or b[1].name in a[1].befores
+                if a_after and b_after:
+                    raise ModuleLoadError(
+                        f"前後関係の指定が矛盾しています: {a[1].name} と {b[1].name}"
+                    )
+                if a_after and order[id(a)] < order[id(b)]:
+                    order[id(a)], order[id(b)] = order[id(b)], order[id(a)]
+                    changed = True
+
+    return sorted(pairs, key=lambda pair: order[id(pair)])
+
+
+def order_modules(modules: List[Module]) -> List[Module]:
+    """プロパティを並べる順。フェーズを持たないものが先、あとはフェーズ名順。"""
+    return sorted(modules, key=lambda m: (bool(m.phases), m.phases[0].phase if m.phases else ""))
+
+
 # --- .scshader の展開 ---------------------------------------------------------
 
 
@@ -179,11 +369,20 @@ class ExpandResult:
 
 
 class ShaderExpander:
-    def __init__(self, shader_path: Path, package_roots: Dict[str, Path]) -> None:
+    def __init__(
+        self,
+        shader_path: Path,
+        package_roots: Dict[str, Path],
+        modules: Optional[List[Module]] = None,
+    ) -> None:
         self.shader_path = shader_path
         self.shader_dir = shader_path.parent
         self.package_roots = package_roots
         self.properties = self._load_properties()
+        # Shader Core はシェーダーごとに有効なモジュールを持つ。既定は
+        # 「そのシェーダーと同じディレクトリにあるもの」で、他所のものは
+        # プロジェクト設定で有効化する。ここでは呼び出し側から明示させる。
+        self.modules: List[Module] = list(modules or [])
 
     def _load_properties(self) -> List[Property]:
         props_path = self.shader_path.with_name(f"{self.shader_path.stem}_properties.hlsl")
@@ -193,6 +392,8 @@ class ShaderExpander:
         names: List[str] = []
         for prop in self.properties:
             names.extend(prop.declared_names())
+        for module in self.modules:
+            names.extend(module.declared_property_names())
         return names
 
     def _resolve_include(self, raw: str, current_dir: Path) -> Optional[Path]:
@@ -221,9 +422,12 @@ class ShaderExpander:
             for line in path.read_text(encoding="utf-8").splitlines():
                 phase = _REG_PHASE.match(line)
                 if phase:
-                    if phase.group(1) not in phases:
-                        phases.append(phase.group(1))
-                    continue  # モジュール未導入なので空に展開される
+                    name = phase.group(1)
+                    if name not in phases:
+                        phases.append(name)
+                    marker_indent = re.match(r"^\s*", line).group(0)
+                    out.extend(self._phase_block(name, marker_indent, included))
+                    continue
 
                 include = _REG_INCLUDE.match(line)
                 if include:
@@ -246,16 +450,23 @@ class ShaderExpander:
             elif "__SC_BIRP_properties__" in line or "__SC_URP_properties__" in line:
                 expanded.extend(self._hlsl_block(indent))
             elif "__SC_INCLUDES__" in line:
-                continue
+                expanded.extend(self._includes_block(indent))
             else:
                 expanded.append(line)
 
         return ExpandResult("\n".join(expanded), phases, unresolved, included)
 
     def _shaderlab_block(self, indent: str) -> List[str]:
-        lines = [f"{indent}[SCModule()][SCFoldout(__Main)]"]
-        scale_offsets = {p.name for p in self.properties if p.type == "ScaleOffset"}
-        for prop in self.properties:
+        lines = self._shaderlab_group(indent, "__Main", self.properties)
+        for module in order_modules(self.modules):
+            lines.extend(self._shaderlab_group(indent, module.name, module.properties))
+        return lines
+
+    @staticmethod
+    def _shaderlab_group(indent: str, label: str, properties: List[Property]) -> List[str]:
+        lines = [f"{indent}[SCModule()][SCFoldout({label})]"]
+        scale_offsets = {p.name for p in properties if p.type == "ScaleOffset"}
+        for prop in properties:
             declaration = prop.shaderlab_declaration()
             if declaration is None:
                 continue
@@ -270,6 +481,30 @@ class ShaderExpander:
             declaration = prop.hlsl_declaration()
             if declaration is not None:
                 lines.append(f"{indent}{declaration}")
+        for module in order_modules(self.modules):
+            for prop in module.properties:
+                declaration = prop.hlsl_declaration()
+                if declaration is not None:
+                    lines.append(f"{indent}{declaration}")
+        return lines
+
+    def _phase_block(self, phase: str, indent: str, included: List[Path]) -> List[str]:
+        """フェーズのマーカーを、そこに差し込まれるモジュールのコードに置き換える。"""
+        lines: List[str] = []
+        for module, module_phase in order_phases(self.modules, phase):
+            included.append(module_phase.path)
+            lines.append(f"{indent}// {module.unique_id} / {module_phase.name}")
+            for line in module_phase.path.read_text(encoding="utf-8").splitlines():
+                lines.append(indent + module.rename_properties(line))
+        return lines
+
+    def _includes_block(self, indent: str) -> List[str]:
+        lines: List[str] = []
+        for module in order_modules(self.modules):
+            if not module.includes:
+                continue
+            for line in module.includes.splitlines():
+                lines.append(indent + line)
         return lines
 
 

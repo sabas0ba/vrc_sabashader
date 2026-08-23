@@ -19,6 +19,10 @@ MODE_LIGHT_LIMIT = 3
 MODE_BOX = 4
 MODE_TORUS = 5
 MODE_CAPSULE = 6
+# モジュール（表面の重ね掛け）
+MODE_OVERLAY = 7
+MODE_PIXEL = 8
+MODE_DROPLET = 9
 
 DEFAULT_STYLE: Dict[str, object] = {
     "shadeBorder1": 0.5,
@@ -50,6 +54,44 @@ DEFAULT_STYLE: Dict[str, object] = {
     "saturation": 1.05,
     "contrast": 1.02,
 }
+
+# モジュールの数式ファイルにある SBSXxxStyle と一致させる。
+# ズレは test_core_render.py が検出する。
+MODULE_STYLE_DEFAULTS: Dict[str, Dict[str, object]] = {}
+
+# SurfaceOverlayCore.hlsl の SBSOverlayStyle
+DEFAULT_OVERLAY: Dict[str, object] = {
+    "amount": 1.0,
+    "upBias": 0.8,
+    "border": 0.6,
+    "blur": 0.15,
+    "darken": 0.0,
+    "flatten": 0.0,
+    "thickness": 0.0,
+    "droplet": 0.0,
+    "dropletScale": 40.0,
+    "dropletBump": 1.0,
+    "dropletSize": 0.28,
+    "dropletVariance": 0.6,
+    "mobility": 0.0,
+    "streak": 0.0,
+    "streakSpeed": 0.6,
+    "time": 0.0,
+}
+
+MODULE_STYLE_DEFAULTS["SBSOverlayStyle"] = DEFAULT_OVERLAY
+
+# PixelArtCore.hlsl の SBSPixelStyle
+DEFAULT_PIXEL: Dict[str, object] = {
+    "amount": 1.0,
+    "levels": 6.0,
+    "dither": 1.0,
+    "cellSize": 4.0,
+    "palette": 0.0,
+    "preset": 0.0,
+}
+
+MODULE_STYLE_DEFAULTS["SBSPixelStyle"] = DEFAULT_PIXEL
 
 DEFAULT_OUTLINE: Dict[str, object] = {
     "color": (0.15, 0.10, 0.13),
@@ -105,6 +147,8 @@ class Case:
     description: str
     style: Dict[str, object] = field(default_factory=dict)
     outline: Dict[str, object] = field(default_factory=dict)
+    # モジュールのスタイル。{構造体名: 上書きしたい値}
+    module_styles: Dict[str, Dict[str, object]] = field(default_factory=dict)
     light_dir: Sequence[float] = (0.55, 0.62, -0.56)
     light_color: Sequence[float] = (1.0, 0.97, 0.92)
     ambient: Sequence[float] = (0.16, 0.18, 0.24)
@@ -118,6 +162,14 @@ class Case:
     def resolved_outline(self) -> Dict[str, object]:
         merged = dict(DEFAULT_OUTLINE)
         merged.update(self.outline)
+        return merged
+
+    def resolved_module_styles(self) -> Dict[str, Dict[str, object]]:
+        merged: Dict[str, Dict[str, object]] = {}
+        for struct, defaults in MODULE_STYLE_DEFAULTS.items():
+            values = dict(defaults)
+            values.update(self.module_styles.get(struct, {}))
+            merged[struct] = values
         return merged
 
     @property
@@ -232,6 +284,88 @@ CASES: List[Case] = [
         mode=MODE_LIGHT_LIMIT,
         description="横軸=入射光の明るさ のクランプ表。下限・上限の折れ位置を検証する。",
         style={"lightMinLimit": 0.25, "lightMaxLimit": 1.2},
+        resolution=(320, 160),
+    ),
+    Case(
+        name="overlay_snow",
+        mode=MODE_OVERLAY,
+        description="上向き面にだけ積もる設定。upBias と境界の効きを見る。",
+        module_styles={"SBSOverlayStyle": {"upBias": 1.0, "border": 0.62, "blur": 0.1}},
+        resolution=(320, 160),
+    ),
+    Case(
+        name="overlay_wet",
+        mode=MODE_OVERLAY,
+        description="向きを問わず濡らす設定。darken が素の色をどれだけ沈めるか。",
+        module_styles={"SBSOverlayStyle": {"upBias": 0.5, "border": 0.45, "blur": 0.5, "darken": 1.0}},
+        resolution=(320, 160),
+    ),
+    Case(
+        name="overlay_droplet",
+        mode=MODE_DROPLET,
+        description="付着した粒だけの状態。動かないので大きさのばらつきが見える。",
+        module_styles={
+            "SBSOverlayStyle": {
+                "upBias": 0.0,
+                "border": 0.3,
+                "blur": 0.1,
+                "droplet": 1.0,
+                "dropletScale": 14.0,
+            }
+        },
+        resolution=(320, 160),
+    ),
+    Case(
+        name="overlay_runoff",
+        mode=MODE_DROPLET,
+        description="半分の列が流れ出した状態。止まる粒と流れる粒が混ざる。時間は固定。",
+        module_styles={
+            "SBSOverlayStyle": {
+                "upBias": 0.0,
+                "border": 0.3,
+                "blur": 0.1,
+                "droplet": 1.0,
+                "dropletScale": 14.0,
+                "mobility": 0.5,
+                "streak": 1.0,
+                "time": 3.0,
+            }
+        },
+        resolution=(320, 160),
+    ),
+    Case(
+        name="pixel_levels",
+        mode=MODE_PIXEL,
+        description="色数を落としただけの状態。段の位置がずれると落ちる。",
+        module_styles={"SBSPixelStyle": {"levels": 4.0, "dither": 0.0}},
+        resolution=(320, 160),
+    ),
+    Case(
+        name="pixel_dither",
+        mode=MODE_PIXEL,
+        description="同じ色数に整列ディザをかけた状態。升目の大きさが効く。",
+        module_styles={"SBSPixelStyle": {"levels": 4.0, "dither": 1.0, "cellSize": 4.0}},
+        resolution=(320, 160),
+    ),
+    Case(
+        name="pixel_palette",
+        mode=MODE_PIXEL,
+        description="明るさでパレットに寄せた状態。色が置き換わる。",
+        module_styles={"SBSPixelStyle": {"levels": 8.0, "palette": 1.0}},
+        resolution=(320, 160),
+    ),
+    Case(
+        name="pixel_preset_lcd",
+        mode=MODE_PIXEL,
+        description="組み込みパレットの単色 LCD。明るさをランプに載せ替える。",
+        module_styles={"SBSPixelStyle": {"levels": 8.0, "dither": 0.0, "palette": 1.0, "preset": 1.0}},
+        resolution=(320, 160),
+    ),
+    Case(
+        name="pixel_preset_8bit",
+        mode=MODE_PIXEL,
+        description="組み込みパレットの 8bit。色そのものを段に落とすので色相が残る。",
+        module_styles={"SBSPixelStyle": {"levels": 8.0, "dither": 0.0, "palette": 1.0, "preset": 7.0}},
         resolution=(320, 160),
     ),
 ]

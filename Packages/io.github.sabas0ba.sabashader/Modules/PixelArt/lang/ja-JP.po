@@ -1,0 +1,45 @@
+msgid ""
+msgstr ""
+"Language: ja-JP\n"
+
+msgid "__PixelArt"
+msgstr "ドット絵風"
+
+msgid "__Amount"
+msgstr "強さ"
+
+msgid "__AmountDesc"
+msgstr "0 で無効。1 で完全に置き換えます。"
+
+msgid "__Levels"
+msgstr "色数"
+
+msgid "__LevelsDesc"
+msgstr "1 チャンネルあたりの段数。2 で白黒、4 で 64 色相当になります。"
+
+msgid "__CellSize"
+msgstr "升目の大きさ"
+
+msgid "__CellSizeDesc"
+msgstr "ディザの升目を画面ピクセルで指定します。画面そのものを間引くことはできません。"
+
+msgid "__Dither"
+msgstr "ディザ"
+
+msgid "__DitherDesc"
+msgstr "色数を落としたときの段差を、整列ディザで散らします。"
+
+msgid "__PalettePreset"
+msgstr "パレットの種類"
+
+msgid "__PalettePresetDesc"
+msgstr "組み込みのパレットを選びます。Texture を選ぶと下のテクスチャを引きます。8bit だけは明るさではなく色そのものを段に落とすので色相が残ります。"
+
+msgid "__Palette"
+msgstr "パレット"
+
+msgid "__PaletteDesc"
+msgstr "横方向のグラデーション画像。明るさで引いて色を置き換えます。"
+
+msgid "__PaletteBlend"
+msgstr "パレットの寄せ具合"

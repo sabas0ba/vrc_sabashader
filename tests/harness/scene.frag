@@ -240,13 +240,86 @@ vec4 sceneLightLimitSwatch(vec2 uv)
     return vec4(SBSLimitLight(incoming, sceneStyle()), 1.0);
 }
 
+// mode 7: 横軸 = 面の上向き度合い、縦軸 = ベースカラー の重ね掛け表
+//
+// SurfaceOverlayCore.hlsl の被覆率と適用をそのまま通す。
+// 雨・汗・雪・汚れはどれもこの 1 枚の上に乗っている。
+vec4 sceneOverlaySwatch(vec2 uv)
+{
+    int row = int(floor(uv.y * 8.0));
+    vec3 albedo = sceneSwatchColor(row);
+
+    // 横軸で真下向きから真上向きまで振る
+    float c = clamp(uv.x * 2.0 - 1.0, -1.0, 1.0);
+    vec3 N = vec3(sqrt(max(1.0 - c * c, 0.0)), c, 0.0);
+    vec3 up = vec3(0.0, 1.0, 0.0);
+
+    SBSOverlayStyle ost = sceneOverlayStyle();
+    // coord は「流れに直交する向き / 流れに沿う向き」。テストでは uv をそのまま使う。
+    float coverage = SBSOverlayCoverage(N, up, 1.0, uv, ost);
+    vec3 overlay = vec3(0.86, 0.88, 0.92);
+
+    // 置き換え量は darken との効き分けを見るため縦位置で振る
+    float tint = float(row % 2);
+
+    return vec4(SBSOverlayAlbedo(albedo, overlay, tint, coverage, ost), 1.0);
+}
+
+// mode 8: 横軸 = 明るさ、縦軸 = ベースカラー のドット絵化表
+//
+// PixelArtCore.hlsl の量子化とディザをそのまま通す。
+// 画面座標に依存するので、決定的になるよう解像度から作った座標を渡す。
+vec4 scenePixelSwatch(vec2 uv)
+{
+    int row = int(floor(uv.y * 8.0));
+    vec3 albedo = sceneSwatchColor(row) * (uv.x * 1.2);
+
+    SBSPixelStyle pst = scenePixelStyle();
+
+    vec2 screen = uv * SCENE_RESOLUTION;
+    float threshold = SBSPixelThreshold(screen, pst);
+
+    vec3 quantized = SBSPixelQuantize(albedo, threshold, pst);
+
+    // 組み込みパレットを通す。preset が 0 のときはテクスチャの代わりに
+    // 虹色のグラデーションで代用する。
+    float coord = SBSPixelPaletteCoord(albedo, threshold, pst);
+    vec3 palette = SBSPixelPalettePreset(albedo, coord, pst);
+    if (pst.preset < 0.5) palette = SBSHsvToRgb(vec3(coord, 0.65, 0.55 + 0.45 * coord));
+
+    return vec4(SBSPixelApply(albedo, quantized, palette, pst), 1.0);
+}
+
+// mode 9: 水滴とその跡だけを見る
+//
+// 面の被覆（向き x マスク）を 0 にして、粒と尾だけが被覆に効くようにする。
+// mode 7 のように面の被覆が 1 だと飽和して粒が見えない。
+vec4 sceneDropletSwatch(vec2 uv)
+{
+    SBSOverlayStyle ost = sceneOverlayStyle();
+
+    vec3 N = vec3(0.0, 0.0, -1.0);
+    vec3 up = vec3(0.0, 1.0, 0.0);
+
+    // x = 流れに直交する向き、y = 流れに沿う向き
+    float coverage = SBSOverlayCoverage(N, up, 0.0, uv, ost);
+
+    vec3 albedo = vec3(0.30, 0.34, 0.42);
+    vec3 water = vec3(0.82, 0.88, 0.95);
+
+    return vec4(SBSOverlayAlbedo(albedo, water, 1.0, coverage, ost), 1.0);
+}
+
 void main()
 {
     vec2 uv = gl_FragCoord.xy / SCENE_RESOLUTION;
     vec2 ndc = uv * 2.0 - 1.0;
 
     vec4 col;
-    if (SCENE_MODE == 0) col = sceneSphere(ndc);
+    if (SCENE_MODE == 9) col = sceneDropletSwatch(uv);
+    else if (SCENE_MODE == 8) col = scenePixelSwatch(uv);
+    else if (SCENE_MODE == 7) col = sceneOverlaySwatch(uv);
+    else if (SCENE_MODE == 0) col = sceneSphere(ndc);
     else if (SCENE_MODE == 1) col = sceneRampSwatch(uv);
     else if (SCENE_MODE == 2) col = sceneOutlineSwatch(uv);
     else if (SCENE_MODE == 3) col = sceneLightLimitSwatch(uv);

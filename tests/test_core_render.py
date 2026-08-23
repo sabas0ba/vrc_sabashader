@@ -13,7 +13,7 @@ import pytest
 
 from cases import CASES
 from harness import compare as cmp
-from harness.glsl import build_scene_source, parse_struct_fields, read_core
+from harness.glsl import build_scene_source, module_cores, parse_struct_fields, read_core
 from harness.paths import ARTIFACT_DIR, GOLDEN_DIR
 from harness.render import render_fragment, renderer_info
 
@@ -31,6 +31,7 @@ def _render(case) -> "object":
         light_color=case.light_color,
         ambient=case.ambient,
         outline=case.resolved_outline(),
+        module_styles=case.resolved_module_styles(),
     )
     return render_fragment(source, case.resolution)
 
@@ -48,6 +49,21 @@ def test_style_struct_matches_cases():
         "Illust2DCore.hlsl の SBSStyle と tests/cases.py の DEFAULT_STYLE がずれています: "
         f"コアのみ={sorted(fields - set(DEFAULT_STYLE))} ケースのみ={sorted(set(DEFAULT_STYLE) - fields)}"
     )
+
+
+def test_overlay_struct_matches_cases():
+    """SBSOverlayStyle にフィールドを足したらケース側の初期値も足させる。"""
+    from cases import DEFAULT_OVERLAY
+
+    for name, body in module_cores():
+        if "struct SBSOverlayStyle" not in body:
+            continue
+        fields = {field for _, field in parse_struct_fields(body, "SBSOverlayStyle")}
+        assert fields == set(DEFAULT_OVERLAY), (
+            f"{name} の SBSOverlayStyle と tests/cases.py の DEFAULT_OVERLAY がずれています: "
+            f"コアのみ={sorted(fields - set(DEFAULT_OVERLAY))} "
+            f"ケースのみ={sorted(set(DEFAULT_OVERLAY) - fields)}"
+        )
 
 
 @pytest.mark.parametrize("case", CASES, ids=lambda c: c.name)

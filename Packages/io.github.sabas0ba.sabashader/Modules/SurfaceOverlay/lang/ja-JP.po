@@ -1,0 +1,123 @@
+msgid ""
+msgstr ""
+"Language: ja-JP\n"
+
+msgid "__SurfaceOverlay"
+msgstr "表面の重ね掛け"
+
+msgid "__Amount"
+msgstr "強さ"
+
+msgid "__AmountDesc"
+msgstr "0 で無効。雨・汗・雪・汚れをまとめてこの 1 つで増減します。"
+
+msgid "__Texture"
+msgstr "重ねるテクスチャ"
+
+msgid "__TextureDesc"
+msgstr "汚れや雪の模様。色は下の設定と掛け合わされます。"
+
+msgid "__Color"
+msgstr "重ねる色（アルファで色の置き換え量。雨や汗は 0）"
+
+msgid "__MaskChannel"
+msgstr "マスクチャンネル"
+
+msgid "__MaskChannelDesc"
+msgstr "共有マスクテクスチャのどの色を使うか。None で全面に乗ります。"
+
+msgid "__UpBias"
+msgstr "上向き面への寄り"
+
+msgid "__UpBiasDesc"
+msgstr "1 に近いほど上を向いた面だけに乗ります。雪や埃は高め、汚れは低めが目安です。"
+
+msgid "__Border"
+msgstr "境界"
+
+msgid "__BorderDesc"
+msgstr "どれだけ覆われたら乗せるか。上げるほど範囲が狭くなります。"
+
+msgid "__Blur"
+msgstr "境界のぼかし"
+
+msgid "__Darken"
+msgstr "濡れの沈み"
+
+msgid "__DarkenDesc"
+msgstr "覆われた部分の素の色を暗く濃くします。雨や汗に使います。"
+
+msgid "__Flatten"
+msgstr "積もりの丸み"
+
+msgid "__FlattenDesc"
+msgstr "覆われた部分の法線を上向きに寝かせます。雪の積もりに使います。"
+
+msgid "__Thickness"
+msgstr "積もりの厚み"
+
+msgid "__ThicknessDesc"
+msgstr "頂点を押し出して厚みを出します。単位はメートル。形が変わるので入れすぎに注意してください。"
+
+msgid "__ThicknessUp"
+msgstr "厚みの向き"
+
+msgid "__ThicknessUpDesc"
+msgstr "1 で真上、0 で面の法線に沿って押し出します。雪は重力で積もるので真上寄りが自然です。頂点変位だけでは縁を丸められないので、なだらかにしたい場合は頂点カラーで厚みを落としてください。"
+
+msgid "__VertexMaskChannel"
+msgstr "頂点カラーのマスク"
+
+msgid "__VertexMaskChannelDesc"
+msgstr "厚みを抑える頂点カラーのチャンネル。頂点シェーダーではテクスチャを引けないため、マスクは頂点カラーで指定します。"
+
+msgid "__FlowScale"
+msgstr "模様の細かさ"
+
+msgid "__FlowScaleDesc"
+msgstr "粒と筋の全体の細かさ。オブジェクトの大きさに合わせて調整します。"
+
+msgid "__DropletScaleDesc"
+msgstr "粒を置く格子の細かさ。下げると粒が大きく、まばらになります。"
+
+msgid "__DropletSizeDesc"
+msgstr "格子に対する粒の大きさ。1 に近づけると粒同士がくっつきます。"
+
+msgid "__Droplet"
+msgstr "水滴の付着"
+
+msgid "__DropletDesc"
+msgstr "面に付く水の粒。濡れて見えるかどうかはこれが効きます。"
+
+msgid "__DropletScale"
+msgstr "粒の細かさ"
+
+msgid "__DropletBump"
+msgstr "粒の盛り上がり"
+
+msgid "__DropletBumpDesc"
+msgstr "粒で法線を歪めます。本体のハイライトが粒を光らせるので、これが 0 だと濡れて見えません。"
+
+msgid "__DropletSize"
+msgstr "粒の大きさ"
+
+msgid "__DropletVariance"
+msgstr "粒の大きさのばらつき"
+
+msgid "__DropletVarianceDesc"
+msgstr "0 で粒が揃い、1 で大小が混ざります。"
+
+msgid "__Mobility"
+msgstr "垂れやすさ"
+
+msgid "__MobilityDesc"
+msgstr "0 で全部その場に留まり、1 で全部が流れ出します。途中の値では、付いたまま動かない粒と流れる粒が混ざります。マスクで場所ごとに変えられます。"
+
+msgid "__Streak"
+msgstr "垂れ"
+
+msgid "__StreakDesc"
+msgstr "流れる粒が通った跡を細く残します。垂れやすさと合わせて使います。"
+
+msgid "__StreakSpeed"
+msgstr "垂れの速さ"

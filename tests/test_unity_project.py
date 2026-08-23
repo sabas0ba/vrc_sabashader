@@ -14,7 +14,7 @@ from pathlib import Path
 import pytest
 
 from harness.paths import PROPERTIES_HLSL, REPO_ROOT, SCSHADER
-from harness.scshader import ShaderExpander, parse_properties
+from harness.scshader import ShaderExpander, package_modules, parse_properties
 
 UNITY_PROJECT = REPO_ROOT / ".ci" / "UnityProject"
 MANIFEST = UNITY_PROJECT / "Packages" / "manifest.json"
@@ -99,7 +99,7 @@ def test_expected_passes_match_the_shader(checker_source):
 
 def test_required_properties_are_actually_declared(checker_source):
     required = _csharp_string_array(checker_source, "RequiredProperties")
-    declared = set(ShaderExpander(SCSHADER, {}).declared_property_names())
+    declared = set(ShaderExpander(SCSHADER, {}, package_modules()).declared_property_names())
 
     missing = [name for name in required if name not in declared]
     assert not missing, (

@@ -57,6 +57,65 @@ def copy_package(destination: Path) -> None:
     print(f"パッケージを配置しました: {destination}")
 
 
+def enable_modules(project: Path) -> None:
+    """パッケージ内のモジュールを全シェーダーで有効にする。
+
+    Shader Core はシェーダーごとに有効なモジュールを ProjectSettings に持ち、
+    既定値は「シェーダーと同じディレクトリにあるもの」だけ。モジュールを
+    別ディレクトリに置いている本パッケージでは、明示的に有効化しないと
+    Unity 側の検証がモジュールを一切通らない（気付けないまま緑になる）。
+    """
+    import json
+    import re
+
+    modules = sorted(
+        json.loads(path.read_text(encoding="utf-8"))["uniqueID"]
+        for path in (PACKAGE_DIR / "Modules").rglob("*.scmodule")
+    )
+    shaders = sorted(
+        re.search(r'^\s*Shader\s+"([^"]+)"', path.read_text(encoding="utf-8"), re.MULTILINE).group(1)
+        for path in (PACKAGE_DIR / "Shaders").rglob("*.scshader")
+    )
+    if not modules or not shaders:
+        return
+
+    meta = project / "Packages" / "jp.lilxyzw.shadercore" / "Editor" / "ProjectSettings.cs.meta"
+    guid_match = re.search(r"^guid:\s*(\w+)", meta.read_text(encoding="utf-8"), re.MULTILINE)
+    if guid_match is None:
+        raise SystemExit(f"Shader Core の ProjectSettings の GUID を読めません: {meta}")
+
+    entries = "\n".join(
+        f"  - shadername: {shader}\n"
+        + "    modules:\n"
+        + "\n".join(f"    - {module}" for module in modules)
+        + "\n    multiModules: []"
+        for shader in shaders
+    )
+
+    body = f"""%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &1
+MonoBehaviour:
+  m_ObjectHideFlags: 53
+  m_CorrespondingSourceObject: {{fileID: 0}}
+  m_PrefabInstance: {{fileID: 0}}
+  m_PrefabAsset: {{fileID: 0}}
+  m_GameObject: {{fileID: 0}}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {{fileID: 11500000, guid: {guid_match.group(1)}, type: 3}}
+  m_Name:
+  m_EditorClassIdentifier:
+  shaderSettings:
+{entries}
+"""
+
+    target = project / "ProjectSettings" / "jp.lilxyzw.shadercore.asset"
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(body, encoding="utf-8")
+    print(f"モジュールを有効化しました: {', '.join(modules)} -> {', '.join(shaders)}")
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--project", type=Path, default=PROJECT_DIR)
@@ -69,6 +128,7 @@ def main() -> int:
 
     copy_package(packages / PACKAGE_DIR.name)
     clone_shadercore(packages / "jp.lilxyzw.shadercore")
+    enable_modules(args.project)
 
     print(f"\n準備完了: {args.project}")
     return 0

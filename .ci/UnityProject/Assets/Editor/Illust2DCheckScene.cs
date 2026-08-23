@@ -25,6 +25,10 @@ namespace SabaShader.CI
         const string MeshDir = RootDir + "/Meshes";
         const string ScenePath = RootDir + "/Illust2DCheck.unity";
 
+        // カメラの構図はこの縦横比を前提に決める。撮影時に変えると構図がずれる。
+        const int CaptureWidth = 2900;
+        const int CaptureHeight = 1400;
+
         // tests/cases.py の Case 既定値
         static readonly Vector3 LightDirection = new Vector3(0.55f, 0.62f, -0.56f);
         static readonly Color LightColor = new Color(1.00f, 0.97f, 0.92f);
@@ -40,6 +44,8 @@ namespace SabaShader.CI
         {
             public string Name;
             public Dictionary<string, float> Floats = new Dictionary<string, float>();
+            // SC_uint のプロパティは m_Ints に入るので SetFloat では効かない。
+            public Dictionary<string, int> Ints = new Dictionary<string, int>();
             public Dictionary<string, Color> Colors = new Dictionary<string, Color>();
         }
 
@@ -79,6 +85,85 @@ namespace SabaShader.CI
             {
                 Name = "no_shadow",
                 Floats = { { "_ShadowStrength", 0.0f } },
+            },
+            // ここから下はモジュール。プロパティ名には uniqueID が前置きされる。
+            new Variant
+            {
+                Name = "snow",
+                Floats =
+                {
+                    { "_io_github_sabas0ba_surfaceoverlay_Amount", 1.0f },
+                    { "_io_github_sabas0ba_surfaceoverlay_UpBias", 1.0f },
+                    { "_io_github_sabas0ba_surfaceoverlay_Border", 0.62f },
+                    { "_io_github_sabas0ba_surfaceoverlay_Blur", 0.1f },
+                    { "_io_github_sabas0ba_surfaceoverlay_Flatten", 0.8f },
+                    { "_io_github_sabas0ba_surfaceoverlay_Thickness", 0.03f },
+                },
+                Colors = { { "_io_github_sabas0ba_surfaceoverlay_Color", new Color(0.94f, 0.96f, 1.0f, 1.0f) } },
+            },
+            new Variant
+            {
+                Name = "wet",
+                Floats =
+                {
+                    { "_io_github_sabas0ba_surfaceoverlay_Amount", 1.0f },
+                    { "_io_github_sabas0ba_surfaceoverlay_UpBias", 0.35f },
+                    // 面の被覆を控えめにして、粒が乾いた面の上に見えるようにする
+                    { "_io_github_sabas0ba_surfaceoverlay_Border", 0.6f },
+                    { "_io_github_sabas0ba_surfaceoverlay_Blur", 0.3f },
+                    { "_io_github_sabas0ba_surfaceoverlay_Darken", 0.9f },
+                    { "_io_github_sabas0ba_surfaceoverlay_Droplet", 1.0f },
+                    // 模様の細かさはオブジェクトの大きさ（直径 1m 前後）に合わせる
+                    { "_io_github_sabas0ba_surfaceoverlay_FlowScale", 3.0f },
+                    { "_io_github_sabas0ba_surfaceoverlay_DropletScale", 3.0f },
+                    { "_io_github_sabas0ba_surfaceoverlay_DropletSize", 0.42f },
+                    { "_io_github_sabas0ba_surfaceoverlay_DropletVariance", 0.9f },
+                    { "_io_github_sabas0ba_surfaceoverlay_DropletBump", 3.0f },
+                    // 一部の列だけ流れ出す。止まる粒と流れる粒が混ざる。
+                    { "_io_github_sabas0ba_surfaceoverlay_Mobility", 0.45f },
+                    { "_io_github_sabas0ba_surfaceoverlay_Streak", 0.6f },
+                },
+                // アルファ 0 で色は置き換えず、沈みと垂れだけを効かせる
+                Colors = { { "_io_github_sabas0ba_surfaceoverlay_Color", new Color(1.0f, 1.0f, 1.0f, 0.0f) } },
+            },
+            new Variant
+            {
+                Name = "pixel",
+                Floats =
+                {
+                    { "_io_github_sabas0ba_pixelart_Amount", 1.0f },
+                    { "_io_github_sabas0ba_pixelart_Levels", 6.0f },
+                    { "_io_github_sabas0ba_pixelart_CellSize", 8.0f },
+                    { "_io_github_sabas0ba_pixelart_Dither", 0.0f },
+                },
+            },
+            new Variant
+            {
+                Name = "pixel_lcd",
+                Floats =
+                {
+                    { "_io_github_sabas0ba_pixelart_Amount", 1.0f },
+                    { "_io_github_sabas0ba_pixelart_Levels", 8.0f },
+                    { "_io_github_sabas0ba_pixelart_CellSize", 8.0f },
+                    { "_io_github_sabas0ba_pixelart_Dither", 0.0f },
+                    { "_io_github_sabas0ba_pixelart_PaletteBlend", 1.0f },
+                },
+                // 1 = 単色 LCD
+                Ints = { { "_io_github_sabas0ba_pixelart_PalettePreset", 1 } },
+            },
+            new Variant
+            {
+                Name = "pixel_sunset",
+                Floats =
+                {
+                    { "_io_github_sabas0ba_pixelart_Amount", 1.0f },
+                    { "_io_github_sabas0ba_pixelart_Levels", 8.0f },
+                    { "_io_github_sabas0ba_pixelart_CellSize", 8.0f },
+                    { "_io_github_sabas0ba_pixelart_Dither", 0.0f },
+                    { "_io_github_sabas0ba_pixelart_PaletteBlend", 1.0f },
+                },
+                // 9 = 夕焼け
+                Ints = { { "_io_github_sabas0ba_pixelart_PalettePreset", 9 } },
             },
         };
 
@@ -179,8 +264,8 @@ namespace SabaShader.CI
             }
 
             // グリッドの縦横比 (列 6 / 行 5) に合わせる
-            const int width = 1680;
-            const int height = 1400;
+            const int width = CaptureWidth;
+            const int height = CaptureHeight;
             var target = new RenderTexture(width, height, 24, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB);
             var texture = new Texture2D(width, height, TextureFormat.RGBA32, false);
 
@@ -360,6 +445,14 @@ namespace SabaShader.CI
                 if (!material.HasProperty(entry.Key)) { Fail("未定義のプロパティ: " + entry.Key); continue; }
                 material.SetFloat(entry.Key, entry.Value);
             }
+            foreach (var entry in variant.Ints)
+            {
+                if (!material.HasProperty(entry.Key)) { Fail("未定義のプロパティ: " + entry.Key); continue; }
+                // SetInt は非推奨で float 側に書き込む。int プロパティへ
+                // 入れるには SetInteger を使う。
+                material.SetInteger(entry.Key, entry.Value);
+            }
+
             foreach (var entry in variant.Colors)
             {
                 if (!material.HasProperty(entry.Key)) { Fail("未定義のプロパティ: " + entry.Key); continue; }
@@ -447,7 +540,9 @@ namespace SabaShader.CI
             // 正射投影だと _OutlineFixedWidth の経路が実運用と変わってしまう。
             // 歪みを抑えた狭い画角の透視投影にして、遠くから引きで撮る。
             const float fieldOfView = 20.0f;
-            var halfHeight = rowOffset + 0.75f;
+            // 縦だけで合わせると列が増えたときに横がはみ出す。両方から必要量を取る。
+            var aspect = CaptureWidth / (float)CaptureHeight;
+            var halfHeight = Mathf.Max(rowOffset + 0.75f, (columnOffset + 0.75f) / aspect);
             var distance = halfHeight / Mathf.Tan(fieldOfView * 0.5f * Mathf.Deg2Rad);
 
             camera.orthographic = false;

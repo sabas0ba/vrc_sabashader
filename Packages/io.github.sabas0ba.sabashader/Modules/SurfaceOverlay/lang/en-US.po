@@ -1,0 +1,123 @@
+msgid ""
+msgstr ""
+"Language: en-US\n"
+
+msgid "__SurfaceOverlay"
+msgstr "Surface Overlay"
+
+msgid "__Amount"
+msgstr "Amount"
+
+msgid "__AmountDesc"
+msgstr "0 disables it. Rain, sweat, snow and dirt share this single control."
+
+msgid "__Texture"
+msgstr "Overlay Texture"
+
+msgid "__TextureDesc"
+msgstr "Pattern for dirt or snow. Multiplied by the color below."
+
+msgid "__Color"
+msgstr "Overlay Color (alpha controls color replacement; 0 for rain and sweat)"
+
+msgid "__MaskChannel"
+msgstr "Mask Channel"
+
+msgid "__MaskChannelDesc"
+msgstr "Which channel of the shared mask to use. None covers everything."
+
+msgid "__UpBias"
+msgstr "Upward Bias"
+
+msgid "__UpBiasDesc"
+msgstr "Higher values restrict the overlay to upward facing surfaces."
+
+msgid "__Border"
+msgstr "Border"
+
+msgid "__BorderDesc"
+msgstr "How much coverage is needed. Higher values shrink the area."
+
+msgid "__Blur"
+msgstr "Border Blur"
+
+msgid "__Darken"
+msgstr "Wet Darkening"
+
+msgid "__DarkenDesc"
+msgstr "Darkens the base color where covered. Use for rain and sweat."
+
+msgid "__Flatten"
+msgstr "Settled Roundness"
+
+msgid "__FlattenDesc"
+msgstr "Tilts the normal upward where covered. Use for settled snow."
+
+msgid "__Thickness"
+msgstr "Settled Thickness"
+
+msgid "__ThicknessDesc"
+msgstr "Pushes vertices out to give the layer thickness, in meters. Changes the silhouette, so keep it small."
+
+msgid "__ThicknessUp"
+msgstr "Thickness Direction"
+
+msgid "__ThicknessUpDesc"
+msgstr "1 pushes straight up, 0 follows the surface normal. Snow settles by gravity, so up is usually right. Vertex displacement alone cannot round the edge; use vertex colors to taper it."
+
+msgid "__VertexMaskChannel"
+msgstr "Vertex Color Mask"
+
+msgid "__VertexMaskChannelDesc"
+msgstr "Vertex color channel that limits the thickness. Textures cannot be sampled in a vertex shader, so the mask comes from vertex colors."
+
+msgid "__FlowScale"
+msgstr "Pattern Scale"
+
+msgid "__FlowScaleDesc"
+msgstr "Overall density of droplets and trails. Tune it to the size of the object."
+
+msgid "__DropletScaleDesc"
+msgstr "Density of the droplet grid. Lower values give larger, sparser droplets."
+
+msgid "__DropletSizeDesc"
+msgstr "Droplet size relative to the grid. Near 1 the droplets merge together."
+
+msgid "__Droplet"
+msgstr "Droplets"
+
+msgid "__DropletDesc"
+msgstr "Water beads on the surface. This is what makes it read as wet."
+
+msgid "__DropletScale"
+msgstr "Droplet Density"
+
+msgid "__DropletBump"
+msgstr "Droplet Bump"
+
+msgid "__DropletBumpDesc"
+msgstr "Perturbs the normal per droplet so the body's specular lights them up. At 0 it will not look wet."
+
+msgid "__DropletSize"
+msgstr "Droplet Size"
+
+msgid "__DropletVariance"
+msgstr "Size Variance"
+
+msgid "__DropletVarianceDesc"
+msgstr "0 makes every droplet the same size, 1 mixes large and small."
+
+msgid "__Mobility"
+msgstr "Run-off"
+
+msgid "__MobilityDesc"
+msgstr "0 keeps every droplet in place, 1 makes them all run. In between, stuck and running droplets mix. Can be varied per area with the mask."
+
+msgid "__Streak"
+msgstr "Streaks"
+
+msgid "__StreakDesc"
+msgstr "Leaves a thin trail where running droplets passed. Use together with Run-off."
+
+msgid "__StreakSpeed"
+msgstr "Streak Speed"

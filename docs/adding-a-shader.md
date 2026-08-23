@@ -94,9 +94,7 @@ python -m pytest tests -q
 
 ## モジュール（`.scmodule`）について
 
-Shader Core にはラメやデカールのような機能を差し込む
-モジュール機構があります。このリポジトリではまだ使っていません。
-追加する場合は
-[Shader Core の docs/module.md](https://github.com/lilxyzw/Shader-Core/blob/main/docs/module.md)
-を参照してください。`tests/harness/scshader.py` はモジュールの読み込みを
-再現していないので、そこも合わせて拡張が必要です。
+Shader Core にはラメやデカールのような機能を差し込むモジュール機構があります。
+`tests/harness/scshader.py` はモジュールの読み込みとフェーズへの差し込み、
+プロパティ名の `uniqueID` による書き換えまで再現します。
+書き方は [モジュールを追加する](adding-a-module.md) を参照してください。
