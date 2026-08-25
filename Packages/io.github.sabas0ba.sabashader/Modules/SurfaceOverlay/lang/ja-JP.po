@@ -5,6 +5,15 @@ msgstr ""
 msgid "__SurfaceOverlay"
 msgstr "表面の重ね掛け"
 
+msgid "__Basics"
+msgstr "基本"
+
+msgid "__Settled"
+msgstr "濡れと積もり"
+
+msgid "__Droplets"
+msgstr "水滴と垂れ"
+
 msgid "__Amount"
 msgstr "強さ"
 

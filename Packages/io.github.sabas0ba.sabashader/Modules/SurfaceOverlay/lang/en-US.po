@@ -5,6 +5,15 @@ msgstr ""
 msgid "__SurfaceOverlay"
 msgstr "Surface Overlay"
 
+msgid "__Basics"
+msgstr "Basics"
+
+msgid "__Settled"
+msgstr "Wetness and Snow"
+
+msgid "__Droplets"
+msgstr "Droplets and Streaks"
+
 msgid "__Amount"
 msgstr "Amount"
 
