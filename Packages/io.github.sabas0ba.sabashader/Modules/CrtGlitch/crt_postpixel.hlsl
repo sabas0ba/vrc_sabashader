@@ -27,6 +27,12 @@
     crtStyle.tearScale = _TearScale;
     crtStyle.time = SCTime();
 
+    // ForwardAdd はライトごとの結果を加算する。光量と無関係な粒を各パスで
+    // 足すとライト数に応じて累積するため、ForwardBase だけで加える。
+    #ifdef UNITY_PASS_FORWARDADD
+        crtStyle.noise = 0.0;
+    #endif
+
     // 画面ピクセル座標と画面の大きさ。VR の両眼を 1 枚に並べる古い
     // シングルパスでは、片眼ぶんの中心が画面の中心とずれるため、
     // 周辺の落ち込みと色ずれの中心が眼ごとに寄る。
