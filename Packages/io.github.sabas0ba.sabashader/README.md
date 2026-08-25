@@ -23,6 +23,11 @@
 
 各パラメータの詳細は
 [docs/shader-illust2d.md](https://github.com/sabas0ba/vrc_sabashader/blob/main/docs/shader-illust2d.md)
+を参照してください。描画例の図が付いています。
+
+雨・汗・雪・汚れを乗せる「表面の重ね掛け」と「ドット絵風」はモジュールとして
+同梱しています。使い方は
+[docs/modules.md](https://github.com/sabas0ba/vrc_sabashader/blob/main/docs/modules.md)
 を参照してください。
 
 ## ライセンス

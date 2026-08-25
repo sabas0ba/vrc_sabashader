@@ -3,6 +3,10 @@
 3D モデルを 2D イラスト調に見せるトゥーンシェーダーです。
 ビルトインレンダーパイプライン（BiRP）向けで、VRChat のアバターを想定しています。
 
+> このページの図は、すべて[描画回帰テスト](testing.md#1-描画回帰テストヘッドレス)の
+> ゴールデン画像です。出荷する `Illust2DCore.hlsl` をそのまま描いたものなので、
+> 数式を変えれば図も変わります。手で描いた説明図ではありません。
+
 ## 考え方
 
 「イラストっぽさ」は影の濃さではなく **影の色** で決まります。
@@ -10,6 +14,9 @@
 色相・彩度・明度をずらした別の色に **置き換え** ます。
 影を少し寒色側にずらして彩度を上げる、という手描きの塗りでよく使われる操作を
 そのままパラメータにしています。
+
+![初期値のランプ表。横軸がライトの当たり具合、縦の 8 段がベースカラー](../tests/golden/swatch_ramp.png)
+![色相シフトと彩度を強めた設定。同じ明るさでも影の色が変わる](../tests/golden/swatch_ramp_saturated.png)
 
 ## パス構成
 
@@ -31,6 +38,10 @@
 | Cull | 描画する面。両面表示は Off |
 | Alpha Mode / Cutoff | `Cutout` で Cutoff 未満のピクセルを捨てる |
 
+![初期値のまま。市松模様は面の向きを見るためのテクスチャ](../tests/golden/sphere_default.png)
+![平らな面と鋭い稜線での出方](../tests/golden/box_default.png)
+![自己遮蔽のある形。内側に影が落ちる](../tests/golden/torus_default.png)
+
 ### 塗り
 
 影は 2 段（1影・2影）です。`ln = dot(N, L) * 0.5 + 0.5` を落ち影で減衰させた値を
@@ -47,6 +58,10 @@
 | Received Shadow Strength | リアルタイム影を塗りに反映する量 |
 | Shade Mask Channel | 共有マスクのどのチャンネルを影マスクに使うか |
 
+![Blur を 0 にした完全な 2 値塗り（アニメ塗り）](../tests/golden/sphere_hard_cel.png)
+![広いぼかしに Ramp Steps 4 を重ねた段付き](../tests/golden/sphere_posterized.png)
+![Received Shadow Strength を 0 にして落ち影を無視した状態](../tests/golden/sphere_no_shadow.png)
+
 初期値は「肌色にほんの少し紫を混ぜた 1影」になるよう調整してあります。
 硬いアニメ塗りにしたい場合は Blur を 0、Border を 0.55 前後にしてください。
 
@@ -55,6 +70,9 @@
 Blinn-Phong の反射をしきい値で切ったハードなハイライトです。
 `Specular Sharpness` が実際の指数（`exp2(sharpness * 10 + 1)`）を決め、
 `Border` / `Blur` が切り出す形を決めます。
+
+![ハイライトとリムライトを強めに出した状態](../tests/golden/sphere_rim_specular.png)
+![押し出した曲面と半球の継ぎ目での伸び方](../tests/golden/capsule_rim_specular.png)
 
 ### リムライト
 
@@ -65,6 +83,8 @@ Blinn-Phong の反射をしきい値で切ったハードなハイライトで�
 ### 輪郭線
 
 法線方向に押し出した反転ハル方式です。
+
+![横軸が Base Color Blend、縦の 8 段がベースカラー。右へ行くほど色トレスになる](../tests/golden/swatch_outline.png)
 
 | プロパティ | 説明 |
 | --- | --- |
@@ -80,6 +100,9 @@ Blinn-Phong の反射をしきい値で切ったハードなハイライトで�
 ### ライトの受け方
 
 VRChat はワールドごとに明るさがまったく違うため、総照度をクランプします。
+
+![横軸が入射光の明るさ。下限 0.25 / 上限 1.2 で折れているのが見える](../tests/golden/swatch_light_limit.png)
+![Monochrome Lighting と As Unlit を効かせ、赤いライトの色を落とした状態](../tests/golden/sphere_flat_lighting.png)
 
 | プロパティ | 説明 |
 | --- | --- |

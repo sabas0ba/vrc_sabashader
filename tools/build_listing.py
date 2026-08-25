@@ -30,7 +30,7 @@ DEFAULT_DOCS = REPO_ROOT / "docs"
 if __package__ in (None, ""):
     sys.path.insert(0, str(REPO_ROOT))
 
-from tools import site_theme  # noqa: E402  （sys.path を通してから読む）
+from tools import render_docs, site_theme  # noqa: E402  （sys.path を通してから読む）
 
 GITHUB_API = "https://api.github.com"
 
@@ -142,8 +142,27 @@ def build_listing(config: dict, versions: Dict[str, Dict[str, dict]]) -> dict:
     return listing
 
 
-def render_page(listing: dict, docs: Optional[List[Tuple[str, str]]] = None) -> str:
+def _summary_html(summary: str, href: str) -> str:
+    """要約は docs の Markdown そのままなので、案内ページでも記法を解く。
+
+    docs へのリンクは 1 階層下に出るため、相対リンクにその接頭辞を足す。
+    """
+    prefix = href.rsplit("/", 1)[0] if "/" in href else ""
+
+    def link(target: str) -> str:
+        resolved = render_docs.default_link(target)
+        if resolved.startswith(("http://", "https://", "#", "mailto:")) or not prefix:
+            return resolved
+        return f"{prefix}/{resolved}"
+
+    return render_docs.render_inline(summary, link)
+
+
+def render_page(listing: dict, docs: Optional[List[Tuple[str, str, str, str]]] = None) -> str:
     """GitHub Pages に置く案内ページ。VCC にリスティングを登録するリンクを出す。
+
+    `docs` は docs のページ (href, ナビ表記, 見出し, 要約)。
+    並びとナビの表記は `tools/render_docs.py` の `PAGES` が決める。
 
     ガワと配色は docs のページと共通（`tools/site_theme.py`）。
     """
@@ -167,12 +186,19 @@ def render_page(listing: dict, docs: Optional[List[Tuple[str, str]]] = None) -> 
     description = html.escape(listing.get("description", ""))
     listing_url = html.escape(listing["url"])
 
-    nav = site_theme.render_nav([("index.html", "リスティング")] + docs, "index.html")
+    nav = site_theme.render_nav(
+        [("index.html", "リスティング")] + [(href, label) for href, label, _, _ in docs],
+        "index.html",
+    )
 
     docs_section = ""
     if docs:
         items = "".join(
-            f'<li><a href="{html.escape(href, quote=True)}">{html.escape(label)}</a></li>' for href, label in docs
+            f'<li><a href="{html.escape(href, quote=True)}">'
+            f'<span class="doc-title">{html.escape(title)}</span>'
+            f'<span class="doc-summary">{_summary_html(summary, href)}</span>'
+            "</a></li>"
+            for href, _, title, summary in docs
         )
         docs_section = f'<h2>ドキュメント</h2>\n<ul class="doc-list">{items}</ul>'
 
@@ -226,15 +252,16 @@ def main() -> int:
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(listing, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
-    docs_links: List[Tuple[str, str]] = []
+    docs_links: List[Tuple[str, str, str, str]] = []
     if args.docs:
-        from tools.render_docs import build as build_docs, document_title
+        from tools.render_docs import build as build_docs, collect_pages, first_sentence
 
         written = build_docs(DEFAULT_DOCS, args.docs, extra_nav=[("../index.html", "リスティング")])
         relative = args.docs.name
-        for name in sorted(written):
-            title = document_title((DEFAULT_DOCS / name).read_text(encoding="utf-8"))
-            docs_links.append((f"{relative}/{name[:-3]}.html", title))
+        for page in collect_pages(DEFAULT_DOCS):
+            docs_links.append(
+                (f"{relative}/{page.href}", page.label, page.title, first_sentence(page.summary))
+            )
         print(f"{args.docs} に {len(written)} ページ書き出しました")
 
     if args.html:
