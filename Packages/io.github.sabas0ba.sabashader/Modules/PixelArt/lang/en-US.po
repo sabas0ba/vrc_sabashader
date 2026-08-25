@@ -15,7 +15,7 @@ msgid "__Levels"
 msgstr "Color Levels"
 
 msgid "__LevelsDesc"
-msgstr "Steps per channel. 2 is black and white, 4 gives 64 colors."
+msgstr "How many steps the brightness is reduced to. 2 gives black and white. Hue is left as is."
 
 msgid "__CellSize"
 msgstr "Cell Size"

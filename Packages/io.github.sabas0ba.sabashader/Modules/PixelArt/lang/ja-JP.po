@@ -15,7 +15,7 @@ msgid "__Levels"
 msgstr "色数"
 
 msgid "__LevelsDesc"
-msgstr "1 チャンネルあたりの段数。2 で白黒、4 で 64 色相当になります。"
+msgstr "明るさを何段に落とすか。2 で白と黒の 2 値になります。色相は元のまま残ります。"
 
 msgid "__CellSize"
 msgstr "升目の大きさ"

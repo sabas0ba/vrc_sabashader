@@ -329,6 +329,7 @@ _EXTERNAL_NAMES = {
     "_CosTime",
     "_WorldSpaceLightPos0",
     "_LightColor0",
+    "_ScreenParams",
 }
 
 
@@ -343,6 +344,47 @@ def test_package_modules_load():
     assert modules, "Modules 配下にモジュールが見つかりません"
     for module in modules:
         assert module.phases, f"{module.unique_id}: フェーズがありません"
+
+
+def test_crt_vertex_tearing_respects_module_amount():
+    module = next(
+        module
+        for module in _package_modules()
+        if module.unique_id == "io.github.sabas0ba.crtglitch"
+    )
+    morph = next(phase for phase in module.phases if phase.phase == "morph")
+    source = morph.path.read_text(encoding="utf-8")
+
+    assert re.search(
+        r"crtMorphStyle\.tearing\s*=\s*_Tearing\s*\*\s*_Amount\s*;",
+        source,
+    ), "CRT の頂点裂けはモジュール全体の Amount に従う必要があります"
+
+
+def test_crt_forward_add_does_not_add_light_independent_noise():
+    module = next(
+        module
+        for module in _package_modules()
+        if module.unique_id == "io.github.sabas0ba.crtglitch"
+    )
+    postpixel = next(phase for phase in module.phases if phase.phase == "postpixel")
+    source = postpixel.path.read_text(encoding="utf-8")
+
+    guard = re.search(
+        r"#ifdef\s+UNITY_PASS_FORWARDADD(?P<body>.*?)#endif",
+        source,
+        re.DOTALL,
+    )
+    assert guard, "CRT の postpixel に ForwardAdd 用の分岐がありません"
+    assert re.search(r"crtStyle\.noise\s*=\s*0\.0\s*;", guard.group("body"))
+
+    if "crtStyle.staticAmount" in source:
+        assert re.search(r"crtStyle\.staticAmount\s*=\s*0\.0\s*;", guard.group("body"))
+
+    apply_position = source.index("SBSCrtApply")
+    assert guard.end() < apply_position
+    assert "crtStyle.noise =" not in source[guard.end() : apply_position]
+    assert "crtStyle.staticAmount =" not in source[guard.end() : apply_position]
 
 
 @pytest.mark.parametrize("module", _package_modules(), ids=lambda m: m.unique_id)
@@ -412,3 +454,32 @@ def test_package_module_localization_is_complete(module):
 
         unused = sorted(key for key in entries if key not in keys)
         assert not unused, f"{module.unique_id}: {po.name} に使われていないキーがあります: {unused}"
+
+
+@pytest.mark.parametrize("module", _package_modules(), ids=lambda m: m.unique_id)
+def test_package_module_phase_files_are_declared_once(module):
+    """同じフェーズを JSON と phase_*.hlsl の両方に置かないこと。
+
+    Shader Core は JSON に書いたフェーズを読んだあと、ディレクトリの
+    phase_*.hlsl を無条件に足す（SCModule.FromFile の AddRange。重複を
+    除くための exists は組み立てられるだけで使われていない）。両方に
+    該当すると同じコードが 2 回差し込まれ、効果が二重にかかる。
+
+    ハーネス側は重複を除くので、この食い違いはハーネスでは見えない。
+    並び順を afters で指定したいときは、ファイル名を phase_*.hlsl から
+    外して JSON にだけ載せること。
+    """
+    discovered = {
+        re.match(r"phase_(\w+)\.hlsl", path.name).group(1): path.name
+        for path in module.directory.glob("phase_*.hlsl")
+    }
+
+    from_json = json.loads(module.path.read_text(encoding="utf-8")).get("phases", [])
+    declared_in_json = {entry.get("phase") for entry in from_json}
+
+    both = sorted(declared_in_json & set(discovered))
+    assert not both, (
+        f"{module.unique_id}: フェーズ {both} を JSON でも宣言し、"
+        f" {[discovered[phase] for phase in both]} も置いています。"
+        " Unity 側では両方が差し込まれて効果が二重にかかるので、どちらかにしてください。"
+    )

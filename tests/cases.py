@@ -23,6 +23,8 @@ MODE_CAPSULE = 6
 MODE_OVERLAY = 7
 MODE_PIXEL = 8
 MODE_DROPLET = 9
+MODE_CRT = 10
+MODE_CRT_SOLID = 11
 
 DEFAULT_STYLE: Dict[str, object] = {
     "shadeBorder1": 0.5,
@@ -92,6 +94,30 @@ DEFAULT_PIXEL: Dict[str, object] = {
 }
 
 MODULE_STYLE_DEFAULTS["SBSPixelStyle"] = DEFAULT_PIXEL
+
+# CrtGlitchCore.hlsl の SBSCrtStyle
+DEFAULT_CRT: Dict[str, object] = {
+    "amount": 1.0,
+    "scanline": 0.0,
+    "scanlinePitch": 4.0,
+    "mask": 0.0,
+    "maskPitch": 6.0,
+    "roll": 0.0,
+    "rollSpeed": 0.15,
+    "noise": 0.0,
+    "noiseScale": 2.0,
+    "aberration": 0.0,
+    "glitch": 0.0,
+    "glitchScale": 12.0,
+    "glitchShift": 6.0,
+    "glitchColor": 0.5,
+    "vignette": 0.0,
+    "tearing": 0.0,
+    "tearScale": 0.05,
+    "time": 0.0,
+}
+
+MODULE_STYLE_DEFAULTS["SBSCrtStyle"] = DEFAULT_CRT
 
 DEFAULT_OUTLINE: Dict[str, object] = {
     "color": (0.15, 0.10, 0.13),
@@ -367,6 +393,71 @@ CASES: List[Case] = [
         description="組み込みパレットの 8bit。色そのものを段に落とすので色相が残る。",
         module_styles={"SBSPixelStyle": {"levels": 8.0, "dither": 0.0, "palette": 1.0, "preset": 7.0}},
         resolution=(320, 160),
+    ),
+    Case(
+        name="crt_scanline",
+        mode=MODE_CRT,
+        description="走査線とシャドウマスクだけ。線の間隔と縞の周期がずれると落ちる。",
+        module_styles={
+            "SBSCrtStyle": {"scanline": 0.6, "scanlinePitch": 4.0, "mask": 0.5, "maskPitch": 6.0}
+        },
+        resolution=(320, 160),
+    ),
+    Case(
+        name="crt_aberration",
+        mode=MODE_CRT,
+        description="色ずれと周辺の落ち込みだけ。外側ほど赤と青が離れる。"
+        "ずれ幅は差が見えるようスライダの上限を使っている。",
+        module_styles={"SBSCrtStyle": {"aberration": 8.0, "vignette": 0.5}},
+        resolution=(320, 160),
+    ),
+    Case(
+        name="crt_glitch",
+        mode=MODE_CRT,
+        description="乱れた帯だけ。時間を固定して、帯の位置と色の入れ替えを見る。",
+        module_styles={
+            "SBSCrtStyle": {
+                "glitch": 0.5,
+                "glitchScale": 10.0,
+                "glitchShift": 12.0,
+                "glitchColor": 0.8,
+                "time": 1.0,
+            }
+        },
+        resolution=(320, 160),
+    ),
+    Case(
+        name="crt_roll",
+        mode=MODE_CRT,
+        description="ロールバーだけ。時間を固定して、帯の位置と幅を見る。"
+        "帯が色帯とちょうど重ならないよう、時間を選んである。",
+        module_styles={"SBSCrtStyle": {"roll": 1.0, "rollSpeed": 0.15, "time": 5.0}},
+        resolution=(320, 160),
+    ),
+    Case(
+        name="crt_noise",
+        mode=MODE_CRT,
+        description="ざらつきだけ。時間を固定して、粒の位置と大きさを見る。",
+        module_styles={"SBSCrtStyle": {"noise": 0.25, "noiseScale": 3.0, "time": 1.0}},
+        resolution=(320, 160),
+    ),
+    Case(
+        name="crt_solid",
+        mode=MODE_CRT_SOLID,
+        description="立体に一式かけた状態。シルエットの上で走査線と縞が"
+        "どう乗るかを見る。色ずれはレイマーチの分岐と相性が悪いので入れていない。",
+        module_styles={
+            "SBSCrtStyle": {
+                "scanline": 0.5,
+                "scanlinePitch": 4.0,
+                "mask": 0.3,
+                "maskPitch": 6.0,
+                "vignette": 0.35,
+                "noise": 0.05,
+                "noiseScale": 2.0,
+                "time": 1.0,
+            }
+        },
     ),
 ]
 

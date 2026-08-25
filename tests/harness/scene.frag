@@ -310,13 +310,63 @@ vec4 sceneDropletSwatch(vec2 uv)
     return vec4(SBSOverlayAlbedo(albedo, water, 1.0, coverage, ost), 1.0);
 }
 
+// mode 10: ブラウン管とグリッチをかけるテストカード
+//
+// 上半分は色帯。帯の中は上下に明るさを振ってあるので勾配が立つが、
+// 帯と帯の境目は不連続なので、ずらしの 1 次近似が外れるところも同時に見える。
+// 下半分は色相と明るさの滑らかな面で、ずらしと色ずれが素直に効く。
+vec3 sceneCrtCard(vec2 uv)
+{
+    if (uv.y > 0.5)
+    {
+        int bar = int(floor(uv.x * 8.0));
+        vec3 base = sceneSwatchColor(bar);
+
+        // 帯の中を横に明るくしていく。色ずれと横ずれはどちらも横向きなので、
+        // 勾配を横に立てておくと効きが見える。縦は平らにしてあり、
+        // ロールバーのような縦の効果と混ざらない。
+        float shade = 0.45 + 0.9 * fract(uv.x * 8.0);
+        return base * shade;
+    }
+
+    // 色相を横に、明るさを縦に振った面
+    float hue = uv.x;
+    float value = 0.15 + 1.5 * uv.y;
+    return SBSHsvToRgb(vec3(hue, 0.6, clamp(value, 0.0, 1.0)));
+}
+
+// mode 11: 立体（カプセル）にブラウン管とグリッチをかける
+//
+// 平らなテストカードには無いシルエットが入る。ずらしの 1 次近似は縁で
+// 大きく外れるので、補正量の上限が効いているかはここで見る。
+//
+// ここで色ずれは使わない。この立体はレイマーチで描いており、隣り合う画素で
+// ループの回数が違う（分岐がそろわない）。分岐がそろわないところで取った
+// 勾配の値は規定されておらず、llvmpipe では背景にまばらな点が出る。
+// 実際のラスタライズでは起きないが、テストの当てにはならないので、
+// 色ずれは平らなテストカード側 (mode 10) で見る。
+vec4 sceneCrtSolid(vec2 ndc)
+{
+    vec4 base = sceneSolid(ndc);
+    return vec4(SBSCrtApply(base.rgb, gl_FragCoord.xy, SCENE_RESOLUTION, sceneCrtStyle()), 1.0);
+}
+
+vec4 sceneCrtSwatch(vec2 uv)
+{
+    vec2 screen = uv * SCENE_RESOLUTION;
+    vec3 card = sceneCrtCard(uv);
+    return vec4(SBSCrtApply(card, screen, SCENE_RESOLUTION, sceneCrtStyle()), 1.0);
+}
+
 void main()
 {
     vec2 uv = gl_FragCoord.xy / SCENE_RESOLUTION;
     vec2 ndc = uv * 2.0 - 1.0;
 
     vec4 col;
-    if (SCENE_MODE == 9) col = sceneDropletSwatch(uv);
+    if (SCENE_MODE == 11) col = sceneCrtSolid(ndc);
+    else if (SCENE_MODE == 10) col = sceneCrtSwatch(uv);
+    else if (SCENE_MODE == 9) col = sceneDropletSwatch(uv);
     else if (SCENE_MODE == 8) col = scenePixelSwatch(uv);
     else if (SCENE_MODE == 7) col = sceneOverlaySwatch(uv);
     else if (SCENE_MODE == 0) col = sceneSphere(ndc);
