@@ -9,7 +9,15 @@ docs を書き足すときは `tests/test_docs_site.py` で確認すること。
 対応する記法:
     見出し (#..######) / 箇条書き (-) / 番号付き (1.) / 引用 (>)
     表 (| ... |) / コードブロック (```) / 水平線 (---)
-    強調 (**) / インラインコード (`) / リンク ([]())
+    強調 (**) / インラインコード (`) / リンク ([]()) / 図 (![]())
+
+docs の体裁は `tests/test_docs_site.py` が検査する。
+
+* 1 ファイル 1 見出し (h1)、その直後に 1 段落の要約を置く
+* 要約の下には h2 の目次が自動で入る
+* 見出しの階層は飛ばさない
+* 図は `![説明](../tests/golden/<ケース名>.png)` の形で行頭に置く。
+  回帰テストのゴールデン画像だけを使うので、図が実装からずれない。
 
     python tools/render_docs.py --output _site/docs
 """
@@ -36,6 +44,23 @@ from tools import site_theme  # noqa: E402  （sys.path を通してから読む
 
 GITHUB_BLOB = "https://github.com/sabas0ba/vrc_sabashader/blob/main"
 
+# 図の実体は回帰テストのゴールデン画像。docs からは相対パスで参照するので
+# GitHub 上の Markdown でもそのまま表示され、サイトへ出すときだけここへ集める。
+FIGURE_DIR = REPO_ROOT / "tests" / "golden"
+SITE_FIGURE_DIR = "figures"
+
+# ナビと索引に出す順と表記。ファイル名順ではなく読む順に並べる。
+# docs/*.md と過不足がないことは tests/test_docs_site.py が検査する。
+PAGES: List[tuple] = [
+    ("shader-illust2d.md", "Illust2D"),
+    ("modules.md", "モジュール"),
+    ("avatar-demo.md", "アバターで確認"),
+    ("testing.md", "テスト"),
+    ("adding-a-shader.md", "シェーダーを追加"),
+    ("adding-a-module.md", "モジュールを追加"),
+    ("distribution.md", "配布"),
+]
+
 _FENCE = re.compile(r"^```([A-Za-z0-9_+-]*)\s*$")
 _HEADING = re.compile(r"^(#{1,6})\s+(.*)$")
 _UNORDERED = re.compile(r"^-\s+(.*)$")
@@ -44,9 +69,11 @@ _QUOTE = re.compile(r"^>\s?(.*)$")
 _TABLE_SEPARATOR = re.compile(r"^\|[\s|:-]+\|$")
 _RULE = re.compile(r"^-{3,}$")
 
+_IMAGE_LINE = re.compile(r"^!\[([^\]]*)\]\(([^)]+)\)$")
+
 _CODE_SPAN = re.compile(r"`([^`]+)`")
 _STRONG = re.compile(r"\*\*([^*]+)\*\*")
-_LINK = re.compile(r"\[([^\]]+)\]\(([^)]+)\)")
+_LINK = re.compile(r"(!?)\[([^\]]*)\]\(([^)]+)\)")
 
 
 def slugify(text: str) -> str:
@@ -79,7 +106,19 @@ def default_link(href: str) -> str:
     return f"{GITHUB_BLOB}/{href.lstrip('./')}{anchor}"
 
 
-def render_inline(text: str, link: Callable[[str], str]) -> str:
+def default_figure_src(href: str) -> str:
+    """図はサイト側では `figures/` にまとめ直す。docs からの相対パスは使わない。"""
+    if href.startswith(("http://", "https://", "data:")):
+        return href
+    return f"{SITE_FIGURE_DIR}/{href.rsplit('/', 1)[-1]}"
+
+
+def render_inline(
+    text: str,
+    link: Callable[[str], str],
+    figure: Callable[[str], str] = default_figure_src,
+    figures: Optional[List[str]] = None,
+) -> str:
     """インライン記法。コードスパンを先に退避してから他を処理する。"""
     spans: List[str] = []
 
@@ -92,7 +131,14 @@ def render_inline(text: str, link: Callable[[str], str]) -> str:
     text = _STRONG.sub(lambda m: f"<strong>{m.group(1)}</strong>", text)
 
     def anchor(match: re.Match) -> str:
-        label, href = match.group(1), match.group(2)
+        bang, label, href = match.group(1), match.group(2), match.group(3)
+        if bang:
+            if figures is not None:
+                figures.append(href)
+            return (
+                f'<img src="{html.escape(figure(href), quote=True)}" '
+                f'alt="{html.escape(label, quote=True)}" loading="lazy" decoding="async">'
+            )
         return f'<a href="{html.escape(link(href), quote=True)}">{label}</a>'
 
     text = _LINK.sub(anchor, text)
@@ -111,13 +157,20 @@ class Heading:
 
 
 class _Renderer:
-    def __init__(self, link: Callable[[str], str]) -> None:
+    def __init__(
+        self,
+        link: Callable[[str], str],
+        figure: Callable[[str], str] = default_figure_src,
+    ) -> None:
         self.link = link
+        self.figure = figure
         self.out: List[str] = []
         self.headings: List[Heading] = []
+        # 参照された図の元パス（docs からの相対）。サイトへ出すときに複写する。
+        self.figures: List[str] = []
 
     def inline(self, text: str) -> str:
-        return render_inline(text, self.link)
+        return render_inline(text, self.link, self.figure, self.figures)
 
     def run(self, lines: List[str]) -> None:
         index = 0
@@ -146,6 +199,10 @@ class _Renderer:
 
             if line.startswith("|") and index + 1 < len(lines) and _TABLE_SEPARATOR.match(lines[index + 1].strip()):
                 index = self._table(lines, index)
+                continue
+
+            if _IMAGE_LINE.match(line.strip()):
+                index = self._figures(lines, index)
                 continue
 
             if _QUOTE.match(line):
@@ -202,6 +259,28 @@ class _Renderer:
         )
         return index
 
+    def _figures(self, lines: List[str], index: int) -> int:
+        """行頭の図をひとまとまりにする。連続して並べると横に並ぶ。
+
+        比較したい図（既定値と極端な設定など）は空行を挟まずに並べて書く。
+        """
+        items: List[str] = []
+        while index < len(lines):
+            match = _IMAGE_LINE.match(lines[index].strip())
+            if not match:
+                break
+            alt, href = match.group(1), match.group(2)
+            self.figures.append(href)
+            items.append(
+                f'<figure><img src="{html.escape(self.figure(href), quote=True)}" '
+                f'alt="{html.escape(alt, quote=True)}" loading="lazy" decoding="async">'
+                f"<figcaption>{self.inline(alt)}</figcaption></figure>"
+            )
+            index += 1
+
+        self.out.append('<div class="figures">' + "".join(items) + "</div>")
+        return index
+
     def _quote(self, lines: List[str], index: int) -> int:
         body: List[str] = []
         while index < len(lines):
@@ -211,8 +290,9 @@ class _Renderer:
             body.append(match.group(1))
             index += 1
 
-        inner = _Renderer(self.link)
+        inner = _Renderer(self.link, self.figure)
         inner.run(body)
+        self.figures.extend(inner.figures)
         self.out.append("<blockquote>" + "".join(inner.out) + "</blockquote>")
         return index
 
@@ -243,6 +323,8 @@ class _Renderer:
                 break
             if line.startswith("|") or _UNORDERED.match(line) or _ORDERED.match(line):
                 break
+            if _IMAGE_LINE.match(line.strip()):
+                break
             body.append(line.strip())
             index += 1
 
@@ -251,9 +333,58 @@ class _Renderer:
 
 
 def render_markdown(text: str, link: Callable[[str], str] = default_link) -> tuple[str, List[Heading]]:
+    """記法だけを HTML にする。docs の体裁（要約・目次）は付かない。"""
     renderer = _Renderer(link)
     renderer.run(text.replace("\r\n", "\n").split("\n"))
     return "".join(renderer.out), renderer.headings
+
+
+@dataclass
+class Rendered:
+    """1 ページぶんの本文と、そこから拾えた情報。"""
+
+    body: str
+    headings: List[Heading]
+    figures: List[str]
+
+
+def render_toc(headings: List[Heading], link: Callable[[str], str] = default_link) -> str:
+    """h2 だけの目次。どのページでも同じ位置・同じ形で入る。"""
+    items = [heading for heading in headings if heading.level == 2]
+    if len(items) < 2:
+        return ""
+
+    links = "".join(
+        f'<li><a href="#{html.escape(heading.slug, quote=True)}">'
+        f"{render_inline(heading.text, link)}</a></li>"
+        for heading in items
+    )
+    return (
+        '<nav class="toc" aria-label="このページの内容">'
+        '<p class="toc-title">このページの内容</p>'
+        f"<ul>{links}</ul></nav>"
+    )
+
+
+def render_body(
+    text: str,
+    link: Callable[[str], str] = default_link,
+    figure: Callable[[str], str] = default_figure_src,
+) -> Rendered:
+    """docs の体裁を付けた本文を組み立てる。
+
+    見出し（h1）→ 要約の段落 → 目次 → 本編、の順に必ず並べる。
+    先頭 2 つの形は `tests/test_docs_site.py` が全ページぶん検査する。
+    """
+    renderer = _Renderer(link, figure)
+    renderer.run(text.replace("\r\n", "\n").split("\n"))
+    parts = list(renderer.out)
+
+    if len(parts) >= 2 and parts[0].startswith("<h1") and parts[1].startswith("<p>"):
+        parts[1] = '<p class="lede">' + parts[1][len("<p>") :]
+        parts.insert(2, render_toc(renderer.headings, link))
+
+    return Rendered("".join(parts), renderer.headings, renderer.figures)
 
 
 def render_nav(pages: List[tuple[str, str]], current: Optional[str]) -> str:
@@ -272,39 +403,129 @@ def document_title(text: str) -> str:
     return "docs"
 
 
+def document_summary(text: str) -> str:
+    """h1 の直後の段落。索引の 1 行説明に使う。"""
+    lines = text.replace("\r\n", "\n").split("\n")
+    for index, line in enumerate(lines):
+        heading = _HEADING.match(line)
+        if not (heading and len(heading.group(1)) == 1):
+            continue
+        body: List[str] = []
+        for following in lines[index + 1 :]:
+            if not following.strip():
+                if body:
+                    break
+                continue
+            if _HEADING.match(following):
+                break
+            body.append(following.strip())
+        return " ".join(body)
+    return ""
+
+
+def first_sentence(text: str) -> str:
+    """索引カードに出す 1 文。要約の先頭だけを取る。"""
+    head, mark, _ = text.partition("。")
+    return head + mark if mark else text
+
+
+@dataclass
+class Page:
+    """docs の 1 ページ。ナビ・索引・出力先はここから決まる。"""
+
+    source: Path
+    href: str
+    label: str
+    title: str
+    summary: str
+
+
+def collect_pages(docs_dir: Path) -> List[Page]:
+    """`PAGES` の順に docs を並べる。過不足があればその場で落とす。"""
+    found = {source.name for source in docs_dir.glob("*.md")}
+    listed = {name for name, _ in PAGES}
+
+    missing = sorted(found - listed)
+    if missing:
+        raise SystemExit(
+            "tools/render_docs.py の PAGES に載っていない docs があります: "
+            + ", ".join(missing)
+        )
+    absent = sorted(listed - found)
+    if absent:
+        raise SystemExit("PAGES に載っているファイルがありません: " + ", ".join(absent))
+
+    pages: List[Page] = []
+    for name, label in PAGES:
+        source = docs_dir / name
+        text = source.read_text(encoding="utf-8")
+        pages.append(
+            Page(
+                source=source,
+                href=name[:-3] + ".html",
+                label=label,
+                title=document_title(text),
+                summary=document_summary(text),
+            )
+        )
+    return pages
+
+
+def copy_figures(figures: List[str], docs_dir: Path, output_dir: Path) -> List[Path]:
+    """docs が参照した図をサイトへ複写する。実体は回帰テストのゴールデン画像。"""
+    import shutil
+
+    copied: List[Path] = []
+    for href in sorted(set(figures)):
+        if href.startswith(("http://", "https://", "data:")):
+            continue
+
+        source = (docs_dir / href).resolve()
+        if not source.is_file():
+            raise SystemExit(f"図が見つかりません: {href}")
+        if source.parent != FIGURE_DIR:
+            raise SystemExit(
+                f"図は {FIGURE_DIR} のゴールデン画像だけを使います: {href}"
+            )
+
+        target = output_dir / SITE_FIGURE_DIR / source.name
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(source, target)
+        copied.append(target)
+    return copied
+
+
 def build(
     docs_dir: Path,
     output_dir: Path,
     extra_nav: Optional[List[tuple[str, str]]] = None,
     home_href: str = "../index.html",
 ) -> Dict[str, Path]:
-    sources = sorted(docs_dir.glob("*.md"))
-    if not sources:
-        raise SystemExit(f"docs が見つかりません: {docs_dir}")
-
-    pages = list(extra_nav or [])
-    for source in sources:
-        text = source.read_text(encoding="utf-8")
-        pages.append((source.stem + ".html", document_title(text)))
+    pages = collect_pages(docs_dir)
+    nav_items = list(extra_nav or []) + [(page.href, page.label) for page in pages]
 
     written: Dict[str, Path] = {}
+    figures: List[str] = []
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    for source in sources:
-        text = source.read_text(encoding="utf-8")
-        body, _ = render_markdown(text)
-        target = output_dir / (source.stem + ".html")
+    for page in pages:
+        text = page.source.read_text(encoding="utf-8")
+        rendered = render_body(text)
+        figures.extend(rendered.figures)
+
+        target = output_dir / page.href
         target.write_text(
             render_page(
-                document_title(text),
-                body,
-                render_nav(pages, source.stem + ".html"),
+                page.title,
+                rendered.body,
+                render_nav(nav_items, page.href),
                 home_href=home_href,
             ),
             encoding="utf-8",
         )
-        written[source.name] = target
+        written[page.source.name] = target
 
+    copy_figures(figures, docs_dir, output_dir)
     return written
 
 

@@ -9,7 +9,8 @@ VRChat 向けシェーダー集です。**
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 [![Unity](https://img.shields.io/badge/Unity-2022.3-black.svg?logo=unity)](https://unity.com/)
 
-収録しているのは、3D モデルを 2D イラスト調に見せるトゥーンシェーダー **Illust2D** です。
+収録しているのは、3D モデルを 2D イラスト調に見せるトゥーンシェーダー **Illust2D** と、
+その上に効果を足すモジュール（表面の重ね掛け・ドット絵風）です。
 [Shader Core](https://github.com/lilxyzw/Shader-Core) をベースにしています。
 
 シェーディングの数式は
@@ -58,11 +59,18 @@ HLSL が実際にコンパイルできるかは
 
 ## ドキュメント
 
+並びと表記は [GitHub Pages のサイト](https://sabas0ba.github.io/vrc_sabashader/)と揃えてあります。
+
 - [Illust2D のパラメータ](docs/shader-illust2d.md)
-- [テストの仕組みと動かし方](docs/testing.md)
+- [モジュールのパラメータ](docs/modules.md)（表面の重ね掛け・ドット絵風）
 - [アバターに適用して確認する](docs/avatar-demo.md)
-- [配布のしくみとリリース手順](docs/distribution.md)
+- [テストの仕組みと動かし方](docs/testing.md)
 - [シェーダーを追加する](docs/adding-a-shader.md)
+- [モジュールを追加する](docs/adding-a-module.md)
+- [配布のしくみとリリース手順](docs/distribution.md)
+
+パラメータの説明には図が付いています。図はすべて描画回帰テストのゴールデン画像
+（`tests/golden/`）で、出荷する数式をそのまま描いたものです。
 
 ## 開発
 

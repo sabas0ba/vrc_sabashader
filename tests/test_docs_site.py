@@ -13,7 +13,16 @@ from pathlib import Path
 import pytest
 
 from harness.paths import REPO_ROOT
-from tools.render_docs import build, document_title, render_markdown, slugify
+from tools.render_docs import (
+    PAGES,
+    build,
+    collect_pages,
+    document_summary,
+    document_title,
+    render_body,
+    render_markdown,
+    slugify,
+)
 
 DOCS_DIR = REPO_ROOT / "docs"
 
@@ -134,7 +143,10 @@ def listing_page() -> str:
             }
         },
     }
-    return render_page(listing, [("docs/testing.html", "テストの仕組み")])
+    return render_page(
+        listing,
+        [("docs/testing.html", "テスト", "テストの仕組み", "`tests/` の中身の説明です。")],
+    )
 
 
 def test_listing_and_docs_share_the_shell(site, listing_page):
@@ -150,6 +162,9 @@ def test_listing_and_docs_share_the_shell(site, listing_page):
 
 def test_listing_links_to_docs(listing_page):
     assert 'href="docs/testing.html"' in listing_page
+    # 索引には見出しと 1 行の要約が出る。要約の記法も解いてから出す。
+    assert "テストの仕組み" in listing_page
+    assert "<code>tests/</code>" in listing_page
 
 
 def test_docs_link_back_to_listing(site):
@@ -163,6 +178,32 @@ def test_dark_mode_follows_the_os_and_the_toggle(site, listing_page):
         assert "prefers-color-scheme: dark" in text, f"{name} が OS の設定に追従しません"
         assert ':root[data-theme="dark"]' in text, f"{name} に明示的なダーク指定がありません"
         assert 'id="theme-toggle"' in text, f"{name} に切り替えボタンがありません"
+
+
+def test_theme_color_matches_the_palette(site, listing_page):
+    """ブラウザの UI 色もページの背景に合わせる。
+
+    meta のメディアクエリは OS の設定しか見ないので、明示的に切り替えている間は
+    トグルが `content` を上書きする。戻すための元の色は `data-color` に持たせる。
+    """
+    from tools.site_theme import BG_DARK, BG_LIGHT, THEME_TOGGLE_SCRIPT
+
+    for name, text in list(site.items()) + [("index.html", listing_page)]:
+        assert f'content="{BG_LIGHT}" media="(prefers-color-scheme: light)"' in text, name
+        assert f'content="{BG_DARK}" media="(prefers-color-scheme: dark)"' in text, name
+        assert f'data-color="{BG_LIGHT}"' in text, name
+        assert f'data-color="{BG_DARK}"' in text, name
+
+    assert 'meta[name="theme-color"]' in THEME_TOGGLE_SCRIPT
+    assert BG_DARK in THEME_TOGGLE_SCRIPT and BG_LIGHT in THEME_TOGGLE_SCRIPT
+
+
+def test_figures_and_toc_are_styled(site):
+    """図と目次の見た目も共通のスタイルに入っていること。"""
+    from tools.site_theme import PAGE_STYLE
+
+    for selector in (".figures", ".figures img", ".figures figcaption", ".toc"):
+        assert selector + " {" in PAGE_STYLE, f"{selector} のスタイルがありません"
 
 
 def test_colors_are_defined_for_both_themes():
@@ -181,3 +222,147 @@ def test_colors_are_defined_for_both_themes():
 
     assert variables(root), "既定のテーマに色が定義されていません"
     assert variables(dark) == variables(root), "明暗で定義されている色が食い違っています"
+
+
+# --- docs の体裁 -----------------------------------------------------------
+#
+# ページごとに構えが違うと、サイトに出したときに見出しの位置も目次の有無も
+# 揃わない。書き方の規約は tools/render_docs.py の docstring にある。
+
+_HEADING = re.compile(r"^(#{1,6})\s+(.*)$")
+_FENCE = re.compile(r"^```")
+_IMAGE = re.compile(r"!\[([^\]]*)\]\(([^)]+)\)")
+
+# 図はここのファイルだけを使う。回帰テストが守っている画像なので、
+# 数式を変えれば図も変わり、説明が実装から離れない。
+FIGURE_PREFIX = "../tests/golden/"
+
+
+def body_lines(text: str):
+    """コードブロックの中を除いた行を返す。"""
+    inside = False
+    for line in text.replace("\r\n", "\n").split("\n"):
+        if _FENCE.match(line.strip()):
+            inside = not inside
+            continue
+        if not inside:
+            yield line
+
+
+@pytest.mark.parametrize("source", sorted(DOCS_DIR.glob("*.md")), ids=lambda p: p.name)
+def test_doc_starts_with_a_heading_and_a_summary(source):
+    """1 ファイル 1 見出し。その直後は必ず 1 段落の要約にする。"""
+    text = source.read_text(encoding="utf-8")
+    lines = list(body_lines(text))
+
+    headings = [line for line in lines if _HEADING.match(line)]
+    assert lines[0].startswith("# "), f"{source.name}: 先頭が h1 ではありません"
+    assert sum(1 for line in headings if line.startswith("# ")) == 1, (
+        f"{source.name}: h1 が 2 つ以上あります"
+    )
+
+    following = [line for line in lines[1:] if line.strip()]
+    assert following, f"{source.name}: 本文がありません"
+    assert not following[0].startswith(("#", "-", "|", ">", "1.", "!")), (
+        f"{source.name}: h1 の直後が要約の段落ではありません: {following[0]}"
+    )
+    assert document_summary(text), f"{source.name}: 要約を取り出せません"
+
+
+@pytest.mark.parametrize("source", sorted(DOCS_DIR.glob("*.md")), ids=lambda p: p.name)
+def test_heading_levels_do_not_skip(source):
+    level = 1
+    for line in body_lines(source.read_text(encoding="utf-8")):
+        heading = _HEADING.match(line)
+        if not heading:
+            continue
+        current = len(heading.group(1))
+        assert current <= level + 1, f"{source.name}: 見出しの階層が飛んでいます: {line}"
+        level = current
+
+
+@pytest.mark.parametrize("source", sorted(DOCS_DIR.glob("*.md")), ids=lambda p: p.name)
+def test_figures_are_golden_images_on_their_own_line(source):
+    for line in body_lines(source.read_text(encoding="utf-8")):
+        # インラインコードの中は記法の説明なので見ない（レンダラも同じ扱い）
+        line = re.sub(r"`[^`]+`", "", line)
+        for match in _IMAGE.finditer(line):
+            assert line.strip() == match.group(0), (
+                f"{source.name}: 図は行頭に単独で置いてください: {line.strip()}"
+            )
+            href = match.group(2)
+            assert href.startswith(FIGURE_PREFIX), (
+                f"{source.name}: 図は {FIGURE_PREFIX} のゴールデン画像だけを使います: {href}"
+            )
+            assert (source.parent / href).resolve().is_file(), (
+                f"{source.name}: 図がありません: {href}"
+            )
+            assert match.group(1).strip(), f"{source.name}: 図に説明がありません: {href}"
+
+
+def test_pages_cover_every_doc():
+    """ナビの並びと docs のファイルが食い違っていないこと。"""
+    listed = [name for name, _ in PAGES]
+    assert sorted(listed) == sorted(source.name for source in DOCS_DIR.glob("*.md"))
+    assert len(set(listed)) == len(listed), "PAGES に重複があります"
+
+    for page in collect_pages(DOCS_DIR):
+        assert page.label, f"{page.source.name} のナビ表記がありません"
+        assert page.title, f"{page.source.name} の見出しがありません"
+
+
+def test_nav_follows_the_declared_order(site):
+    """全ページのナビが同じ順で並ぶこと。"""
+    expected = [name[:-3] + ".html" for name, _ in PAGES]
+    for name, text in site.items():
+        nav = text.split('<nav class="site">', 1)[1].split("</nav>", 1)[0]
+        found = re.findall(r'href="([^"]+\.html)"', nav)
+        # 先頭にリスティングへの戻りが入る
+        assert found[0] == "../index.html", f"{name}: 戻り先がありません"
+        # 現在地はリンクにならないので、残りが順序どおり並んでいれば良い
+        assert found[1:] == [href for href in expected if href != name], f"{name}: ナビの並びが違います"
+
+
+def test_body_has_a_lede_and_a_table_of_contents():
+    """要約と目次が、どのページでも同じ位置に入ること。"""
+    for page in collect_pages(DOCS_DIR):
+        rendered = render_body(page.source.read_text(encoding="utf-8"))
+        head = rendered.body[: rendered.body.index("</nav>") + len("</nav>")]
+
+        assert head.index("<h1") < head.index('<p class="lede">'), f"{page.source.name}"
+        assert head.index('<p class="lede">') < head.index('<nav class="toc"'), f"{page.source.name}"
+
+        for heading in rendered.headings:
+            if heading.level == 2:
+                assert f'href="#{heading.slug}"' in head, f"{page.source.name}: 目次に {heading.text} がありません"
+
+
+def test_figures_are_copied_and_referenced(site, tmp_path):
+    """図がサイトへ複写され、ページがその複写を指していること。"""
+    output = tmp_path / "site"
+    build(DOCS_DIR, output, extra_nav=[("../index.html", "リスティング")])
+
+    referenced = set()
+    for name, text in site.items():
+        for src in re.findall(r'<img src="([^"]+)"', text):
+            assert src.startswith("figures/"), f"{name}: 図の参照先が違います: {src}"
+            referenced.add(src)
+
+    assert referenced, "図が 1 枚も出ていません"
+    for src in referenced:
+        assert (output / src).is_file(), f"{src} が複写されていません"
+
+
+def test_figures_have_captions():
+    body, _ = render_markdown("![説明](../tests/golden/sphere_default.png)")
+    assert '<div class="figures">' in body
+    assert '<img src="figures/sphere_default.png" alt="説明"' in body
+    assert "<figcaption>説明</figcaption>" in body
+
+
+def test_consecutive_figures_share_one_row():
+    body, _ = render_markdown(
+        "![A](../tests/golden/sphere_default.png)\n![B](../tests/golden/box_default.png)"
+    )
+    assert body.count('<div class="figures">') == 1
+    assert body.count("<figure>") == 2

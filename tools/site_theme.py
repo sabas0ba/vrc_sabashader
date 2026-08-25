@@ -14,6 +14,13 @@ docs のページ (`tools/render_docs.py`) は同じ見た目にしたいので�
 CSS 側は「システム追従」と「明示指定」の両方を見る必要がある。
 色は必ず素の `:root` に定義し、メディアクエリと `[data-theme]` では
 上書きだけをする（片方でしか定義しない色を作らない）。
+ブラウザの UI 色（`<meta name="theme-color">`）も同じ背景色を使う。
+meta はメディアクエリでしか OS を見ないので、明示的に切り替えている間は
+トグル側が `content` を上書きする（追従に戻すための元の色は `data-color`）。
+
+docs のページに出る要素（要約・目次・図）のスタイルもここに置く。
+図の中身はシェーダーの出力そのものなので、テーマで色は変えず、
+枠と余白だけをテーマに合わせる。等倍で出して拡大による滲みを避ける。
 """
 
 from __future__ import annotations
@@ -26,6 +33,11 @@ NavItem = Tuple[str, str]
 
 SITE_NAME = "SabaShader"
 REPOSITORY_URL = "https://github.com/sabas0ba/vrc_sabashader"
+
+# ブラウザの UI 色（<meta name="theme-color">）と共有するので、
+# 背景だけは定数に出しておく。
+BG_LIGHT = "#f7f7fa"
+BG_DARK = "#14141a"
 
 # 明示切り替えを一瞬でも取りこぼすと白い画面が光るので、
 # body より先に <html> へ data-theme を載せる。
@@ -40,45 +52,60 @@ THEME_BOOT_SCRIPT = """
 })();
 """
 
-THEME_TOGGLE_SCRIPT = """
-(function () {
+THEME_TOGGLE_SCRIPT = f"""
+(function () {{
   var root = document.documentElement;
   var button = document.getElementById('theme-toggle');
   if (!button) return;
 
   var media = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
 
-  function current() {
+  function current() {{
     var explicit = root.getAttribute('data-theme');
     if (explicit === 'light' || explicit === 'dark') return explicit;
     return media && media.matches ? 'dark' : 'light';
-  }
+  }}
 
-  function sync() {
-    var dark = current() === 'dark';
+  // <meta name="theme-color"> はメディアクエリでしか OS を見ないので、
+  // 明示的に切り替えている間はブラウザの UI 色をこちらで上書きする。
+  // 追従に戻したときのために、元の色は data-color に持たせてある。
+  function syncBrowserChrome(theme) {{
+    var explicit = root.getAttribute('data-theme') === theme;
+    var color = theme === 'dark' ? '{BG_DARK}' : '{BG_LIGHT}';
+    var tags = document.querySelectorAll('meta[name="theme-color"]');
+
+    for (var i = 0; i < tags.length; i++) {{
+      tags[i].setAttribute('content', explicit ? color : tags[i].getAttribute('data-color'));
+    }}
+  }}
+
+  function sync() {{
+    var theme = current();
+    var dark = theme === 'dark';
     button.setAttribute('aria-pressed', dark ? 'true' : 'false');
     button.setAttribute('title', dark ? 'ライトモードに切り替える' : 'ダークモードに切り替える');
-  }
+    syncBrowserChrome(theme);
+  }}
 
-  button.addEventListener('click', function () {
+  button.addEventListener('click', function () {{
     var next = current() === 'dark' ? 'light' : 'dark';
     root.setAttribute('data-theme', next);
-    try { localStorage.setItem('theme', next); } catch (e) {}
+    try {{ localStorage.setItem('theme', next); }} catch (e) {{}}
     sync();
-  });
+  }});
 
-  if (media && media.addEventListener) {
+  if (media && media.addEventListener) {{
     media.addEventListener('change', sync);
-  }
+  }}
 
   button.hidden = false;
   sync();
-})();
+}})();
 """
 
 # 明るい側を素の :root に置き、暗い側は上書きだけ。
-_LIGHT_TOKENS = """
-    --bg: #f7f7fa;
+_LIGHT_TOKENS = f"""
+    --bg: {BG_LIGHT};
     --surface: #ffffff;
     --surface-soft: #f0f0f5;
     --border: #dededf;
@@ -91,8 +118,8 @@ _LIGHT_TOKENS = """
     --shadow: 0 1px 2px rgba(20, 20, 35, 0.06), 0 8px 24px rgba(20, 20, 35, 0.06);
 """
 
-_DARK_TOKENS = """
-    --bg: #14141a;
+_DARK_TOKENS = f"""
+    --bg: {BG_DARK};
     --surface: #1c1c24;
     --surface-soft: #23232d;
     --border: #33333f;
@@ -100,7 +127,7 @@ _DARK_TOKENS = """
     --text: #e8e8ef;
     --text-muted: #a4a4b4;
     --accent: #97a3ff;
-    --accent-text: #14141a;
+    --accent-text: {BG_DARK};
     --accent-soft: #262a45;
     --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.35);
 """
@@ -283,6 +310,62 @@ PAGE_STYLE = f"""
   .lede {{ font-size: 1.05rem; color: var(--text-muted); }}
   .note {{ font-size: 0.9rem; color: var(--text-muted); }}
 
+  /* 目次。docs のページは h1 と要約の直後に必ずこれが入る。 */
+  .toc {{
+    margin: 1.75rem 0 2.5rem;
+    padding: 0.85rem 1.1rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+  }}
+  .toc .toc-title {{
+    margin: 0 0 0.35rem;
+    font-size: 0.78rem;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+  }}
+  .toc ul {{
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.15rem 1rem;
+  }}
+  .toc li {{ margin: 0; }}
+  .toc a {{ font-size: 0.9rem; }}
+
+  /* 図。中身はシェーダーの出力そのものなので、テーマで色を変えず、
+     枠と余白だけをテーマに合わせる。等倍で出して拡大による滲みを避ける。 */
+  .figures {{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.9rem;
+    margin: 1.5rem 0;
+  }}
+  .figures figure {{
+    flex: 1 1 15rem;
+    min-width: 0;
+    margin: 0;
+    padding: 0.75rem;
+    background: var(--surface-soft);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+  }}
+  .figures img {{
+    display: block;
+    margin: 0 auto;
+    max-width: 100%;
+    height: auto;
+    border-radius: 6px;
+  }}
+  .figures figcaption {{
+    margin-top: 0.6rem;
+    font-size: 0.85rem;
+    line-height: 1.6;
+    color: var(--text-muted);
+  }}
+
   .doc-list {{ list-style: none; padding: 0; display: grid; gap: 0.6rem; }}
   .doc-list a {{
     display: block;
@@ -294,6 +377,15 @@ PAGE_STYLE = f"""
     font-weight: 600;
   }}
   .doc-list a:hover {{ border-color: var(--accent); text-decoration: none; }}
+  .doc-list .doc-title {{ display: block; }}
+  .doc-list .doc-summary {{
+    display: block;
+    margin-top: 0.2rem;
+    font-weight: 400;
+    font-size: 0.85rem;
+    line-height: 1.6;
+    color: var(--text-muted);
+  }}
 
   .site-footer {{
     margin-top: 4rem;
@@ -350,6 +442,9 @@ def render_document(title: str, body: str, nav: str, *, home_href: str) -> str:
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="{BG_LIGHT}" media="(prefers-color-scheme: light)" data-color="{BG_LIGHT}">
+<meta name="theme-color" content="{BG_DARK}" media="(prefers-color-scheme: dark)" data-color="{BG_DARK}">
 <title>{html.escape(title)}</title>
 <script>{THEME_BOOT_SCRIPT}</script>
 <style>{PAGE_STYLE}</style>
