@@ -1,23 +1,12 @@
 {
     // 頂点を帯ごとに横へずらして、映像が裂けたように見せる。
     // ピクセル側の帯とは別の乱数系列なので、位置は一致しない。
-    SBSCrtStyle crtMorphStyle;
-    crtMorphStyle.amount = _Amount;
-    crtMorphStyle.scanline = _Scanline;
-    crtMorphStyle.scanlinePitch = _ScanlinePitch;
-    crtMorphStyle.mask = _Mask;
-    crtMorphStyle.maskPitch = _MaskPitch;
-    crtMorphStyle.roll = _Roll;
-    crtMorphStyle.rollSpeed = _RollSpeed;
-    crtMorphStyle.noise = _Noise;
-    crtMorphStyle.noiseScale = _NoiseScale;
-    crtMorphStyle.aberration = _Aberration;
+    //
+    // SBSCrtTear が読むのは glitch / tearing / tearScale / time だけなので、
+    // 残りは 0 のままにしてある。
+    SBSCrtStyle crtMorphStyle = (SBSCrtStyle)0;
     crtMorphStyle.glitch = _Glitch;
-    crtMorphStyle.glitchScale = _GlitchScale;
-    crtMorphStyle.glitchShift = _GlitchShift;
-    crtMorphStyle.glitchColor = _GlitchColor;
-    crtMorphStyle.vignette = _Vignette;
-    crtMorphStyle.tearing = _Tearing;
+    crtMorphStyle.tearing = _Tearing * _Amount;
     crtMorphStyle.tearScale = _TearScale;
     crtMorphStyle.time = SCTime();
 

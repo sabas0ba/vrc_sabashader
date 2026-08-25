@@ -546,9 +546,14 @@ def strip_comments(source: str) -> str:
 
 
 def used_property_names(sources: List[Tuple[str, str]]) -> Dict[str, List[str]]:
-    """(ファイル名, 中身) から `_Foo` 形式の識別子を集める。"""
+    """(ファイル名, 中身) から `_Foo` 形式の識別子を集める。
+
+    直前が `.` のものはメンバ参照なので数えない。行列の成分を取る
+    `UNITY_MATRIX_P._m00` のような書き方がプロパティ参照に見えてしまう。
+    """
     found: Dict[str, List[str]] = {}
     for name, text in sources:
-        for token in set(re.findall(r"(?<![\w])_[A-Za-z][A-Za-z0-9_]*", strip_comments(text))):
+        tokens = set(re.findall(r"(?<![\w.])_[A-Za-z][A-Za-z0-9_]*", strip_comments(text)))
+        for token in tokens:
             found.setdefault(token, []).append(name)
     return found

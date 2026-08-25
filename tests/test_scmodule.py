@@ -393,7 +393,10 @@ def test_package_module_localization_is_complete(module):
     if not lang_dir.is_dir():
         pytest.skip(f"{module.unique_id}: lang がありません")
 
-    keys = set()
+    # モジュール名は Shader Core が自動で付ける外側の折りたたみに使われる
+    # （SCShaderImporter.ShaderLab.cs の ReplaceProperties）。properties.hlsl に
+    # 現れなくても翻訳が要る。
+    keys = {module.name}
     for prop in module.properties:
         for text in (prop.display, prop.description):
             if not text:

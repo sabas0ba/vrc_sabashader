@@ -25,6 +25,7 @@ MODE_PIXEL = 8
 MODE_DROPLET = 9
 MODE_CRT = 10
 MODE_CRT_SOLID = 11
+MODE_CRT_CURVE = 12
 
 DEFAULT_STYLE: Dict[str, object] = {
     "shadeBorder1": 0.5,
@@ -96,22 +97,33 @@ DEFAULT_PIXEL: Dict[str, object] = {
 MODULE_STYLE_DEFAULTS["SBSPixelStyle"] = DEFAULT_PIXEL
 
 # CrtGlitchCore.hlsl の SBSCrtStyle
+#
+# 効果はすべて 0 から始める。ケースごとに見たいものだけを上げる。
 DEFAULT_CRT: Dict[str, object] = {
     "amount": 1.0,
     "scanline": 0.0,
     "scanlinePitch": 4.0,
     "mask": 0.0,
     "maskPitch": 6.0,
+    "vignette": 0.0,
+    "curvature": 0.0,
+    "aberration": 0.0,
     "roll": 0.0,
     "rollSpeed": 0.15,
     "noise": 0.0,
     "noiseScale": 2.0,
-    "aberration": 0.0,
+    "noiseTone": 0.0,
+    "noiseChroma": 0.0,
+    "staticAmount": 0.0,
+    "staticTear": 8.0,
     "glitch": 0.0,
     "glitchScale": 12.0,
     "glitchShift": 6.0,
     "glitchColor": 0.5,
-    "vignette": 0.0,
+    "block": 0.0,
+    "blockScale": 16.0,
+    "blockShift": 6.0,
+    "blockCrush": 0.5,
     "tearing": 0.0,
     "tearScale": 0.05,
     "time": 0.0,
@@ -439,6 +451,58 @@ CASES: List[Case] = [
         mode=MODE_CRT,
         description="ざらつきだけ。時間を固定して、粒の位置と大きさを見る。",
         module_styles={"SBSCrtStyle": {"noise": 0.25, "noiseScale": 3.0, "time": 1.0}},
+        resolution=(320, 160),
+    ),
+    Case(
+        name="crt_block",
+        mode=MODE_CRT,
+        description="升の破綻だけ。時間を固定して、升の位置・横ずれ・色の潰れを見る。",
+        module_styles={
+            "SBSCrtStyle": {
+                "block": 0.5,
+                "blockScale": 20.0,
+                "blockShift": 10.0,
+                "blockCrush": 0.9,
+                "time": 1.0,
+            }
+        },
+        resolution=(320, 160),
+    ),
+    Case(
+        name="crt_static",
+        mode=MODE_CRT,
+        description="砂嵐で半分ほど置き換えた状態。置き換える前の横方向の引き裂きも見る。",
+        module_styles={
+            "SBSCrtStyle": {
+                "staticAmount": 0.6,
+                "staticTear": 16.0,
+                "noiseScale": 3.0,
+                "time": 1.0,
+            }
+        },
+        resolution=(320, 160),
+    ),
+    Case(
+        name="crt_grain_tone",
+        mode=MODE_CRT,
+        description="中間調へ寄せた色付きのざらつき。明部と暗部で粒が消えることを見る。",
+        module_styles={
+            "SBSCrtStyle": {
+                "noise": 0.4,
+                "noiseScale": 2.0,
+                "noiseTone": 1.0,
+                "noiseChroma": 1.0,
+                "time": 1.0,
+            }
+        },
+        resolution=(320, 160),
+    ),
+    Case(
+        name="crt_curve",
+        mode=MODE_CRT_CURVE,
+        description="画面の丸み。実際には頂点を動かすが、ここでは表を引く座標を"
+        "同じ式で曲げて、どれだけ膨らむかを見る。",
+        module_styles={"SBSCrtStyle": {"curvature": 0.25}},
         resolution=(320, 160),
     ),
     Case(

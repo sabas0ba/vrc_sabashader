@@ -11,6 +11,9 @@ msgstr "Amount"
 msgid "__AmountDesc"
 msgstr "0 disables the module. 1 replaces the color completely."
 
+msgid "__Screen"
+msgstr "Screen"
+
 msgid "__Scanline"
 msgstr "Scanlines"
 
@@ -27,13 +30,13 @@ msgid "__Mask"
 msgstr "Shadow Mask"
 
 msgid "__MaskDesc"
-msgstr "Adds vertical RGB stripes. Overall brightness is preserved, but color swings between the peaks and troughs."
+msgstr "Adds vertical RGB stripes. Overall brightness is preserved, but color swings with the stripe position."
 
 msgid "__MaskPitch"
 msgstr "Mask Pitch"
 
 msgid "__MaskPitchDesc"
-msgstr "Width of one R/G/B triplet, in screen pixels."
+msgstr "Width of one R/G/B triplet, in screen pixels. Distant avatars make the stripes too fine and the color skews, so widen this for far shots."
 
 msgid "__Vignette"
 msgstr "Vignette"
@@ -41,14 +44,23 @@ msgstr "Vignette"
 msgid "__VignetteDesc"
 msgstr "Darkens the image toward the edges of the screen."
 
+msgid "__Curvature"
+msgstr "Screen Curvature"
+
+msgid "__CurvatureDesc"
+msgstr "Bulges the image outward toward the edges. The picture itself cannot be bent, so the mesh vertices are moved instead. Coarse meshes will not curve, the model no longer lines up with other objects, and the shadow keeps the uncurved shape."
+
 msgid "__Aberration"
 msgstr "Chromatic Aberration"
 
 msgid "__AberrationDesc"
 msgstr "How far red and blue are pushed apart, in screen pixels. Widens toward the edges. Neighboring pixels cannot be read, so this is estimated from gradients and has no effect across silhouettes or texture edges."
 
+msgid "__Grain"
+msgstr "Grain and Static"
+
 msgid "__Noise"
-msgstr "Noise"
+msgstr "Grain"
 
 msgid "__NoiseDesc"
 msgstr "Scatters grain over the image."
@@ -57,7 +69,31 @@ msgid "__NoiseScale"
 msgstr "Grain Size"
 
 msgid "__NoiseScaleDesc"
-msgstr "Size of one grain, in screen pixels."
+msgstr "Size of one grain, in screen pixels. Shared with the static."
+
+msgid "__NoiseTone"
+msgstr "Midtone Bias"
+
+msgid "__NoiseToneDesc"
+msgstr "Concentrates the grain in the midtones and removes it from highlights and shadows, closer to film grain."
+
+msgid "__NoiseChroma"
+msgstr "Color Grain"
+
+msgid "__NoiseChromaDesc"
+msgstr "0 shakes brightness only. Higher values shake R/G/B independently for colored grain."
+
+msgid "__Static"
+msgstr "Static"
+
+msgid "__StaticDesc"
+msgstr "How much the image is replaced by grey noise. Scanlines and stripes are still applied on top."
+
+msgid "__StaticTear"
+msgstr "Static Tearing"
+
+msgid "__StaticTearDesc"
+msgstr "How far each row slides sideways before the static replaces it, in screen pixels."
 
 msgid "__Roll"
 msgstr "Roll Bar"
@@ -68,8 +104,11 @@ msgstr "The slow bright band seen on a screen whose vertical sync has drifted."
 msgid "__RollSpeed"
 msgstr "Roll Speed"
 
+msgid "__Disturbance"
+msgstr "Disturbance"
+
 msgid "__Glitch"
-msgstr "Glitch"
+msgstr "Band Glitch"
 
 msgid "__GlitchDesc"
 msgstr "How many bands appear. 0 shows none, 1 shows every band. Vertex tearing is driven by this value as well."
@@ -84,13 +123,37 @@ msgid "__GlitchShift"
 msgstr "Band Shift"
 
 msgid "__GlitchShiftDesc"
-msgstr "How far a band slides sideways, in screen pixels. Estimated from gradients like the aberration, so shifts finer than 2 pixels come out stepped."
+msgstr "How far a band slides sideways, in screen pixels. Estimated from gradients, so shifts finer than 2 pixels come out stepped."
 
 msgid "__GlitchColor"
-msgstr "Channel Swap"
+msgstr "Band Channel Swap"
 
 msgid "__GlitchColorDesc"
 msgstr "How much RGB is rotated inside a glitched band."
+
+msgid "__Block"
+msgstr "Block Glitch"
+
+msgid "__BlockDesc"
+msgstr "Cuts the screen into square blocks and breaks them individually, closer to a broken compressed video than the horizontal bands."
+
+msgid "__BlockScale"
+msgstr "Block Size"
+
+msgid "__BlockScaleDesc"
+msgstr "Size of one block, in screen pixels."
+
+msgid "__BlockShift"
+msgstr "Block Shift"
+
+msgid "__BlockShiftDesc"
+msgstr "How far a block slides sideways, in screen pixels."
+
+msgid "__BlockCrush"
+msgstr "Block Color Crush"
+
+msgid "__BlockCrushDesc"
+msgstr "How far the color inside a block is reduced to steps. Higher values flatten it into fewer colors."
 
 msgid "__Tearing"
 msgstr "Vertex Tearing"
