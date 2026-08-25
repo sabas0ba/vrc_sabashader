@@ -450,6 +450,8 @@ def test_crt_curvature_uses_matching_projection_matrices():
     assert "UNITY_MATRIX_I_V" in postvertex
     assert "UNITY_MATRIX_P._m00" not in postvertex
     assert "UNITY_MATRIX_P._m11" not in postvertex
+    assert re.search(r"if \(crtClipPosition\.w > 1\.0e-3\)", postvertex)
+    assert "abs(crtClipPosition.w)" not in postvertex
 
 
 @pytest.mark.parametrize("module", _package_modules(), ids=lambda m: m.unique_id)

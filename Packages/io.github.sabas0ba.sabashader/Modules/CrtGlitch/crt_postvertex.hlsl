@@ -19,7 +19,9 @@
         float4 crtViewPosition = mul(UNITY_MATRIX_V, float4(vertex.position, 1.0));
         float4 crtClipPosition = mul(unity_CameraProjection, crtViewPosition);
 
-        if (abs(crtClipPosition.w) > 1.0e-6)
+        // 透視投影で w <= 0 の頂点はカメラの後方にある。視点面をまたぐ三角形の
+        // 後方頂点を曲げると、w が 0 に近いところで NDC が発散するため除外する。
+        if (crtClipPosition.w > 1.0e-3)
         {
             float2 crtNdc = crtClipPosition.xy / crtClipPosition.w;
             half2 crtOffset = SBSCrtCurve(crtNdc, crtCurveStyle);
@@ -29,7 +31,7 @@
             crtClipPosition.xy += crtOffset * crtClipPosition.w;
             float4 crtCurvedView = mul(unity_CameraInvProjection, crtClipPosition);
 
-            if (abs(crtCurvedView.w) > 1.0e-6)
+            if (crtCurvedView.w > 1.0e-6)
             {
                 crtCurvedView /= crtCurvedView.w;
                 float4 crtCurvedWorld = mul(UNITY_MATRIX_I_V, crtCurvedView);
