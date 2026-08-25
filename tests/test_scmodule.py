@@ -433,7 +433,11 @@ def test_crt_apply_skips_disabled_stages_and_refreshes_gradients():
     channel_swap = apply.index("SBSCrtChannelSwap")
     aberration = apply.index("SBSCrtAberration")
     refreshed_gradient = apply.index("ddx(result)", channel_swap)
-    assert channel_swap < refreshed_gradient < aberration
+    assert channel_swap < aberration < refreshed_gradient
+    assert re.search(
+        r"SBSCrtAberration\(\s*result,\s*ddx\(result\),\s*ddy\(result\)",
+        apply,
+    )
 
 
 def test_crt_curvature_uses_matching_projection_matrices():
