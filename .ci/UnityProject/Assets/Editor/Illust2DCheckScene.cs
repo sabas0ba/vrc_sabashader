@@ -26,7 +26,7 @@ namespace SabaShader.CI
         const string ScenePath = RootDir + "/Illust2DCheck.unity";
 
         // カメラの構図はこの縦横比を前提に決める。撮影時に変えると構図がずれる。
-        const int CaptureWidth = 2900;
+        const int CaptureWidth = 3700;
         const int CaptureHeight = 1400;
 
         // tests/cases.py の Case 既定値
@@ -164,6 +164,63 @@ namespace SabaShader.CI
                 },
                 // 9 = 夕焼け
                 Ints = { { "_io_github_sabas0ba_pixelart_PalettePreset", 9 } },
+            },
+            new Variant
+            {
+                Name = "crt",
+                Floats =
+                {
+                    { "_io_github_sabas0ba_crtglitch_Amount", 1.0f },
+                    { "_io_github_sabas0ba_crtglitch_Scanline", 0.5f },
+                    { "_io_github_sabas0ba_crtglitch_ScanlinePitch", 4.0f },
+                    { "_io_github_sabas0ba_crtglitch_Mask", 0.35f },
+                    { "_io_github_sabas0ba_crtglitch_MaskPitch", 6.0f },
+                    { "_io_github_sabas0ba_crtglitch_Vignette", 0.4f },
+                    { "_io_github_sabas0ba_crtglitch_Aberration", 2.0f },
+                    { "_io_github_sabas0ba_crtglitch_Noise", 0.06f },
+                },
+            },
+            new Variant
+            {
+                Name = "crt_glitch",
+                Floats =
+                {
+                    { "_io_github_sabas0ba_crtglitch_Amount", 1.0f },
+                    { "_io_github_sabas0ba_crtglitch_Scanline", 0.3f },
+                    { "_io_github_sabas0ba_crtglitch_Mask", 0.0f },
+                    { "_io_github_sabas0ba_crtglitch_Vignette", 0.0f },
+                    { "_io_github_sabas0ba_crtglitch_Aberration", 0.0f },
+                    { "_io_github_sabas0ba_crtglitch_Noise", 0.0f },
+                    { "_io_github_sabas0ba_crtglitch_Glitch", 0.6f },
+                    { "_io_github_sabas0ba_crtglitch_GlitchScale", 24.0f },
+                    { "_io_github_sabas0ba_crtglitch_GlitchShift", 16.0f },
+                    { "_io_github_sabas0ba_crtglitch_GlitchColor", 0.7f },
+                    { "_io_github_sabas0ba_crtglitch_Tearing", 0.03f },
+                    { "_io_github_sabas0ba_crtglitch_TearScale", 0.08f },
+                },
+            },
+            new Variant
+            {
+                // ドット絵風と重ね掛けて、並び順が意図どおり
+                // （升目に落としてからブラウン管をかける）かを見る。
+                Name = "crt_pixel",
+                Floats =
+                {
+                    { "_io_github_sabas0ba_pixelart_Amount", 1.0f },
+                    { "_io_github_sabas0ba_pixelart_Levels", 6.0f },
+                    { "_io_github_sabas0ba_pixelart_CellSize", 10.0f },
+                    { "_io_github_sabas0ba_pixelart_Dither", 0.6f },
+                    { "_io_github_sabas0ba_crtglitch_Amount", 1.0f },
+                    { "_io_github_sabas0ba_crtglitch_Scanline", 0.5f },
+                    { "_io_github_sabas0ba_crtglitch_ScanlinePitch", 10.0f },
+                    // 縞を強くすると升目が見えなくなるので、ここでは弱くする
+                    { "_io_github_sabas0ba_crtglitch_Mask", 0.12f },
+                    // 升目 1 つに縞 1 組を合わせる
+                    { "_io_github_sabas0ba_crtglitch_MaskPitch", 10.0f },
+                    { "_io_github_sabas0ba_crtglitch_Vignette", 0.4f },
+                    { "_io_github_sabas0ba_crtglitch_Aberration", 0.0f },
+                    { "_io_github_sabas0ba_crtglitch_Noise", 0.0f },
+                },
             },
         };
 

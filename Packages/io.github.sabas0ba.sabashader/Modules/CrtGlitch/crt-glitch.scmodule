@@ -1,0 +1,15 @@
+{
+    "name": "__CrtGlitch",
+    "uniqueID": "io.github.sabas0ba.crtglitch",
+    "phases": [
+        {
+            "phase": "postpixel",
+            "path": "crt_postpixel.hlsl",
+            "afters": ["__PixelArt"]
+        },
+        {
+            "phase": "morph",
+            "path": "crt_morph.hlsl"
+        }
+    ]
+}

@@ -1,0 +1,105 @@
+msgid ""
+msgstr ""
+"Language: ja-JP\n"
+
+msgid "__CrtGlitch"
+msgstr "ブラウン管・グリッチ"
+
+msgid "__Amount"
+msgstr "強さ"
+
+msgid "__AmountDesc"
+msgstr "0 で無効。1 で完全に置き換えます。"
+
+msgid "__Scanline"
+msgstr "走査線"
+
+msgid "__ScanlineDesc"
+msgstr "横方向の暗い線を入れます。"
+
+msgid "__ScanlinePitch"
+msgstr "走査線の間隔"
+
+msgid "__ScanlinePitchDesc"
+msgstr "線と線の間隔を画面ピクセルで指定します。"
+
+msgid "__Mask"
+msgstr "シャドウマスク"
+
+msgid "__MaskDesc"
+msgstr "RGB の縦縞を入れます。全体の明るさは保ちますが、縞の山と谷で色が振れます。"
+
+msgid "__MaskPitch"
+msgstr "縞の間隔"
+
+msgid "__MaskPitchDesc"
+msgstr "R・G・B の 3 本で 1 組とし、その幅を画面ピクセルで指定します。"
+
+msgid "__Vignette"
+msgstr "周辺の落ち込み"
+
+msgid "__VignetteDesc"
+msgstr "画面の外側ほど暗くします。"
+
+msgid "__Aberration"
+msgstr "色ずれ"
+
+msgid "__AberrationDesc"
+msgstr "赤と青を逆向きにずらす幅を画面ピクセルで指定します。画面の外側ほど広がります。隣を読めないため勾配からの推定で、シルエットや模様の境目では効きません。"
+
+msgid "__Noise"
+msgstr "ざらつき"
+
+msgid "__NoiseDesc"
+msgstr "画面全体に粒を散らします。"
+
+msgid "__NoiseScale"
+msgstr "粒の大きさ"
+
+msgid "__NoiseScaleDesc"
+msgstr "ざらつきの粒を画面ピクセルで指定します。"
+
+msgid "__Roll"
+msgstr "ロールバー"
+
+msgid "__RollDesc"
+msgstr "垂直同期がずれた画面に出る、ゆっくり流れる明るい帯です。"
+
+msgid "__RollSpeed"
+msgstr "ロールバーの速さ"
+
+msgid "__Glitch"
+msgstr "乱れ"
+
+msgid "__GlitchDesc"
+msgstr "帯がどれだけ出るか。0 で 1 本も出ず、1 ですべての帯が出ます。頂点の裂けもこの値で出ます。"
+
+msgid "__GlitchScale"
+msgstr "帯の高さ"
+
+msgid "__GlitchScaleDesc"
+msgstr "乱れる帯の高さを画面ピクセルで指定します。"
+
+msgid "__GlitchShift"
+msgstr "横ずれ"
+
+msgid "__GlitchShiftDesc"
+msgstr "帯を横にずらす幅を画面ピクセルで指定します。色ずれと同じく勾配からの推定なので、2 ピクセルより細かいずらしは段が付きます。"
+
+msgid "__GlitchColor"
+msgstr "色の入れ替え"
+
+msgid "__GlitchColorDesc"
+msgstr "乱れた帯で RGB を入れ替える量です。"
+
+msgid "__Tearing"
+msgstr "頂点の裂け"
+
+msgid "__TearingDesc"
+msgstr "モデルを帯ごとに横へずらす幅をメートルで指定します。画面に対して水平に裂けます。"
+
+msgid "__TearScale"
+msgstr "裂ける帯の高さ"
+
+msgid "__TearScaleDesc"
+msgstr "頂点を切る帯の高さをメートルで指定します。頂点の粗さより細かくしても帯は分かれません。"

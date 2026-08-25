@@ -31,6 +31,35 @@ Packages/io.github.sabas0ba.sabashader/Modules/<名前>/
 `phase_<フェーズ名>.hlsl` は JSON に書かなくても自動で拾われます。
 順序の指定が要るときだけ JSON に `phases` を書きます。
 
+### 順序を指定するときはファイル名を変える
+
+JSON に `phases` を書くと、**そのフェーズのファイル名を `phase_*.hlsl` から
+外す必要があります**。Shader Core は JSON のフェーズを読んだあと、
+ディレクトリの `phase_*.hlsl` を無条件に足すためです
+（`SCModule.FromFile` の `AddRange`。重複を除くための `exists` は
+組み立てられるだけで使われていません）。両方に該当すると同じコードが
+2 回差し込まれ、効果が二重にかかります。
+
+同梱の CrtGlitch は、ドット絵風の後にかけたいので JSON 側だけに載せています。
+
+```json
+{
+    "name": "__CrtGlitch",
+    "uniqueID": "io.github.sabas0ba.crtglitch",
+    "phases": [
+        { "phase": "postpixel", "path": "crt_postpixel.hlsl", "afters": ["__PixelArt"] }
+    ]
+}
+```
+
+`afters` / `befores` に書いた名前のモジュールが無い場合は無視されるだけなので、
+同梱していないモジュールを指しても壊れません。順序を指定しなければ
+モジュール名の辞書順になります。
+
+この食い違いはハーネス側では見えません（ハーネスは重複を除きます）。
+`tests/test_scmodule.py::test_package_module_phase_files_are_declared_once` が
+両方に該当する状態を落とします。
+
 ## フェーズ
 
 | フェーズ | いつ | 何ができるか |

@@ -1,0 +1,105 @@
+msgid ""
+msgstr ""
+"Language: en-US\n"
+
+msgid "__CrtGlitch"
+msgstr "CRT / Glitch"
+
+msgid "__Amount"
+msgstr "Amount"
+
+msgid "__AmountDesc"
+msgstr "0 disables the module. 1 replaces the color completely."
+
+msgid "__Scanline"
+msgstr "Scanlines"
+
+msgid "__ScanlineDesc"
+msgstr "Adds dark horizontal lines."
+
+msgid "__ScanlinePitch"
+msgstr "Scanline Pitch"
+
+msgid "__ScanlinePitchDesc"
+msgstr "Distance between lines, in screen pixels."
+
+msgid "__Mask"
+msgstr "Shadow Mask"
+
+msgid "__MaskDesc"
+msgstr "Adds vertical RGB stripes. Overall brightness is preserved, but color swings between the peaks and troughs."
+
+msgid "__MaskPitch"
+msgstr "Mask Pitch"
+
+msgid "__MaskPitchDesc"
+msgstr "Width of one R/G/B triplet, in screen pixels."
+
+msgid "__Vignette"
+msgstr "Vignette"
+
+msgid "__VignetteDesc"
+msgstr "Darkens the image toward the edges of the screen."
+
+msgid "__Aberration"
+msgstr "Chromatic Aberration"
+
+msgid "__AberrationDesc"
+msgstr "How far red and blue are pushed apart, in screen pixels. Widens toward the edges. Neighboring pixels cannot be read, so this is estimated from gradients and has no effect across silhouettes or texture edges."
+
+msgid "__Noise"
+msgstr "Noise"
+
+msgid "__NoiseDesc"
+msgstr "Scatters grain over the image."
+
+msgid "__NoiseScale"
+msgstr "Grain Size"
+
+msgid "__NoiseScaleDesc"
+msgstr "Size of one grain, in screen pixels."
+
+msgid "__Roll"
+msgstr "Roll Bar"
+
+msgid "__RollDesc"
+msgstr "The slow bright band seen on a screen whose vertical sync has drifted."
+
+msgid "__RollSpeed"
+msgstr "Roll Speed"
+
+msgid "__Glitch"
+msgstr "Glitch"
+
+msgid "__GlitchDesc"
+msgstr "How many bands appear. 0 shows none, 1 shows every band. Vertex tearing is driven by this value as well."
+
+msgid "__GlitchScale"
+msgstr "Band Height"
+
+msgid "__GlitchScaleDesc"
+msgstr "Height of one glitched band, in screen pixels."
+
+msgid "__GlitchShift"
+msgstr "Band Shift"
+
+msgid "__GlitchShiftDesc"
+msgstr "How far a band slides sideways, in screen pixels. Estimated from gradients like the aberration, so shifts finer than 2 pixels come out stepped."
+
+msgid "__GlitchColor"
+msgstr "Channel Swap"
+
+msgid "__GlitchColorDesc"
+msgstr "How much RGB is rotated inside a glitched band."
+
+msgid "__Tearing"
+msgstr "Vertex Tearing"
+
+msgid "__TearingDesc"
+msgstr "How far the mesh is pushed sideways per band, in meters. The tear runs horizontally on screen."
+
+msgid "__TearScale"
+msgstr "Tear Band Height"
+
+msgid "__TearScaleDesc"
+msgstr "Height of one vertex band, in meters. Bands finer than the mesh spacing will not separate."
