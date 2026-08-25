@@ -29,9 +29,9 @@ HLSL が実際にコンパイルできるかは
    https://sabas0ba.github.io/vrc_sabashader/index.json
    ```
 
-   > リリースを 1 度も作っていない間は上記 URL がまだ存在しません。
-   > 手元で試す場合は `Packages/io.github.sabas0ba.sabashader` をプロジェクトの
-   > `Packages/` にコピーしても動きます。
+   > リリースを 1 度も作っていない間は、リスティングは配信されていても
+   > パッケージが空です。手元で試す場合は `Packages/io.github.sabas0ba.sabashader`
+   > をプロジェクトの `Packages/` にコピーしても動きます。
 
 2. あわせて Shader Core のリスティングも追加します（依存パッケージのため）。
 
