@@ -10,6 +10,10 @@
         {
             "phase": "morph",
             "path": "crt_morph.hlsl"
+        },
+        {
+            "phase": "postvertex",
+            "path": "crt_postvertex.hlsl"
         }
     ]
 }

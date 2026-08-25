@@ -4,19 +4,29 @@
 // =============================================================================
 // CRT / Glitch core
 // -----------------------------------------------------------------------------
-// ブラウン管の走査線・シャドウマスク・ロールバーと、映像が乱れたときの
-// 帯のずれ・色ずれ・ざらつきを、本体が描き終えた色に対してかける数式。
+// ブラウン管の走査線・シャドウマスク・ロールバー・面の丸みと、映像が乱れた
+// ときの帯のずれ・升の破綻・色ずれ・砂嵐を、本体が描き終えた色に対してかける数式。
 //
 // 画面を撮り直さずにどこまでやるか:
 //   モジュールは隣接ピクセルを読めないので、画面を歪めたり、ぼかしたり、
-//   実際に横へずらしたりはできない。ずらしが要るところ（帯のずれ・色ずれ）は
+//   実際に横へずらしたりはできない。ずらしが要るところ（帯・升・色ずれ）は
 //   勾配 (ddx/ddy) からの 1 次近似で、ずらした先の色を推定している。
 //   面の上で色が滑らかに変わるところではよく合い、シルエットや模様の境目では
-//   外れるので、補正量に上限を置いてある。
+//   外れるので、効果ごとに違う抑え方をしてある（SBSCrtShiftFrom と
+//   SBSCrtShiftSoftFrom）。
 //
 //   勾配は 2x2 のピクセルごとに 1 つしか無いため、2 ピクセルより細かい
-//   ずらしは段が付く。走査線・マスク・ロールバー・ざらつき・周辺の落ち込みは
-//   ずらしを伴わないので、この制約を受けない。
+//   ずらしは段が付く。走査線・マスク・ロールバー・ざらつき・砂嵐・周辺の
+//   落ち込みはずらしを伴わないので、この制約を受けない。
+//
+//   勾配は、色を変換した段の後で取り直す。チャンネル入れ替えや量子化の前の
+//   勾配を後段へ渡すと、後段が別の色チャンネルをずらしてしまうため。
+//
+// できないこと:
+//   - りん光の残像。前のフレームが要る
+//   - 滲みやグロー。隣接ピクセルの重み付き和が要る
+//   - ゴースト。1 次近似では段を重ねても 1 回ずらすのと同じ式に潰れる（後述）
+//   - 絵そのものを曲げること。面の丸みは頂点を動かして代用する（SBSCrtCurve）
 //
 // Unity / レンダーパイプライン / Shader Core のどれにも依存しない。
 // HLSL としても、tests/harness/prelude.glsl を前置した GLSL 3.30 core としても
@@ -28,6 +38,10 @@ struct SBSCrtStyle
     // 効き。0 で完全に無効。
     half amount;
 
+    // ForwardAdd なら 1。加算合成できない砂嵐の生成と色の量子化を止める。
+    half additivePass;
+
+    // -- 画面 ----------------------------------------------------------------
     // 走査線の濃さと間隔（画面ピクセル）。
     half scanline;
     half scanlinePitch;
@@ -36,6 +50,16 @@ struct SBSCrtStyle
     half mask;
     half maskPitch;
 
+    // 周辺の落ち込み。
+    half vignette;
+
+    // 面の丸み。頂点を動かす量で、ピクセル側では使わない。
+    half curvature;
+
+    // 赤と青を逆向きに離す幅（画面ピクセル）。画面の外側ほど広がる。
+    half aberration;
+
+    // -- ざらつきと砂嵐 ------------------------------------------------------
     // ロールバーの濃さと、画面を流れる速さ（画面 1 枚 / 秒）。
     half roll;
     half rollSpeed;
@@ -44,18 +68,28 @@ struct SBSCrtStyle
     half noise;
     half noiseScale;
 
-    // 色ずれの幅（画面ピクセル）。画面の外側ほど広がる。
-    half aberration;
+    // 中間調への寄せ具合と、色まで揺らす量。
+    half noiseTone;
+    half noiseChroma;
 
-    // 乱れの出やすさ、帯の高さ（画面ピクセル）、横ずれの幅（画面ピクセル）、
+    // 砂嵐で置き換える割合と、置き換える前の横方向の引き裂き幅。
+    half staticAmount;
+    half staticTear;
+
+    // -- 乱れ ----------------------------------------------------------------
+    // 横帯の出やすさ、帯の高さ（画面ピクセル）、横ずれの幅（画面ピクセル）、
     // 帯でのチャンネル入れ替えの量。
     half glitch;
     half glitchScale;
     half glitchShift;
     half glitchColor;
 
-    // 周辺の落ち込み。
-    half vignette;
+    // 升の破綻の出やすさ、升の大きさ（画面ピクセル）、横ずれの幅
+    // （画面ピクセル）、升ごとに色を段へ落とす量。
+    half block;
+    half blockScale;
+    half blockShift;
+    half blockCrush;
 
     // 頂点の裂け幅と、裂ける帯の高さ（どちらもメートル）。
     half tearing;
@@ -87,15 +121,15 @@ half SBSCrtHash(half2 p)
     return frac(q.x + q.y * 0.6180340);
 }
 
-// 画面上でずらした先の色を、勾配からの 1 次近似で推定する。
+// ずらした先の色を、あらかじめ取っておいた勾配からの 1 次近似で推定する。
 //
 // シルエットや模様の境目では近似が大きく外れるので、補正量に上限を置いて
 // 元の色へ寄せる。これをしないと縁に飽和した点が散る。
 //
-// 乱れた帯はもともと硬い破綻が欲しい効果なので、縁でも切らずに頭打ちにする。
-half3 SBSCrtShift(half3 color, half2 offset)
+// 帯と升の破綻はもともと硬い破綻が欲しい効果なので、縁でも切らずに頭打ちにする。
+half3 SBSCrtShiftFrom(half3 color, half3 gx, half3 gy, half2 offset)
 {
-    half3 correction = ddx(color) * offset.x + ddy(color) * offset.y;
+    half3 correction = gx * offset.x + gy * offset.y;
     half magnitude = length(correction);
     correction *= (magnitude > 1.0) ? (1.0 / magnitude) : 1.0;
     return color + correction;
@@ -103,19 +137,39 @@ half3 SBSCrtShift(half3 color, half2 offset)
 
 // 同じずらしを、勾配が急なところでは弱めて返す。
 //
-// 色ずれは「滑らかな面でだけ効いてほしい」効果で、上限で頭打ちにするだけだと
-// シルエットに色の輪が残る。0.3 を境に二次で落とすと、滑らかな面（補正量は
-// 0.1 に届かない）はほぼ素通りし、縁（補正量が 1 を超える）では消える。
-half3 SBSCrtShiftSoft(half3 color, half2 offset)
+// 色ずれは「滑らかな面でだけ効いてほしい」効果で、上限で頭打ちに
+// するだけだとシルエットに色の輪が残る。0.3 を境に二次で落とすと、滑らかな面
+// （補正量は 0.1 に届かない）はほぼ素通りし、縁（補正量が 1 を超える）では消える。
+half3 SBSCrtShiftSoftFrom(half3 color, half3 gx, half3 gy, half2 offset)
 {
-    half3 correction = ddx(color) * offset.x + ddy(color) * offset.y;
+    half3 correction = gx * offset.x + gy * offset.y;
     half magnitude = length(correction);
     correction *= 1.0 / (1.0 + magnitude * magnitude * 11.1);
     return color + correction;
 }
 
+// 勾配をその場で取る版。単体で使うときの入口。
+half3 SBSCrtShift(half3 color, half2 offset)
+{
+    return SBSCrtShiftFrom(color, ddx(color), ddy(color), offset);
+}
+
+half3 SBSCrtShiftSoft(half3 color, half2 offset)
+{
+    return SBSCrtShiftSoftFrom(color, ddx(color), ddy(color), offset);
+}
+
+// チャンネルの並べ替え。乱数で 2 通りから選ぶ。
+half3 SBSCrtChannelSwap(half3 color, half pick, half strength)
+{
+    half3 rotated = (pick < 0.5)
+        ? half3(color.g, color.b, color.r)
+        : half3(color.b, color.r, color.g);
+    return lerp(color, rotated, saturate(strength));
+}
+
 // -----------------------------------------------------------------------------
-// ブラウン管側
+// 画面
 // -----------------------------------------------------------------------------
 
 // 走査線。pitch 画面ピクセルごとに 1 本、暗い線が入る。
@@ -161,15 +215,6 @@ half SBSCrtRoll(half screenV, SBSCrtStyle st)
     return 1.0 + saturate(st.roll) * (band * 0.6 - 0.15);
 }
 
-// ざらつき。時間を 24 分の 1 秒に刻んで、静止画としても再現できるようにする。
-half SBSCrtNoise(half2 screen, SBSCrtStyle st)
-{
-    half scale = max(st.noiseScale, 1.0);
-    half2 cell = floor(screen / scale);
-    half tick = floor(st.time * 24.0);
-    return SBSCrtHash(cell + half2(tick, tick * 0.37)) - 0.5;
-}
-
 // 周辺の落ち込み。画面の中心で 1、四隅で最も暗い。
 half SBSCrtVignette(half2 screenUV, SBSCrtStyle st)
 {
@@ -178,16 +223,104 @@ half SBSCrtVignette(half2 screenUV, SBSCrtStyle st)
     return 1.0 - saturate(st.vignette) * radius * radius;
 }
 
-// 色ずれ。R を進めた先、B を戻した先から取る。G は動かさない。
-half3 SBSCrtAberration(half3 color, half2 offset)
+// 面の丸み。外側ほど像が外へ膨らむぶんのずらし量を返す。
+//
+// 画面を撮り直せないので、絵ではなくモデルの頂点を動かして代用する。
+// したがって次の副作用がある。
+//   - 三角形の間は直線で結ばれるので、粗いメッシュは曲がらない
+//   - 頂点が実際に動くので、他のオブジェクトとの位置関係が崩れる
+//
+// ndc は画面の中心を 0、端を ±1 とした位置。返すのも同じ尺度のずらし量で、
+// 呼ぶ側がカメラの右・上の向きへ変換して足す。
+half2 SBSCrtCurve(half2 ndc, SBSCrtStyle st)
 {
-    half3 forward = SBSCrtShiftSoft(color, offset);
-    half3 backward = SBSCrtShiftSoft(color, -offset);
-    return half3(forward.r, color.g, backward.b);
+    return ndc * (dot(ndc, ndc) * st.curvature);
 }
 
 // -----------------------------------------------------------------------------
-// 乱れ側
+// 色ずれ
+// -----------------------------------------------------------------------------
+
+// 色ずれ。R を進めた先、B を戻した先から取る。G は動かさない。
+half3 SBSCrtAberration(half3 color, half3 gx, half3 gy, half2 offset)
+{
+    half3 forward = SBSCrtShiftSoftFrom(color, gx, gy, offset);
+    half3 backward = SBSCrtShiftSoftFrom(color, gx, gy, -offset);
+    return half3(forward.r, color.g, backward.b);
+}
+
+// ゴースト（同じ絵をずらして何段も重ねるもの）は入れていない。
+//
+// 1 次近似では段を重ねても意味が無いため。i 段目は c + g・d・i になるので、
+// 重み w_i で平均すると sum(w_i (c + g・d・i)) / sum(w_i) = c + g・d・(i の加重平均)
+// となり、1 回ずらしたのと同じ式に潰れる。段ごとに色を回せば潰れなくなるが、
+// それは色が変わるだけで、像が「ずれて重なる」ようには見えない。
+//
+// 実測でも、色を回さずに 3 段重ねた場合の差は平均 0.15 / 255 しか出なかった。
+// 本物のゴーストには別の位置の絵そのものが要るので、画面を撮り直せない
+// この仕組みでは作れない。
+
+// -----------------------------------------------------------------------------
+// ざらつきと砂嵐
+// -----------------------------------------------------------------------------
+
+// ざらつき。時間を 24 分の 1 秒に刻んで、静止画としても再現できるようにする。
+//
+// noiseTone を上げると中間調へ寄せる。フィルムの粒は明部と暗部で目立たないので、
+// 明るさで重みを付けると写真らしくなる。
+// noiseChroma を上げると RGB を別々に揺らす。0 では明るさだけが揺れる。
+half3 SBSCrtGrain(half3 color, half2 screen, SBSCrtStyle st)
+{
+    half scale = max(st.noiseScale, 1.0);
+    half2 cell = floor(screen / scale);
+    half tick = floor(st.time * 24.0);
+
+    half3 grain = half3(
+        SBSCrtHash(cell + half2(tick, tick * 0.37)) - 0.5,
+        SBSCrtHash(cell + half2(tick + 13.0, tick * 0.71)) - 0.5,
+        SBSCrtHash(cell + half2(tick + 29.0, tick * 1.13)) - 0.5);
+
+    half3 mixed = lerp(half3(grain.x, grain.x, grain.x), grain, saturate(st.noiseChroma));
+
+    // 4 * l * (1 - l) は中間調で 1、明部と暗部で 0 になる。
+    half lum = dot(saturate(color), half3(0.2126, 0.7152, 0.0722));
+    half shaped = lerp(1.0, 4.0 * lum * (1.0 - lum), saturate(st.noiseTone));
+
+    return color + mixed * (saturate(st.noise) * shaped);
+}
+
+// 砂嵐。受信が切れかけた画面のように、像をノイズへ置き換える。
+//
+// 置き換える前に横へ引き裂くと、走査が追いつかずに崩れた画に近づく。
+half3 SBSCrtStatic(half3 color, half3 gx, half3 gy, half2 screen, SBSCrtStyle st)
+{
+    half amount = saturate(st.staticAmount);
+
+    half scale = max(st.noiseScale, 1.0);
+    half tick = floor(st.time * 24.0);
+    half row = floor(screen.y / max(scale * 2.0, 2.0));
+
+    // 行ごとに横へ引き裂いてから置き換える。
+    // 引き裂きにも amount を掛ける。掛けないと、砂嵐を 0 にしていても
+    // 引き裂きだけが残る。
+    half tear = (SBSCrtHash(half2(row, tick + 5.0)) * 2.0 - 1.0) * st.staticTear * amount;
+    half3 torn = SBSCrtShiftFrom(color, gx, gy, half2(tear, 0.0));
+
+    // 砂嵐の生成は光量と無関係なので ForwardBase だけで行う。ForwardAdd では
+    // 横裂けと (1 - amount) の減衰だけを適用し、各ライトの寄与を正しく合成する。
+    half3 result = torn * (1.0 - amount);
+    if (st.additivePass < 0.5)
+    {
+        half2 cell = floor(screen / scale);
+        half level = SBSCrtHash(cell + half2(tick * 1.31, tick));
+        result += half3(level, level, level) * amount;
+    }
+
+    return result;
+}
+
+// -----------------------------------------------------------------------------
+// 乱れ
 // -----------------------------------------------------------------------------
 
 // 画面を横に切った帯ごとの状態。x = 出ているか (0 or 1)、y = 帯ごとの乱数。
@@ -211,13 +344,37 @@ half2 SBSCrtBand(half screenY, SBSCrtStyle st)
     return half2(visible, variation);
 }
 
-// 帯でのチャンネル入れ替え。乱数で 2 通りの並べ替えを選ぶ。
-half3 SBSCrtChannelSwap(half3 color, half pick, half strength)
+// 升の破綻。画面を 2 次元の升で切り、升ごとに横へずらして色を段へ落とす。
+//
+// 横帯だけの乱れと違い、圧縮の壊れた映像のような四角い破綻になる。
+half3 SBSCrtBlock(half3 color, half3 gx, half3 gy, half2 screen, SBSCrtStyle st)
 {
-    half3 rotated = (pick < 0.5)
-        ? half3(color.g, color.b, color.r)
-        : half3(color.b, color.r, color.g);
-    return lerp(color, rotated, saturate(strength));
+    half size = max(st.blockScale, 2.0);
+    half2 cell = floor(screen / size);
+    half tick = floor(st.time * 12.0);
+
+    half pick = SBSCrtHash(cell + half2(tick * 1.7, tick));
+    half variation = SBSCrtHash(cell + half2(tick + 41.0, tick * 2.3 + 17.0));
+
+    half visible = step(1.0 - saturate(st.block), pick);
+
+    half3 shifted = SBSCrtShiftFrom(
+        color, gx, gy, half2((variation * 2.0 - 1.0) * st.blockShift, 0.0));
+
+    half3 broken = shifted;
+
+    // 色の量子化は加算に対して非線形であり、ライトごとの ForwardAdd に適用すると
+    // ライト数で結果が変わる。ForwardAdd では線形な横ずらしだけを適用する。
+    if (st.additivePass < 0.5 && st.blockCrush > 0.0)
+    {
+        // 升ごとに色を段へ落とす。段数を 64 から 3 まで落として破綻させる。
+        half crush = saturate(st.blockCrush);
+        half levels = lerp(64.0, 3.0, crush);
+        half3 crushed = floor(saturate(shifted) * levels + 0.5) / levels;
+        broken = lerp(shifted, crushed, crush);
+    }
+
+    return lerp(color, broken, visible);
 }
 
 // 頂点の裂け。高さで切った帯ごとの横ずらし量を返す。
@@ -244,38 +401,67 @@ half SBSCrtTear(half height, SBSCrtStyle st)
 // screen は画面ピクセル座標、resolution は画面の大きさ。
 half3 SBSCrtApply(half3 color, half2 screen, half2 resolution, SBSCrtStyle st)
 {
-    half2 size = max(resolution, half2(1.0, 1.0));
-    half2 screenUV = screen / size;
+    half amount = saturate(st.amount);
+    if (amount <= 0.0)
+        return color;
+
+    // ピクセル側の効果がすべて無効なら、座標計算と各段の分岐も省く。
+    if (st.block <= 0.0 && st.glitch <= 0.0 && st.aberration <= 0.0 &&
+        st.staticAmount <= 0.0 && st.scanline <= 0.0 && st.mask <= 0.0 &&
+        st.roll <= 0.0 && st.noise <= 0.0 && st.vignette <= 0.0)
+        return color;
 
     half3 result = color;
 
-    // 1. 乱れた帯。横にずらし、帯によっては色も入れ替える。
-    half2 band = SBSCrtBand(screen.y, st);
-    half shift = (band.y * 2.0 - 1.0) * st.glitchShift * band.x;
-    result = SBSCrtShift(result, half2(shift, 0.0));
-    result = SBSCrtChannelSwap(result, band.y, st.glitchColor * band.x);
+    // 1. 升の破綻
+    if (st.block > 0.0)
+        result = SBSCrtBlock(result, ddx(result), ddy(result), screen, st);
 
-    // 2. 色ずれ。画面の中心から外へ向かうほど広げる。
-    half2 radial = screenUV - half2(0.5, 0.5);
-    half spread = length(radial);
-    half2 direction = (spread > 1.0e-4) ? (radial / spread) : half2(1.0, 0.0);
-    result = SBSCrtAberration(result, direction * (st.aberration * min(spread * 2.0, 1.0)));
+    // 2. 乱れた帯。横にずらし、帯によっては色も入れ替える。
+    if (st.glitch > 0.0)
+    {
+        half2 band = SBSCrtBand(screen.y, st);
+        half shift = (band.y * 2.0 - 1.0) * st.glitchShift * band.x;
+        result = SBSCrtShiftFrom(result, ddx(result), ddy(result), half2(shift, 0.0));
+        result = SBSCrtChannelSwap(result, band.y, st.glitchColor * band.x);
+    }
 
-    // 3. 走査線とシャドウマスク
-    result *= SBSCrtScanline(screen.y, st);
-    result *= SBSCrtMask(screen.x, st);
+    // 3. 色ずれ。画面の中心から外へ向かうほど広げる。
+    if (st.aberration > 0.0)
+    {
+        half2 size = max(resolution, half2(1.0, 1.0));
+        half2 radial = screen / size - half2(0.5, 0.5);
+        half spread = length(radial);
+        half2 direction = (spread > 1.0e-4) ? (radial / spread) : half2(1.0, 0.0);
+        result = SBSCrtAberration(
+            result, ddx(result), ddy(result),
+            direction * (st.aberration * min(spread * 2.0, 1.0)));
+    }
 
-    // 4. ロールバー
-    result *= SBSCrtRoll(screenUV.y, st);
+    // 4. 砂嵐。ここで置き換えると、走査線と縞はこの上に乗る。
+    if (st.staticAmount > 0.0)
+        result = SBSCrtStatic(result, ddx(result), ddy(result), screen, st);
 
-    // 5. ざらつき
-    result += SBSCrtNoise(screen, st) * saturate(st.noise);
+    // 5. 走査線とシャドウマスク
+    if (st.scanline > 0.0)
+        result *= SBSCrtScanline(screen.y, st);
+    if (st.mask > 0.0)
+        result *= SBSCrtMask(screen.x, st);
 
-    // 6. 周辺の落ち込み
-    result *= SBSCrtVignette(screenUV, st);
+    // 6. ロールバー
+    if (st.roll > 0.0)
+        result *= SBSCrtRoll(screen.y / max(resolution.y, 1.0), st);
+
+    // 7. ざらつき
+    if (st.noise > 0.0)
+        result = SBSCrtGrain(result, screen, st);
+
+    // 8. 周辺の落ち込み
+    if (st.vignette > 0.0)
+        result *= SBSCrtVignette(screen / max(resolution, half2(1.0, 1.0)), st);
 
     result = max(result, half3(0.0, 0.0, 0.0));
-    return lerp(color, result, saturate(st.amount));
+    return lerp(color, result, amount);
 }
 
 #endif // SABASHADER_CRTGLITCH_CORE_INCLUDED

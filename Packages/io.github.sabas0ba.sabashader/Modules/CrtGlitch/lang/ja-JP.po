@@ -11,6 +11,9 @@ msgstr "強さ"
 msgid "__AmountDesc"
 msgstr "0 で無効。1 で完全に置き換えます。"
 
+msgid "__Screen"
+msgstr "画面"
+
 msgid "__Scanline"
 msgstr "走査線"
 
@@ -27,13 +30,13 @@ msgid "__Mask"
 msgstr "シャドウマスク"
 
 msgid "__MaskDesc"
-msgstr "RGB の縦縞を入れます。全体の明るさは保ちますが、縞の山と谷で色が振れます。"
+msgstr "RGB の縦縞を入れます。全体の明るさは保ちますが、縞の位置で色が振れます。"
 
 msgid "__MaskPitch"
 msgstr "縞の間隔"
 
 msgid "__MaskPitchDesc"
-msgstr "R・G・B の 3 本で 1 組とし、その幅を画面ピクセルで指定します。"
+msgstr "R・G・B の 3 本で 1 組とし、その幅を画面ピクセルで指定します。遠くのアバターでは細かくなりすぎて色が偏るので、遠景では広げてください。"
 
 msgid "__Vignette"
 msgstr "周辺の落ち込み"
@@ -41,11 +44,20 @@ msgstr "周辺の落ち込み"
 msgid "__VignetteDesc"
 msgstr "画面の外側ほど暗くします。"
 
+msgid "__Curvature"
+msgstr "画面の丸み"
+
+msgid "__CurvatureDesc"
+msgstr "外側ほど外へ膨らませます。絵を曲げることはできないので、モデルの頂点そのものを動かします。粗いメッシュは曲がらず、他のオブジェクトとの位置関係も崩れます。影の形は曲がる前のまま残ります。"
+
 msgid "__Aberration"
 msgstr "色ずれ"
 
 msgid "__AberrationDesc"
 msgstr "赤と青を逆向きにずらす幅を画面ピクセルで指定します。画面の外側ほど広がります。隣を読めないため勾配からの推定で、シルエットや模様の境目では効きません。"
+
+msgid "__Grain"
+msgstr "ざらつきと砂嵐"
 
 msgid "__Noise"
 msgstr "ざらつき"
@@ -57,7 +69,31 @@ msgid "__NoiseScale"
 msgstr "粒の大きさ"
 
 msgid "__NoiseScaleDesc"
-msgstr "ざらつきの粒を画面ピクセルで指定します。"
+msgstr "ざらつきと砂嵐の粒を画面ピクセルで指定します。"
+
+msgid "__NoiseTone"
+msgstr "中間調への寄せ"
+
+msgid "__NoiseToneDesc"
+msgstr "上げるほど中間調にだけ粒が乗り、明部と暗部では消えます。フィルムの粒に近づきます。"
+
+msgid "__NoiseChroma"
+msgstr "色の揺れ"
+
+msgid "__NoiseChromaDesc"
+msgstr "0 で明るさだけが揺れます。上げると RGB が別々に揺れて色の粒になります。"
+
+msgid "__Static"
+msgstr "砂嵐"
+
+msgid "__StaticDesc"
+msgstr "像を無彩色のノイズへ置き換える割合です。走査線と縞はこの上に乗ります。"
+
+msgid "__StaticTear"
+msgstr "砂嵐の引き裂き"
+
+msgid "__StaticTearDesc"
+msgstr "砂嵐へ置き換える前に、行ごとに横へずらす幅を画面ピクセルで指定します。"
 
 msgid "__Roll"
 msgstr "ロールバー"
@@ -68,8 +104,11 @@ msgstr "垂直同期がずれた画面に出る、ゆっくり流れる明るい
 msgid "__RollSpeed"
 msgstr "ロールバーの速さ"
 
-msgid "__Glitch"
+msgid "__Disturbance"
 msgstr "乱れ"
+
+msgid "__Glitch"
+msgstr "横帯の乱れ"
 
 msgid "__GlitchDesc"
 msgstr "帯がどれだけ出るか。0 で 1 本も出ず、1 ですべての帯が出ます。頂点の裂けもこの値で出ます。"
@@ -81,16 +120,40 @@ msgid "__GlitchScaleDesc"
 msgstr "乱れる帯の高さを画面ピクセルで指定します。"
 
 msgid "__GlitchShift"
-msgstr "横ずれ"
+msgstr "帯の横ずれ"
 
 msgid "__GlitchShiftDesc"
-msgstr "帯を横にずらす幅を画面ピクセルで指定します。色ずれと同じく勾配からの推定なので、2 ピクセルより細かいずらしは段が付きます。"
+msgstr "帯を横にずらす幅を画面ピクセルで指定します。勾配からの推定なので、2 ピクセルより細かいずらしは段が付きます。"
 
 msgid "__GlitchColor"
-msgstr "色の入れ替え"
+msgstr "帯の色の入れ替え"
 
 msgid "__GlitchColorDesc"
 msgstr "乱れた帯で RGB を入れ替える量です。"
+
+msgid "__Block"
+msgstr "升の破綻"
+
+msgid "__BlockDesc"
+msgstr "画面を四角い升で切り、升ごとに壊します。横帯と違って圧縮の壊れた映像に近い見た目になります。"
+
+msgid "__BlockScale"
+msgstr "升の大きさ"
+
+msgid "__BlockScaleDesc"
+msgstr "壊れる升の大きさを画面ピクセルで指定します。"
+
+msgid "__BlockShift"
+msgstr "升の横ずれ"
+
+msgid "__BlockShiftDesc"
+msgstr "升を横にずらす幅を画面ピクセルで指定します。"
+
+msgid "__BlockCrush"
+msgstr "升の色の潰し"
+
+msgid "__BlockCrushDesc"
+msgstr "升ごとに色を段へ落とす量です。上げるほど色数が減って平らになります。"
 
 msgid "__Tearing"
 msgstr "頂点の裂け"

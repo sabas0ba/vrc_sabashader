@@ -26,7 +26,7 @@ namespace SabaShader.CI
         const string ScenePath = RootDir + "/Illust2DCheck.unity";
 
         // カメラの構図はこの縦横比を前提に決める。撮影時に変えると構図がずれる。
-        const int CaptureWidth = 3700;
+        const int CaptureWidth = 4800;
         const int CaptureHeight = 1400;
 
         // tests/cases.py の Case 既定値
@@ -178,6 +178,75 @@ namespace SabaShader.CI
                     { "_io_github_sabas0ba_crtglitch_Vignette", 0.4f },
                     { "_io_github_sabas0ba_crtglitch_Aberration", 2.0f },
                     { "_io_github_sabas0ba_crtglitch_Noise", 0.06f },
+                },
+            },
+            new Variant
+            {
+                Name = "crt_curve",
+                Floats =
+                {
+                    { "_io_github_sabas0ba_crtglitch_Amount", 1.0f },
+                    { "_io_github_sabas0ba_crtglitch_Scanline", 0.3f },
+                    { "_io_github_sabas0ba_crtglitch_Mask", 0.0f },
+                    { "_io_github_sabas0ba_crtglitch_Vignette", 0.5f },
+                    { "_io_github_sabas0ba_crtglitch_Aberration", 0.0f },
+                    { "_io_github_sabas0ba_crtglitch_Noise", 0.0f },
+                    // 頂点を曲げる。球とカプセルは頂点が細かいので曲がるが、
+                    // 立方体は角の 8 頂点しか無いので、面が斜めに引かれるだけになる。
+                    //
+                    // 画面の中心から離れたものほど外へ押し出される。この表では
+                    // どの立体も中心から離れているので、強くすると隣の列へはみ出す。
+                    { "_io_github_sabas0ba_crtglitch_Curvature", 0.1f },
+                },
+            },
+            new Variant
+            {
+                Name = "crt_static",
+                Floats =
+                {
+                    { "_io_github_sabas0ba_crtglitch_Amount", 1.0f },
+                    { "_io_github_sabas0ba_crtglitch_Scanline", 0.4f },
+                    { "_io_github_sabas0ba_crtglitch_Mask", 0.0f },
+                    { "_io_github_sabas0ba_crtglitch_Vignette", 0.3f },
+                    { "_io_github_sabas0ba_crtglitch_Aberration", 0.0f },
+                    { "_io_github_sabas0ba_crtglitch_Noise", 0.0f },
+                    { "_io_github_sabas0ba_crtglitch_NoiseScale", 3.0f },
+                    { "_io_github_sabas0ba_crtglitch_Static", 0.55f },
+                    { "_io_github_sabas0ba_crtglitch_StaticTear", 20.0f },
+                },
+            },
+            new Variant
+            {
+                Name = "crt_block",
+                Floats =
+                {
+                    { "_io_github_sabas0ba_crtglitch_Amount", 1.0f },
+                    { "_io_github_sabas0ba_crtglitch_Scanline", 0.0f },
+                    { "_io_github_sabas0ba_crtglitch_Mask", 0.0f },
+                    { "_io_github_sabas0ba_crtglitch_Vignette", 0.0f },
+                    { "_io_github_sabas0ba_crtglitch_Aberration", 0.0f },
+                    { "_io_github_sabas0ba_crtglitch_Noise", 0.0f },
+                    { "_io_github_sabas0ba_crtglitch_Block", 0.5f },
+                    { "_io_github_sabas0ba_crtglitch_BlockScale", 24.0f },
+                    { "_io_github_sabas0ba_crtglitch_BlockShift", 12.0f },
+                    { "_io_github_sabas0ba_crtglitch_BlockCrush", 0.85f },
+                },
+            },
+            new Variant
+            {
+                Name = "crt_film",
+                Floats =
+                {
+                    { "_io_github_sabas0ba_crtglitch_Amount", 1.0f },
+                    { "_io_github_sabas0ba_crtglitch_Scanline", 0.0f },
+                    { "_io_github_sabas0ba_crtglitch_Mask", 0.0f },
+                    { "_io_github_sabas0ba_crtglitch_Vignette", 0.45f },
+                    { "_io_github_sabas0ba_crtglitch_Aberration", 2.0f },
+                    // 中間調へ寄せた色付きの粒。明部と暗部では消える。
+                    { "_io_github_sabas0ba_crtglitch_Noise", 0.35f },
+                    { "_io_github_sabas0ba_crtglitch_NoiseScale", 2.0f },
+                    { "_io_github_sabas0ba_crtglitch_NoiseTone", 1.0f },
+                    { "_io_github_sabas0ba_crtglitch_NoiseChroma", 0.8f },
                 },
             },
             new Variant
