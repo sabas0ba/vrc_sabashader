@@ -361,6 +361,32 @@ def test_crt_vertex_tearing_respects_module_amount():
     ), "CRT の頂点裂けはモジュール全体の Amount に従う必要があります"
 
 
+def test_crt_forward_add_does_not_add_light_independent_noise():
+    module = next(
+        module
+        for module in _package_modules()
+        if module.unique_id == "io.github.sabas0ba.crtglitch"
+    )
+    postpixel = next(phase for phase in module.phases if phase.phase == "postpixel")
+    source = postpixel.path.read_text(encoding="utf-8")
+
+    guard = re.search(
+        r"#ifdef\s+UNITY_PASS_FORWARDADD(?P<body>.*?)#endif",
+        source,
+        re.DOTALL,
+    )
+    assert guard, "CRT の postpixel に ForwardAdd 用の分岐がありません"
+    assert re.search(r"crtStyle\.noise\s*=\s*0\.0\s*;", guard.group("body"))
+
+    if "crtStyle.staticAmount" in source:
+        assert re.search(r"crtStyle\.staticAmount\s*=\s*0\.0\s*;", guard.group("body"))
+
+    apply_position = source.index("SBSCrtApply")
+    assert guard.end() < apply_position
+    assert "crtStyle.noise =" not in source[guard.end() : apply_position]
+    assert "crtStyle.staticAmount =" not in source[guard.end() : apply_position]
+
+
 @pytest.mark.parametrize("module", _package_modules(), ids=lambda m: m.unique_id)
 def test_package_module_only_uses_declared_properties(module):
     """モジュールの HLSL は自分が宣言したプロパティだけを参照すること。
