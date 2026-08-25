@@ -17,7 +17,7 @@
     crtMorphStyle.glitchShift = _GlitchShift;
     crtMorphStyle.glitchColor = _GlitchColor;
     crtMorphStyle.vignette = _Vignette;
-    crtMorphStyle.tearing = _Tearing;
+    crtMorphStyle.tearing = _Tearing * _Amount;
     crtMorphStyle.tearScale = _TearScale;
     crtMorphStyle.time = SCTime();
 

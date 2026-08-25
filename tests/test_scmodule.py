@@ -346,6 +346,21 @@ def test_package_modules_load():
         assert module.phases, f"{module.unique_id}: フェーズがありません"
 
 
+def test_crt_vertex_tearing_respects_module_amount():
+    module = next(
+        module
+        for module in _package_modules()
+        if module.unique_id == "io.github.sabas0ba.crtglitch"
+    )
+    morph = next(phase for phase in module.phases if phase.phase == "morph")
+    source = morph.path.read_text(encoding="utf-8")
+
+    assert re.search(
+        r"crtMorphStyle\.tearing\s*=\s*_Tearing\s*\*\s*_Amount\s*;",
+        source,
+    ), "CRT の頂点裂けはモジュール全体の Amount に従う必要があります"
+
+
 @pytest.mark.parametrize("module", _package_modules(), ids=lambda m: m.unique_id)
 def test_package_module_only_uses_declared_properties(module):
     """モジュールの HLSL は自分が宣言したプロパティだけを参照すること。
