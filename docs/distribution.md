@@ -34,6 +34,10 @@ VCC が https://sabas0ba.github.io/vrc_sabashader/index.json を読む
 どのきっかけでも作る中身は同じです。`index.json` は毎回 Releases API から
 組み直すので、merge で走らせても配信済みのバージョンは変わりません。
 
+サイトの中身は**常に `main` から**作ります（`checkout` の `ref` を固定）。
+`release` イベントの既定はタグのコミットなので、そのままだと古いタグの
+リリースを公開したときに docs が巻き戻ります。
+
 ## 初回だけ必要な設定
 
 1. リポジトリの `Settings` > `Pages` で **Source** を `GitHub Actions` にする

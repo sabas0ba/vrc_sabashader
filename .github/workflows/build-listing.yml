@@ -23,7 +23,13 @@ jobs:
     name: index.json を作る
     runs-on: ubuntu-24.04
     steps:
+      # サイトの中身は常に main から作る。release イベントの既定はタグの
+      # コミットなので、古いタグのリリースを公開すると docs が巻き戻る。
+      # index.json は checkout ではなく Releases API から組むため、
+      # main を見てもバージョン一覧は最新のままになる。
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          ref: main
 
       # tools は手元と同じコンテナの中で動かす。ランナーに Python を入れない。
       - name: コンテナを組み立てる
