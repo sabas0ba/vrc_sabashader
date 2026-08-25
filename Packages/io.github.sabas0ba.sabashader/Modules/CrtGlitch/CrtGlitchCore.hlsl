@@ -19,8 +19,8 @@
 //   ずらしは段が付く。走査線・マスク・ロールバー・ざらつき・砂嵐・周辺の
 //   落ち込みはずらしを伴わないので、この制約を受けない。
 //
-//   勾配は SBSCrtApply の先頭で 1 回だけ取り、各段へ渡す。段ごとに ddx を
-//   呼んでも結果は変わらず、命令が増えるだけになる。
+//   勾配は、色を変換した段の後で取り直す。チャンネル入れ替えや量子化の前の
+//   勾配を後段へ渡すと、後段が別の色チャンネルをずらしてしまうため。
 //
 // できないこと:
 //   - りん光の残像。前のフレームが要る
@@ -37,6 +37,9 @@ struct SBSCrtStyle
 {
     // 効き。0 で完全に無効。
     half amount;
+
+    // ForwardAdd なら 1。加算合成できない砂嵐の生成と色の量子化を止める。
+    half additivePass;
 
     // -- 画面 ----------------------------------------------------------------
     // 走査線の濃さと間隔（画面ピクセル）。
@@ -303,11 +306,17 @@ half3 SBSCrtStatic(half3 color, half3 gx, half3 gy, half2 screen, SBSCrtStyle st
     half tear = (SBSCrtHash(half2(row, tick + 5.0)) * 2.0 - 1.0) * st.staticTear * amount;
     half3 torn = SBSCrtShiftFrom(color, gx, gy, half2(tear, 0.0));
 
-    half2 cell = floor(screen / scale);
-    half level = SBSCrtHash(cell + half2(tick * 1.31, tick));
+    // 砂嵐の生成は光量と無関係なので ForwardBase だけで行う。ForwardAdd では
+    // 横裂けと (1 - amount) の減衰だけを適用し、各ライトの寄与を正しく合成する。
+    half3 result = torn * (1.0 - amount);
+    if (st.additivePass < 0.5)
+    {
+        half2 cell = floor(screen / scale);
+        half level = SBSCrtHash(cell + half2(tick * 1.31, tick));
+        result += half3(level, level, level) * amount;
+    }
 
-    // 砂嵐は無彩色。走査線とマスクはこの後に乗るので、ここでは色を付けない。
-    return lerp(torn, half3(level, level, level), amount);
+    return result;
 }
 
 // -----------------------------------------------------------------------------
@@ -352,10 +361,18 @@ half3 SBSCrtBlock(half3 color, half3 gx, half3 gy, half2 screen, SBSCrtStyle st)
     half3 shifted = SBSCrtShiftFrom(
         color, gx, gy, half2((variation * 2.0 - 1.0) * st.blockShift, 0.0));
 
-    // 升ごとに色を段へ落とす。段数を 64 から 3 まで落として破綻させる。
-    half levels = lerp(64.0, 3.0, saturate(st.blockCrush));
-    half3 crushed = floor(saturate(shifted) * levels + 0.5) / levels;
-    half3 broken = lerp(shifted, crushed, saturate(st.blockCrush));
+    half3 broken = shifted;
+
+    // 色の量子化は加算に対して非線形であり、ライトごとの ForwardAdd に適用すると
+    // ライト数で結果が変わる。ForwardAdd では線形な横ずらしだけを適用する。
+    if (st.additivePass < 0.5 && st.blockCrush > 0.0)
+    {
+        // 升ごとに色を段へ落とす。段数を 64 から 3 まで落として破綻させる。
+        half crush = saturate(st.blockCrush);
+        half levels = lerp(64.0, 3.0, crush);
+        half3 crushed = floor(saturate(shifted) * levels + 0.5) / levels;
+        broken = lerp(shifted, crushed, crush);
+    }
 
     return lerp(color, broken, visible);
 }
@@ -384,51 +401,67 @@ half SBSCrtTear(half height, SBSCrtStyle st)
 // screen は画面ピクセル座標、resolution は画面の大きさ。
 half3 SBSCrtApply(half3 color, half2 screen, half2 resolution, SBSCrtStyle st)
 {
-    half2 size = max(resolution, half2(1.0, 1.0));
-    half2 screenUV = screen / size;
+    half amount = saturate(st.amount);
+    if (amount <= 0.0)
+        return color;
 
-    // 勾配はここで 1 回だけ取る。ずらしを使う段はこれを共有する。
-    half3 gx = ddx(color);
-    half3 gy = ddy(color);
-
-    // 画面の中心から外へ向かう向き。色ずれとゴーストの放射に使う。
-    half2 radial = screenUV - half2(0.5, 0.5);
-    half spread = length(radial);
-    half2 direction = (spread > 1.0e-4) ? (radial / spread) : half2(1.0, 0.0);
+    // ピクセル側の効果がすべて無効なら、座標計算と各段の分岐も省く。
+    if (st.block <= 0.0 && st.glitch <= 0.0 && st.aberration <= 0.0 &&
+        st.staticAmount <= 0.0 && st.scanline <= 0.0 && st.mask <= 0.0 &&
+        st.roll <= 0.0 && st.noise <= 0.0 && st.vignette <= 0.0)
+        return color;
 
     half3 result = color;
 
     // 1. 升の破綻
-    result = SBSCrtBlock(result, gx, gy, screen, st);
+    if (st.block > 0.0)
+        result = SBSCrtBlock(result, ddx(result), ddy(result), screen, st);
 
     // 2. 乱れた帯。横にずらし、帯によっては色も入れ替える。
-    half2 band = SBSCrtBand(screen.y, st);
-    half shift = (band.y * 2.0 - 1.0) * st.glitchShift * band.x;
-    result = SBSCrtShiftFrom(result, gx, gy, half2(shift, 0.0));
-    result = SBSCrtChannelSwap(result, band.y, st.glitchColor * band.x);
+    if (st.glitch > 0.0)
+    {
+        half2 band = SBSCrtBand(screen.y, st);
+        half shift = (band.y * 2.0 - 1.0) * st.glitchShift * band.x;
+        result = SBSCrtShiftFrom(result, ddx(result), ddy(result), half2(shift, 0.0));
+        result = SBSCrtChannelSwap(result, band.y, st.glitchColor * band.x);
+    }
 
     // 3. 色ずれ。画面の中心から外へ向かうほど広げる。
-    result = SBSCrtAberration(
-        result, gx, gy, direction * (st.aberration * min(spread * 2.0, 1.0)));
+    if (st.aberration > 0.0)
+    {
+        half2 size = max(resolution, half2(1.0, 1.0));
+        half2 radial = screen / size - half2(0.5, 0.5);
+        half spread = length(radial);
+        half2 direction = (spread > 1.0e-4) ? (radial / spread) : half2(1.0, 0.0);
+        result = SBSCrtAberration(
+            result, ddx(result), ddy(result),
+            direction * (st.aberration * min(spread * 2.0, 1.0)));
+    }
 
     // 4. 砂嵐。ここで置き換えると、走査線と縞はこの上に乗る。
-    result = SBSCrtStatic(result, gx, gy, screen, st);
+    if (st.staticAmount > 0.0)
+        result = SBSCrtStatic(result, ddx(result), ddy(result), screen, st);
 
     // 5. 走査線とシャドウマスク
-    result *= SBSCrtScanline(screen.y, st);
-    result *= SBSCrtMask(screen.x, st);
+    if (st.scanline > 0.0)
+        result *= SBSCrtScanline(screen.y, st);
+    if (st.mask > 0.0)
+        result *= SBSCrtMask(screen.x, st);
 
     // 6. ロールバー
-    result *= SBSCrtRoll(screenUV.y, st);
+    if (st.roll > 0.0)
+        result *= SBSCrtRoll(screen.y / max(resolution.y, 1.0), st);
 
     // 7. ざらつき
-    result = SBSCrtGrain(result, screen, st);
+    if (st.noise > 0.0)
+        result = SBSCrtGrain(result, screen, st);
 
     // 8. 周辺の落ち込み
-    result *= SBSCrtVignette(screenUV, st);
+    if (st.vignette > 0.0)
+        result *= SBSCrtVignette(screen / max(resolution, half2(1.0, 1.0)), st);
 
     result = max(result, half3(0.0, 0.0, 0.0));
-    return lerp(color, result, saturate(st.amount));
+    return lerp(color, result, amount);
 }
 
 #endif // SABASHADER_CRTGLITCH_CORE_INCLUDED

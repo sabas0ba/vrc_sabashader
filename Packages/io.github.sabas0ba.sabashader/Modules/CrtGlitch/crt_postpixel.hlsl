@@ -9,6 +9,7 @@
     // JSON 側だけに載せている（tests/test_scmodule.py が守っている）。
     SBSCrtStyle crtStyle;
     crtStyle.amount = _Amount;
+    crtStyle.additivePass = 0.0;
 
     crtStyle.scanline = _Scanline;
     crtStyle.scanlinePitch = _ScanlinePitch;
@@ -42,11 +43,12 @@
 
     crtStyle.time = SCTime();
 
-    // ForwardAdd はライトごとの結果を加算する。光量と無関係な粒や砂嵐を
-    // 各パスで足すとライト数に応じて累積するため、ForwardBase だけで加える。
+    // ForwardAdd はライトごとの結果を加算する。光量と無関係な粒と砂嵐の生成、
+    // 加算に対して非線形な色の量子化は ForwardBase だけで行う。砂嵐の減衰と
+    // 横裂け、および升の横ずらしは加算可能なので ForwardAdd にも適用する。
     #ifdef UNITY_PASS_FORWARDADD
+        crtStyle.additivePass = 1.0;
         crtStyle.noise = 0.0;
-        crtStyle.staticAmount = 0.0;
     #endif
 
     // 画面ピクセル座標と画面の大きさ。VR の両眼を 1 枚に並べる古い

@@ -14,26 +14,27 @@
         SBSCrtStyle crtCurveStyle = (SBSCrtStyle)0;
         crtCurveStyle.curvature = _Curvature * _Amount;
 
-        half3 crtToVertex = vertex.position - camera.position;
+        // Unity が現在の眼に用意した投影行列で画面位置を求める。投影中心のずれと
+        // 透視・平行投影の違いを行列側へ任せるため、対角成分と深度から組み立てない。
+        float4 crtViewPosition = mul(UNITY_MATRIX_V, float4(vertex.position, 1.0));
+        float4 crtClipPosition = mul(unity_CameraProjection, crtViewPosition);
 
-        // camera.forward はビュー行列の 3 行目で、カメラの後ろを向いている。
-        // 前にあるものほど大きい正の値にしたいので、向きを入れ替えて取る。
-        half crtDepth = dot(camera.position - vertex.position, camera.forward);
-
-        if (crtDepth > 1.0e-3)
+        if (abs(crtClipPosition.w) > 1.0e-6)
         {
-            // 画面の中心を 0、端を ±1 とした位置。投影行列の対角成分で
-            // 画角ぶんを畳むので、画角を変えても丸みの出方が変わらない。
-            half2 crtNdc = half2(
-                dot(crtToVertex, camera.right) * UNITY_MATRIX_P._m00,
-                dot(crtToVertex, camera.up) * UNITY_MATRIX_P._m11) / crtDepth;
-
+            float2 crtNdc = crtClipPosition.xy / crtClipPosition.w;
             half2 crtOffset = SBSCrtCurve(crtNdc, crtCurveStyle);
 
-            // 同じ尺度のずらし量をワールドへ戻す。奥ほど同じ幅が長い距離になる。
-            vertex.position +=
-                camera.right * (crtOffset.x * crtDepth / UNITY_MATRIX_P._m00) +
-                camera.up * (crtOffset.y * crtDepth / UNITY_MATRIX_P._m11);
+            // clip の z と w は保持したまま xy だけを曲げ、対応する逆投影行列で
+            // ビュー空間へ戻す。非対称投影と平行投影でも同じ経路を通る。
+            crtClipPosition.xy += crtOffset * crtClipPosition.w;
+            float4 crtCurvedView = mul(unity_CameraInvProjection, crtClipPosition);
+
+            if (abs(crtCurvedView.w) > 1.0e-6)
+            {
+                crtCurvedView /= crtCurvedView.w;
+                float4 crtCurvedWorld = mul(UNITY_MATRIX_I_V, crtCurvedView);
+                vertex.position = crtCurvedWorld.xyz / crtCurvedWorld.w;
+            }
         }
     }
     #endif

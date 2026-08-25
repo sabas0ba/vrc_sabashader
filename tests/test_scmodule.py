@@ -19,6 +19,7 @@ from pathlib import Path
 
 import pytest
 
+from harness.paths import MODULES_DIR
 from harness.scshader import (
     Module,
     ModuleLoadError,
@@ -376,15 +377,75 @@ def test_crt_forward_add_does_not_add_light_independent_noise():
         re.DOTALL,
     )
     assert guard, "CRT の postpixel に ForwardAdd 用の分岐がありません"
+    assert re.search(r"crtStyle\.additivePass\s*=\s*1\.0\s*;", guard.group("body"))
     assert re.search(r"crtStyle\.noise\s*=\s*0\.0\s*;", guard.group("body"))
-
-    if "crtStyle.staticAmount" in source:
-        assert re.search(r"crtStyle\.staticAmount\s*=\s*0\.0\s*;", guard.group("body"))
+    assert not re.search(r"crtStyle\.staticAmount\s*=\s*0\.0\s*;", guard.group("body"))
 
     apply_position = source.index("SBSCrtApply")
     assert guard.end() < apply_position
     assert "crtStyle.noise =" not in source[guard.end() : apply_position]
     assert "crtStyle.staticAmount =" not in source[guard.end() : apply_position]
+
+
+def test_crt_forward_add_keeps_static_attenuation_without_adding_static():
+    core = (
+        MODULES_DIR / "CrtGlitch" / "CrtGlitchCore.hlsl"
+    ).read_text(encoding="utf-8")
+    static = core[core.index("half3 SBSCrtStatic") : core.index("half2 SBSCrtBand")]
+
+    attenuation = static.index("torn * (1.0 - amount)")
+    base_only = static.index("if (st.additivePass < 0.5)")
+    static_level = static.index("SBSCrtHash(cell")
+    assert attenuation < base_only < static_level
+
+
+def test_crt_forward_add_does_not_quantize_each_light():
+    core = (
+        MODULES_DIR / "CrtGlitch" / "CrtGlitchCore.hlsl"
+    ).read_text(encoding="utf-8")
+    block = core[core.index("half3 SBSCrtBlock") : core.index("half SBSCrtTear")]
+
+    base_only = block.index("st.additivePass < 0.5")
+    quantize = block.index("floor(saturate(shifted)")
+    assert base_only < quantize
+
+
+def test_crt_apply_skips_disabled_stages_and_refreshes_gradients():
+    core = (
+        MODULES_DIR / "CrtGlitch" / "CrtGlitchCore.hlsl"
+    ).read_text(encoding="utf-8")
+    apply = core[core.index("half3 SBSCrtApply") : core.index("#endif")]
+
+    assert re.search(r"if \(amount <= 0\.0\)\s+return color;", apply)
+    for control, call in (
+        ("block", "SBSCrtBlock"),
+        ("glitch", "SBSCrtBand"),
+        ("aberration", "SBSCrtAberration"),
+        ("staticAmount", "SBSCrtStatic"),
+        ("scanline", "SBSCrtScanline"),
+        ("mask", "SBSCrtMask"),
+        ("roll", "SBSCrtRoll"),
+        ("noise", "SBSCrtGrain"),
+        ("vignette", "SBSCrtVignette"),
+    ):
+        assert re.search(rf"if \(st\.{control} > 0\.0\).*?{call}\(", apply, re.DOTALL)
+
+    channel_swap = apply.index("SBSCrtChannelSwap")
+    aberration = apply.index("SBSCrtAberration")
+    refreshed_gradient = apply.index("ddx(result)", channel_swap)
+    assert channel_swap < refreshed_gradient < aberration
+
+
+def test_crt_curvature_uses_matching_projection_matrices():
+    postvertex = (
+        MODULES_DIR / "CrtGlitch" / "crt_postvertex.hlsl"
+    ).read_text(encoding="utf-8")
+
+    assert "unity_CameraProjection" in postvertex
+    assert "unity_CameraInvProjection" in postvertex
+    assert "UNITY_MATRIX_I_V" in postvertex
+    assert "UNITY_MATRIX_P._m00" not in postvertex
+    assert "UNITY_MATRIX_P._m11" not in postvertex
 
 
 @pytest.mark.parametrize("module", _package_modules(), ids=lambda m: m.unique_id)

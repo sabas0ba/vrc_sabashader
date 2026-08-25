@@ -101,6 +101,7 @@ MODULE_STYLE_DEFAULTS["SBSPixelStyle"] = DEFAULT_PIXEL
 # 効果はすべて 0 から始める。ケースごとに見たいものだけを上げる。
 DEFAULT_CRT: Dict[str, object] = {
     "amount": 1.0,
+    "additivePass": 0.0,
     "scanline": 0.0,
     "scanlinePitch": 4.0,
     "mask": 0.0,
