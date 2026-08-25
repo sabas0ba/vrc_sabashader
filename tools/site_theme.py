@@ -15,6 +15,8 @@ CSS 側は「システム追従」と「明示指定」の両方を見る必要�
 色は必ず素の `:root` に定義し、メディアクエリと `[data-theme]` では
 上書きだけをする（片方でしか定義しない色を作らない）。
 ブラウザの UI 色（`<meta name="theme-color">`）も同じ背景色を使う。
+meta はメディアクエリでしか OS を見ないので、明示的に切り替えている間は
+トグル側が `content` を上書きする（追従に戻すための元の色は `data-color`）。
 
 docs のページに出る要素（要約・目次・図）のスタイルもここに置く。
 図の中身はシェーダーの出力そのものなので、テーマで色は変えず、
@@ -32,6 +34,11 @@ NavItem = Tuple[str, str]
 SITE_NAME = "SabaShader"
 REPOSITORY_URL = "https://github.com/sabas0ba/vrc_sabashader"
 
+# ブラウザの UI 色（<meta name="theme-color">）と共有するので、
+# 背景だけは定数に出しておく。
+BG_LIGHT = "#f7f7fa"
+BG_DARK = "#14141a"
+
 # 明示切り替えを一瞬でも取りこぼすと白い画面が光るので、
 # body より先に <html> へ data-theme を載せる。
 THEME_BOOT_SCRIPT = """
@@ -45,46 +52,56 @@ THEME_BOOT_SCRIPT = """
 })();
 """
 
-THEME_TOGGLE_SCRIPT = """
-(function () {
+THEME_TOGGLE_SCRIPT = f"""
+(function () {{
   var root = document.documentElement;
   var button = document.getElementById('theme-toggle');
   if (!button) return;
 
   var media = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
 
-  function current() {
+  function current() {{
     var explicit = root.getAttribute('data-theme');
     if (explicit === 'light' || explicit === 'dark') return explicit;
     return media && media.matches ? 'dark' : 'light';
-  }
+  }}
 
-  function sync() {
-    var dark = current() === 'dark';
+  // <meta name="theme-color"> はメディアクエリでしか OS を見ないので、
+  // 明示的に切り替えている間はブラウザの UI 色をこちらで上書きする。
+  // 追従に戻したときのために、元の色は data-color に持たせてある。
+  function syncBrowserChrome(theme) {{
+    var explicit = root.getAttribute('data-theme') === theme;
+    var color = theme === 'dark' ? '{BG_DARK}' : '{BG_LIGHT}';
+    var tags = document.querySelectorAll('meta[name="theme-color"]');
+
+    for (var i = 0; i < tags.length; i++) {{
+      tags[i].setAttribute('content', explicit ? color : tags[i].getAttribute('data-color'));
+    }}
+  }}
+
+  function sync() {{
+    var theme = current();
+    var dark = theme === 'dark';
     button.setAttribute('aria-pressed', dark ? 'true' : 'false');
     button.setAttribute('title', dark ? 'ライトモードに切り替える' : 'ダークモードに切り替える');
-  }
+    syncBrowserChrome(theme);
+  }}
 
-  button.addEventListener('click', function () {
+  button.addEventListener('click', function () {{
     var next = current() === 'dark' ? 'light' : 'dark';
     root.setAttribute('data-theme', next);
-    try { localStorage.setItem('theme', next); } catch (e) {}
+    try {{ localStorage.setItem('theme', next); }} catch (e) {{}}
     sync();
-  });
+  }});
 
-  if (media && media.addEventListener) {
+  if (media && media.addEventListener) {{
     media.addEventListener('change', sync);
-  }
+  }}
 
   button.hidden = false;
   sync();
-})();
+}})();
 """
-
-# ブラウザの UI 色（<meta name="theme-color">）と共有するので、
-# 背景だけは定数に出しておく。
-BG_LIGHT = "#f7f7fa"
-BG_DARK = "#14141a"
 
 # 明るい側を素の :root に置き、暗い側は上書きだけ。
 _LIGHT_TOKENS = f"""
@@ -426,8 +443,8 @@ def render_document(title: str, body: str, nav: str, *, home_href: str) -> str:
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light dark">
-<meta name="theme-color" content="{BG_LIGHT}" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="{BG_DARK}" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="{BG_LIGHT}" media="(prefers-color-scheme: light)" data-color="{BG_LIGHT}">
+<meta name="theme-color" content="{BG_DARK}" media="(prefers-color-scheme: dark)" data-color="{BG_DARK}">
 <title>{html.escape(title)}</title>
 <script>{THEME_BOOT_SCRIPT}</script>
 <style>{PAGE_STYLE}</style>

@@ -181,12 +181,21 @@ def test_dark_mode_follows_the_os_and_the_toggle(site, listing_page):
 
 
 def test_theme_color_matches_the_palette(site, listing_page):
-    """ブラウザの UI 色もページの背景に合わせる。"""
-    from tools.site_theme import BG_DARK, BG_LIGHT
+    """ブラウザの UI 色もページの背景に合わせる。
+
+    meta のメディアクエリは OS の設定しか見ないので、明示的に切り替えている間は
+    トグルが `content` を上書きする。戻すための元の色は `data-color` に持たせる。
+    """
+    from tools.site_theme import BG_DARK, BG_LIGHT, THEME_TOGGLE_SCRIPT
 
     for name, text in list(site.items()) + [("index.html", listing_page)]:
         assert f'content="{BG_LIGHT}" media="(prefers-color-scheme: light)"' in text, name
         assert f'content="{BG_DARK}" media="(prefers-color-scheme: dark)"' in text, name
+        assert f'data-color="{BG_LIGHT}"' in text, name
+        assert f'data-color="{BG_DARK}"' in text, name
+
+    assert 'meta[name="theme-color"]' in THEME_TOGGLE_SCRIPT
+    assert BG_DARK in THEME_TOGGLE_SCRIPT and BG_LIGHT in THEME_TOGGLE_SCRIPT
 
 
 def test_figures_and_toc_are_styled(site):
