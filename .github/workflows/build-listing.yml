@@ -1,6 +1,10 @@
 name: build listing
 
 on:
+  # main への merge で docs とサイトの見た目を、リリースの公開で index.json の
+  # バージョン一覧を、それぞれ反映する。手で流すこともできる。
+  push:
+    branches: [main]
   release:
     types: [published]
   workflow_dispatch:

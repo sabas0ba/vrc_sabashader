@@ -4,21 +4,35 @@ VCC は「リスティング（`index.json`）を 1 本購読し、その中に�
 という仕組みで動きます。このリポジトリはその一式を GitHub だけで完結させています。
 
 ```
-git tag 0.1.0
-        │
-        ▼
-build-release.yml
-  Packages/io.github.sabas0ba.sabashader を zip 化
-  GitHub Release に zip と package.json を添付
-        │
-        ▼ (release published)
-build-listing.yml
-  全リリースを走査して index.json を生成
-  GitHub Pages に配信
-        │
-        ▼
+git tag 0.1.0                              main への merge
+        │                                          │
+        ▼                                          │
+build-release.yml                                  │
+  Packages/io.github.sabas0ba.sabashader を zip 化  │
+  GitHub Release に zip と package.json を添付      │
+        │                                          │
+        ▼ (release published)                      ▼ (push)
+                   build-listing.yml
+        全リリースを走査して index.json を生成
+        docs を HTML にして GitHub Pages に配信
+                          │
+                          ▼
 VCC が https://sabas0ba.github.io/vrc_sabashader/index.json を読む
 ```
+
+## サイトが更新されるとき
+
+`build-listing.yml` は次の 3 つで走ります。同時に走らないよう
+`concurrency: pages` で直列化してあります。
+
+| きっかけ | 主に反映されるもの |
+| --- | --- |
+| `main` への push（PR の merge） | docs の内容とサイトの見た目 |
+| リリースの公開 | `index.json` のバージョン一覧 |
+| `workflow_dispatch`（手動実行） | 上記の両方（配信し直したいとき） |
+
+どのきっかけでも作る中身は同じです。`index.json` は毎回 Releases API から
+組み直すので、merge で走らせても配信済みのバージョンは変わりません。
 
 ## 初回だけ必要な設定
 
