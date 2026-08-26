@@ -362,6 +362,40 @@ def test_crt_vertex_tearing_respects_module_amount():
     ), "CRT の頂点裂けはモジュール全体の Amount に従う必要があります"
 
 
+def test_video_input_runs_before_pixel_art_and_crt():
+    modules = _package_modules()
+    phases = [phase.name for _, phase in order_phases(modules, "postpixel")]
+
+    assert phases.index("__VideoInput") < phases.index("__PixelArt")
+    assert phases.index("__VideoInput") < phases.index("__CrtGlitch")
+
+
+def test_video_input_forward_add_only_attenuates_existing_light():
+    module = next(
+        module
+        for module in _package_modules()
+        if module.unique_id == "io.github.sabas0ba.videoinput"
+    )
+    postpixel = next(phase for phase in module.phases if phase.phase == "postpixel")
+    source = postpixel.path.read_text(encoding="utf-8")
+
+    guard = re.search(
+        r"#ifdef\s+UNITY_PASS_FORWARDADD(?P<body>.*?)#endif",
+        source,
+        re.DOTALL,
+    )
+    assert guard, "Video Input の postpixel に ForwardAdd 用の分岐がありません"
+    assert re.search(r"videoStyle\.additivePass\s*=\s*1\.0\s*;", guard.group("body"))
+
+    core = (MODULES_DIR / "VideoInput" / "VideoInputCore.hlsl").read_text(encoding="utf-8")
+    apply = core[core.index("half3 SBSVideoInputApply") : core.index("#endif")]
+    assert re.search(
+        r"if \(st\.additivePass > 0\.5\)\s+return base \* \(1\.0 - opacity\);",
+        apply,
+    )
+    assert apply.index("return base * (1.0 - opacity)") < apply.index("video.rgb")
+
+
 def test_crt_forward_add_does_not_add_light_independent_noise():
     module = next(
         module

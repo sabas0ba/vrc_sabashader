@@ -335,6 +335,29 @@ vec3 sceneCrtCard(vec2 uv)
     return SBSHsvToRgb(vec3(hue, 0.6, clamp(value, 0.0, 1.0)));
 }
 
+// mode 13: 外部の RenderTexture を模した入力カード
+//
+// テストではテクスチャを引けないため、色帯とアルファ勾配を手続きで作る。
+// UV の変形と、入力色・明るさ・アルファによる合成は出荷するコアをそのまま通す。
+vec4 sceneVideoInputSample(vec2 uv)
+{
+    vec2 bounded = clamp(uv, vec2(0.0, 0.0), vec2(0.9999, 0.9999));
+    int bar = int(floor(bounded.x * 8.0));
+    vec3 color = sceneSwatchColor(bar) * (0.35 + 0.65 * bounded.y);
+    float alpha = 0.25 + 0.75 * bounded.y;
+    return vec4(color, alpha);
+}
+
+vec4 sceneVideoInputSwatch(vec2 uv)
+{
+    SBSVideoInputStyle vst = sceneVideoInputStyle();
+    // 中央揃えではない範囲にして、反転と Tiling / Offset の順序も固定する。
+    vec2 sourceUV = SBSVideoInputUV(uv, vec4(0.75, 0.65, 0.05, 0.20), vst);
+    vec4 video = sceneVideoInputSample(sourceUV);
+    vec3 base = sceneCrtCard(uv);
+    return vec4(SBSVideoInputApply(base, video, vst), 1.0);
+}
+
 // mode 11: 立体（カプセル）にブラウン管とグリッチをかける
 //
 // 平らなテストカードには無いシルエットが入る。ずらしの 1 次近似は縁で
@@ -383,7 +406,8 @@ void main()
     vec2 ndc = uv * 2.0 - 1.0;
 
     vec4 col;
-    if (SCENE_MODE == 12) col = sceneCrtCurveSwatch(uv);
+    if (SCENE_MODE == 13) col = sceneVideoInputSwatch(uv);
+    else if (SCENE_MODE == 12) col = sceneCrtCurveSwatch(uv);
     else if (SCENE_MODE == 11) col = sceneCrtSolid(ndc);
     else if (SCENE_MODE == 10) col = sceneCrtSwatch(uv);
     else if (SCENE_MODE == 9) col = sceneDropletSwatch(uv);

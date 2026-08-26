@@ -66,6 +66,21 @@ def test_overlay_struct_matches_cases():
         )
 
 
+def test_video_input_struct_matches_cases():
+    """SBSVideoInputStyle にフィールドを足したらケース側の初期値も足させる。"""
+    from cases import DEFAULT_VIDEO_INPUT
+
+    for name, body in module_cores():
+        if "struct SBSVideoInputStyle" not in body:
+            continue
+        fields = {field for _, field in parse_struct_fields(body, "SBSVideoInputStyle")}
+        assert fields == set(DEFAULT_VIDEO_INPUT), (
+            f"{name} の SBSVideoInputStyle と tests/cases.py の DEFAULT_VIDEO_INPUT がずれています: "
+            f"コアのみ={sorted(fields - set(DEFAULT_VIDEO_INPUT))} "
+            f"ケースのみ={sorted(set(DEFAULT_VIDEO_INPUT) - fields)}"
+        )
+
+
 @pytest.mark.parametrize("case", CASES, ids=lambda c: c.name)
 def test_render_matches_golden(case, update_goldens):
     image = _render(case)

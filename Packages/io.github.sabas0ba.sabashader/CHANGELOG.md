@@ -2,7 +2,16 @@
 
 このプロジェクトは [Semantic Versioning](https://semver.org/lang/ja/) に従います。
 
-## [0.2.0] - 未リリース
+## [0.3.0] - 未リリース
+
+### Added
+
+- ビデオ入力モジュール（`io.github.sabas0ba.videoinput`）
+  - 動画プレイヤーやカメラ等の `RenderTexture` を UV0 で表示
+  - Tiling / Offset、HDR Tint、明るさ、左右・上下反転
+  - ドット絵風とブラウン管・グリッチの前段で Unlit 合成
+
+## [0.2.0] - 2026-08-26
 
 ### Added
 

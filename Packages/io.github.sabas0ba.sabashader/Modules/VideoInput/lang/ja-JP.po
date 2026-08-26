@@ -1,0 +1,42 @@
+msgid ""
+msgstr ""
+"Language: ja-JP\n"
+
+msgid "__VideoInput"
+msgstr "ビデオ入力"
+
+msgid "__Amount"
+msgstr "強さ"
+
+msgid "__AmountDesc"
+msgstr "0 で無効。1 で入力映像へ完全に置き換えます。"
+
+msgid "__VideoTexture"
+msgstr "入力テクスチャ"
+
+msgid "__VideoTextureDesc"
+msgstr "動画プレイヤーなどが出力する RenderTexture を指定します。"
+
+msgid "__Tint"
+msgstr "入力色"
+
+msgid "__TintDesc"
+msgstr "RGB を入力映像へ掛け、アルファを合成率へ掛けます。HDR の値も使えます。"
+
+msgid "__Brightness"
+msgstr "明るさ"
+
+msgid "__BrightnessDesc"
+msgstr "ライティングと無関係に入力映像の明るさを増減します。"
+
+msgid "__MirrorX"
+msgstr "左右反転"
+
+msgid "__MirrorXDesc"
+msgstr "UV の左右を反転します。"
+
+msgid "__FlipY"
+msgstr "上下反転"
+
+msgid "__FlipYDesc"
+msgstr "RenderTexture の向きが上下逆の場合に使います。"

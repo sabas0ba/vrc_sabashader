@@ -26,6 +26,7 @@ MODE_DROPLET = 9
 MODE_CRT = 10
 MODE_CRT_SOLID = 11
 MODE_CRT_CURVE = 12
+MODE_VIDEO_INPUT = 13
 
 DEFAULT_STYLE: Dict[str, object] = {
     "shadeBorder1": 0.5,
@@ -131,6 +132,18 @@ DEFAULT_CRT: Dict[str, object] = {
 }
 
 MODULE_STYLE_DEFAULTS["SBSCrtStyle"] = DEFAULT_CRT
+
+# VideoInputCore.hlsl の SBSVideoInputStyle
+DEFAULT_VIDEO_INPUT: Dict[str, object] = {
+    "amount": 1.0,
+    "tint": (1.0, 1.0, 1.0, 1.0),
+    "brightness": 1.0,
+    "mirrorX": 0.0,
+    "flipY": 0.0,
+    "additivePass": 0.0,
+}
+
+MODULE_STYLE_DEFAULTS["SBSVideoInputStyle"] = DEFAULT_VIDEO_INPUT
 
 DEFAULT_OUTLINE: Dict[str, object] = {
     "color": (0.15, 0.10, 0.13),
@@ -405,6 +418,27 @@ CASES: List[Case] = [
         mode=MODE_PIXEL,
         description="組み込みパレットの 8bit。色そのものを段に落とすので色相が残る。",
         module_styles={"SBSPixelStyle": {"levels": 8.0, "dither": 0.0, "palette": 1.0, "preset": 7.0}},
+        resolution=(320, 160),
+    ),
+    Case(
+        name="video_input",
+        mode=MODE_VIDEO_INPUT,
+        description="外部テクスチャを Unlit で表示する。UV、入力色、入力アルファが変わると落ちる。",
+        resolution=(320, 160),
+    ),
+    Case(
+        name="video_input_mix",
+        mode=MODE_VIDEO_INPUT,
+        description="入力を色付けし、非対称な UV 範囲の中で上下左右反転する。元の色との合成率も見る。",
+        module_styles={
+            "SBSVideoInputStyle": {
+                "amount": 0.8,
+                "tint": (0.72, 1.05, 1.30, 0.85),
+                "brightness": 1.2,
+                "mirrorX": 1.0,
+                "flipY": 1.0,
+            }
+        },
         resolution=(320, 160),
     ),
     Case(
