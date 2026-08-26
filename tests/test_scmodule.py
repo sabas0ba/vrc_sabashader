@@ -370,6 +370,34 @@ def test_video_input_runs_before_pixel_art_and_crt():
     assert phases.index("__VideoInput") < phases.index("__CrtGlitch")
 
 
+def test_display_panel_runs_after_video_and_pixel_before_crt():
+    modules = _package_modules()
+    phases = [phase.name for _, phase in order_phases(modules, "postpixel")]
+
+    assert phases.index("__VideoInput") < phases.index("__DisplayPanel")
+    assert phases.index("__PixelArt") < phases.index("__DisplayPanel")
+    assert phases.index("__DisplayPanel") < phases.index("__CrtGlitch")
+
+
+@pytest.mark.parametrize(
+    ("relative_path", "guard", "operation"),
+    [
+        ("PixelArt/phase_postpixel.hlsl", "if (_Amount > 0.0)", "SCSampleClamp"),
+        ("SurfaceOverlay/phase_base.hlsl", "if (_Amount > 0.0)", "SCSampleRepeat"),
+        (
+            "CrtGlitch/crt_morph.hlsl",
+            "if (_Amount > 0.0 && _Glitch > 0.0 && _Tearing > 0.0)",
+            "SBSCrtTear",
+        ),
+        ("DisplayPanel/display_panel_postpixel.hlsl", "if (_Amount > 0.0)", "SBSDisplayPanelApply"),
+    ],
+)
+def test_disabled_modules_guard_expensive_operations(relative_path, guard, operation):
+    source = (MODULES_DIR / relative_path).read_text(encoding="utf-8")
+    assert guard in source
+    assert source.index(guard) < source.index(operation)
+
+
 def test_video_input_forward_add_only_attenuates_existing_light():
     module = next(
         module

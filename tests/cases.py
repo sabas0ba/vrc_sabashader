@@ -26,6 +26,7 @@ MODE_DROPLET = 9
 MODE_CRT = 10
 MODE_CRT_SOLID = 11
 MODE_VIDEO_INPUT = 12
+MODE_DISPLAY_PANEL = 13
 
 DEFAULT_STYLE: Dict[str, object] = {
     "shadeBorder1": 0.5,
@@ -142,6 +143,24 @@ DEFAULT_VIDEO_INPUT: Dict[str, object] = {
 }
 
 MODULE_STYLE_DEFAULTS["SBSVideoInputStyle"] = DEFAULT_VIDEO_INPUT
+
+# DisplayPanelCore.hlsl の SBSDisplayPanelStyle
+DEFAULT_DISPLAY_PANEL: Dict[str, object] = {
+    "amount": 1.0,
+    "mode": 0.0,
+    "pixelPitch": 6.0,
+    "fill": 0.82,
+    "grid": 1.0,
+    "subpixel": 0.85,
+    "subpixelOrder": 0.0,
+    "brightness": 1.0,
+    "viewAngle": 0.0,
+    "tileCells": 16.0,
+    "seam": 2.0,
+    "tileVariation": 0.08,
+}
+
+MODULE_STYLE_DEFAULTS["SBSDisplayPanelStyle"] = DEFAULT_DISPLAY_PANEL
 
 DEFAULT_OUTLINE: Dict[str, object] = {
     "color": (0.15, 0.10, 0.13),
@@ -435,6 +454,51 @@ CASES: List[Case] = [
                 "brightness": 1.2,
                 "mirrorX": 1.0,
                 "flipY": 1.0,
+            }
+        },
+        resolution=(320, 160),
+    ),
+    Case(
+        name="display_lcd",
+        mode=MODE_DISPLAY_PANEL,
+        description="LCD の RGB ストライプと画素間の遮光部を表示する。",
+        module_styles={
+            "SBSDisplayPanelStyle": {
+                "mode": 0.0,
+                "pixelPitch": 9.0,
+                "fill": 0.82,
+                "subpixel": 0.9,
+            }
+        },
+        resolution=(320, 160),
+    ),
+    Case(
+        name="display_led",
+        mode=MODE_DISPLAY_PANEL,
+        description="LED の RGB 発光点と画素間の暗部を表示する。",
+        module_styles={
+            "SBSDisplayPanelStyle": {
+                "mode": 1.0,
+                "pixelPitch": 12.0,
+                "fill": 0.9,
+                "subpixel": 0.9,
+                "brightness": 1.15,
+            }
+        },
+        resolution=(320, 160),
+    ),
+    Case(
+        name="display_led_wall",
+        mode=MODE_DISPLAY_PANEL,
+        description="LED 大画面のタイル継ぎ目とタイル単位の輝度差を表示する。",
+        module_styles={
+            "SBSDisplayPanelStyle": {
+                "mode": 2.0,
+                "pixelPitch": 8.0,
+                "fill": 0.9,
+                "tileCells": 8.0,
+                "seam": 3.0,
+                "tileVariation": 0.15,
             }
         },
         resolution=(320, 160),

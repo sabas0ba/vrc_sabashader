@@ -6,8 +6,8 @@ using UnityEngine;
 namespace SabaShader.Demo
 {
     /// <summary>
-    /// Video Input モジュールを実際の RenderTexture で確認するレビュー用シーンを作る。
-    /// 左から素の入力、Tint と UV 反転、CRT との連結を同じ入力で比較する。
+    /// Video Input と表示パネル系モジュールを実際の RenderTexture で確認する
+    /// レビュー用シーンを作る。
     /// </summary>
     public static class VideoInputReviewScene
     {
@@ -19,6 +19,7 @@ namespace SabaShader.Demo
         const int SourceLayer = 31;
 
         const string VideoPrefix = "_io_github_sabas0ba_videoinput_";
+        const string DisplayPrefix = "_io_github_sabas0ba_displaypanel_";
         const string CrtPrefix = "_io_github_sabas0ba_crtglitch_";
 
         [MenuItem("SabaShader/Demo/Build Video Input Review")]
@@ -187,7 +188,7 @@ namespace SabaShader.Demo
             var camera = mainCameraObject.AddComponent<Camera>();
             mainCameraObject.AddComponent<AudioListener>();
             camera.orthographic = true;
-            camera.orthographicSize = 3.25f;
+            camera.orthographicSize = 3.8f;
             camera.clearFlags = CameraClearFlags.SolidColor;
             camera.backgroundColor = new Color(0.055f, 0.06f, 0.075f, 1.0f);
             camera.cullingMask = ~(1 << SourceLayer);
@@ -204,12 +205,20 @@ namespace SabaShader.Demo
                 true,
                 false);
             var crt = CreateVideoMaterial(shader, input, "VideoInputCrt", Color.white, false, false, true);
+            var lcd = CreateVideoMaterial(
+                shader, input, "DisplayLcd", Color.white, false, false, false, 0);
+            var led = CreateVideoMaterial(
+                shader, input, "DisplayLed", Color.white, false, false, false, 1);
+            var ledWall = CreateVideoMaterial(
+                shader, input, "DisplayLedWall", Color.white, false, false, false, 2);
 
-            CreatePanel("Input", new Vector3(-3.4f, 0.1f, 0.0f), direct, "INPUT");
-            CreatePanel("TintFlip", new Vector3(0.0f, 0.1f, 0.0f), flipped, "TINT + FLIP");
-            CreatePanel("CrtChain", new Vector3(3.4f, 0.1f, 0.0f), crt, "CRT CHAIN");
-            CreateLabel("Video Input / RenderTexture review", new Vector3(0.0f, 2.35f, -0.05f), 0.08f);
-            CreateLabel("same live input", new Vector3(0.0f, -1.85f, -0.05f), 0.055f);
+            CreatePanel("Input", new Vector3(-3.4f, 1.35f, 0.0f), direct, "INPUT");
+            CreatePanel("TintFlip", new Vector3(0.0f, 1.35f, 0.0f), flipped, "TINT + FLIP");
+            CreatePanel("CrtChain", new Vector3(3.4f, 1.35f, 0.0f), crt, "CRT CHAIN");
+            CreatePanel("Lcd", new Vector3(-3.4f, -1.45f, 0.0f), lcd, "LCD");
+            CreatePanel("Led", new Vector3(0.0f, -1.45f, 0.0f), led, "LED");
+            CreatePanel("LedWall", new Vector3(3.4f, -1.45f, 0.0f), ledWall, "LED WALL");
+            CreateLabel("Video Input / Display Panel review", new Vector3(0.0f, 3.35f, -0.05f), 0.08f);
         }
 
         static Material CreateVideoMaterial(
@@ -219,7 +228,8 @@ namespace SabaShader.Demo
             Color tint,
             bool mirrorX,
             bool flipY,
-            bool withCrt)
+            bool withCrt,
+            int panelMode = -1)
         {
             var material = new Material(shader) { name = name };
             RequireProperty(material, VideoPrefix + "Amount");
@@ -242,6 +252,27 @@ namespace SabaShader.Demo
                 material.SetFloat(CrtPrefix + "MaskPitch", 6.0f);
                 material.SetFloat(CrtPrefix + "Vignette", 0.25f);
                 material.SetFloat(CrtPrefix + "Noise", 0.025f);
+            }
+
+            if (panelMode >= 0)
+            {
+                RequireProperty(material, DisplayPrefix + "Amount");
+                material.SetFloat(DisplayPrefix + "Amount", 1.0f);
+                material.SetInteger(DisplayPrefix + "Mode", panelMode);
+                material.SetFloat(DisplayPrefix + "PixelPitch", panelMode == 1 ? 10.0f : 7.0f);
+                material.SetFloat(DisplayPrefix + "Fill", 0.88f);
+                material.SetFloat(DisplayPrefix + "Grid", 1.0f);
+                material.SetFloat(DisplayPrefix + "Subpixel", 0.9f);
+                material.SetInteger(DisplayPrefix + "SubpixelOrder", 0);
+                material.SetFloat(DisplayPrefix + "Brightness", panelMode == 0 ? 1.0f : 1.15f);
+                material.SetFloat(DisplayPrefix + "ViewAngle", 0.0f);
+
+                if (panelMode == 2)
+                {
+                    material.SetFloat(DisplayPrefix + "TileCells", 8.0f);
+                    material.SetFloat(DisplayPrefix + "Seam", 3.0f);
+                    material.SetFloat(DisplayPrefix + "TileVariation", 0.15f);
+                }
             }
 
             var path = ReviewDir + "/" + name + ".mat";
@@ -307,7 +338,7 @@ namespace SabaShader.Demo
         {
             if (!material.HasProperty(property))
                 throw new System.InvalidOperationException(
-                    $"{material.shader.name} に {property} がありません。Video Input モジュールの有効化を確認してください。");
+                    $"{material.shader.name} に {property} がありません。必要なモジュールの有効化を確認してください。");
         }
 
         static void SetLayerRecursively(GameObject root, int layer)

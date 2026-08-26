@@ -358,6 +358,15 @@ vec4 sceneVideoInputSwatch(vec2 uv)
     return vec4(SBSVideoInputApply(base, video, vst), 1.0);
 }
 
+// mode 13: LCD / LED / LED Wall の画素構造
+vec4 sceneDisplayPanelSwatch(vec2 uv)
+{
+    SBSDisplayPanelStyle pst = sceneDisplayPanelStyle();
+    vec2 screen = uv * SCENE_RESOLUTION;
+    vec3 card = sceneCrtCard(uv);
+    return vec4(SBSDisplayPanelApply(card, screen, 0.72, pst), 1.0);
+}
+
 // mode 11: 立体（カプセル）にブラウン管とグリッチをかける
 //
 // 平らなテストカードには無いシルエットが入る。ずらしの 1 次近似は縁で
@@ -387,7 +396,8 @@ void main()
     vec2 ndc = uv * 2.0 - 1.0;
 
     vec4 col;
-    if (SCENE_MODE == 12) col = sceneVideoInputSwatch(uv);
+    if (SCENE_MODE == 13) col = sceneDisplayPanelSwatch(uv);
+    else if (SCENE_MODE == 12) col = sceneVideoInputSwatch(uv);
     else if (SCENE_MODE == 11) col = sceneCrtSolid(ndc);
     else if (SCENE_MODE == 10) col = sceneCrtSwatch(uv);
     else if (SCENE_MODE == 9) col = sceneDropletSwatch(uv);

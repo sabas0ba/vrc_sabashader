@@ -1,0 +1,84 @@
+msgid ""
+msgstr ""
+"Language: ja-JP\n"
+
+msgid "__DisplayPanel"
+msgstr "表示パネル"
+
+msgid "__Amount"
+msgstr "強さ"
+
+msgid "__AmountDesc"
+msgstr "表示パネルの画素構造を合成する割合です。0 では処理を実行しません。"
+
+msgid "__Panel"
+msgstr "画素構造"
+
+msgid "__Mode"
+msgstr "方式"
+
+msgid "__ModeDesc"
+msgstr "LCD、LED、またはタイル境界を持つ LED Wall を選択します。"
+
+msgid "__PixelPitch"
+msgstr "画素ピッチ"
+
+msgid "__PixelPitchDesc"
+msgstr "1 画素の幅を画面ピクセルで指定します。"
+
+msgid "__Fill"
+msgstr "開口率"
+
+msgid "__FillDesc"
+msgstr "画素内で光を通す、または発光する部分の大きさです。"
+
+msgid "__Grid"
+msgstr "画素格子"
+
+msgid "__GridDesc"
+msgstr "画素間の暗部と発光形状を合成する割合です。"
+
+msgid "__Subpixel"
+msgstr "サブピクセル分離"
+
+msgid "__SubpixelDesc"
+msgstr "RGB サブピクセルを分離して見せる割合です。"
+
+msgid "__SubpixelOrder"
+msgstr "サブピクセル配列"
+
+msgid "__SubpixelOrderDesc"
+msgstr "水平方向の色素子を RGB または BGR の順に並べます。"
+
+msgid "__Brightness"
+msgstr "表示輝度"
+
+msgid "__BrightnessDesc"
+msgstr "パネル処理後の明るさを調整します。"
+
+msgid "__ViewAngle"
+msgstr "視野角減衰"
+
+msgid "__ViewAngleDesc"
+msgstr "正面以外から見たときに暗くなる度合いです。"
+
+msgid "__Wall"
+msgstr "LED Wall"
+
+msgid "__TileCells"
+msgstr "タイル画素数"
+
+msgid "__TileCellsDesc"
+msgstr "1 枚の表示タイルに含まれる縦横の画素数です。"
+
+msgid "__Seam"
+msgstr "継ぎ目幅"
+
+msgid "__SeamDesc"
+msgstr "表示タイル間の暗い継ぎ目を画面ピクセルで指定します。"
+
+msgid "__TileVariation"
+msgstr "タイル輝度差"
+
+msgid "__TileVariationDesc"
+msgstr "タイルごとの輝度差を追加します。"

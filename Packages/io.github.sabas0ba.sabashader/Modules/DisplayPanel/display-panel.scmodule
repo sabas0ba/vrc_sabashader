@@ -1,0 +1,12 @@
+{
+    "name": "__DisplayPanel",
+    "uniqueID": "io.github.sabas0ba.displaypanel",
+    "phases": [
+        {
+            "phase": "postpixel",
+            "path": "display_panel_postpixel.hlsl",
+            "afters": ["__VideoInput", "__PixelArt"],
+            "befores": ["__CrtGlitch"]
+        }
+    ]
+}

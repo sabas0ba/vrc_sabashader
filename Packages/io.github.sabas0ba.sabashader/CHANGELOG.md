@@ -2,6 +2,19 @@
 
 このプロジェクトは [Semantic Versioning](https://semver.org/lang/ja/) に従います。
 
+## [0.4.0] - 未リリース
+
+### Added
+
+- 表示パネルモジュール（`io.github.sabas0ba.displaypanel`）
+  - LCD の RGB ストライプと遮光部
+  - LED の RGB 発光点
+  - LED 大画面のパネル継ぎ目とパネル単位の輝度差
+
+### Changed
+
+- モジュールの `Amount` が `0` のとき、テクスチャ参照や画素効果の計算を省略
+
 ## [0.3.0] - 未リリース
 
 ### Added

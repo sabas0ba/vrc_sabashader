@@ -81,6 +81,21 @@ def test_video_input_struct_matches_cases():
         )
 
 
+def test_display_panel_struct_matches_cases():
+    """SBSDisplayPanelStyle とケース側の初期値を一致させる。"""
+    from cases import DEFAULT_DISPLAY_PANEL
+
+    for name, body in module_cores():
+        if "struct SBSDisplayPanelStyle" not in body:
+            continue
+        fields = {field for _, field in parse_struct_fields(body, "SBSDisplayPanelStyle")}
+        assert fields == set(DEFAULT_DISPLAY_PANEL), (
+            f"{name} の SBSDisplayPanelStyle と tests/cases.py の DEFAULT_DISPLAY_PANEL がずれています: "
+            f"コアのみ={sorted(fields - set(DEFAULT_DISPLAY_PANEL))} "
+            f"ケースのみ={sorted(set(DEFAULT_DISPLAY_PANEL) - fields)}"
+        )
+
+
 @pytest.mark.parametrize("case", CASES, ids=lambda c: c.name)
 def test_render_matches_golden(case, update_goldens):
     image = _render(case)
