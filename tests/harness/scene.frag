@@ -335,7 +335,7 @@ vec3 sceneCrtCard(vec2 uv)
     return SBSHsvToRgb(vec3(hue, 0.6, clamp(value, 0.0, 1.0)));
 }
 
-// mode 13: 外部の RenderTexture を模した入力カード
+// mode 12: 外部の RenderTexture を模した入力カード
 //
 // テストではテクスチャを引けないため、色帯とアルファ勾配を手続きで作る。
 // UV の変形と、入力色・明るさ・アルファによる合成は出荷するコアをそのまま通す。
