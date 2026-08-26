@@ -379,6 +379,24 @@ def test_display_panel_runs_after_video_and_pixel_before_crt():
     assert phases.index("__DisplayPanel") < phases.index("__CrtGlitch")
 
 
+def test_display_panel_keeps_screen_coordinates_at_full_precision():
+    core = (MODULES_DIR / "DisplayPanel" / "DisplayPanelCore.hlsl").read_text(encoding="utf-8")
+
+    for function in (
+        "SBSDisplayPanelLCD",
+        "SBSDisplayPanelLED",
+        "SBSDisplayPanelWallMask",
+        "SBSDisplayPanelTileBrightness",
+    ):
+        assert re.search(rf"{function}\([^)]*float2 screen", core), (
+            f"{function} の画面座標は 4K・VR 幅で精度を失わない float2 が必要です"
+        )
+
+    assert re.search(r"half3 SBSDisplayPanelApply\(\s*half3 color,\s*float2 screen", core)
+    for declaration in ("float2 cellUV", "float2 inTile", "float2 tile"):
+        assert declaration in core
+
+
 @pytest.mark.parametrize(
     ("relative_path", "guard", "operation"),
     [

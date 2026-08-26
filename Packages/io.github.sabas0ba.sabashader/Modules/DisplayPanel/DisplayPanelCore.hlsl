@@ -39,18 +39,18 @@ struct SBSDisplayPanelStyle
     half tileVariation;
 };
 
-half SBSDisplayPanelAAMask(half distanceFromEdge, half aa)
+half SBSDisplayPanelAAMask(float distanceFromEdge, float aa)
 {
     return 1.0 - smoothstep(-aa, aa, distanceFromEdge);
 }
 
-half SBSDisplayPanelRect(half2 local, half halfSize, half aa)
+half SBSDisplayPanelRect(float2 local, float halfSize, float aa)
 {
-    half distanceFromEdge = max(abs(local.x), abs(local.y)) - halfSize;
+    float distanceFromEdge = max(abs(local.x), abs(local.y)) - halfSize;
     return SBSDisplayPanelAAMask(distanceFromEdge, aa);
 }
 
-half SBSDisplayPanelCircle(half2 local, half radius, half aa)
+half SBSDisplayPanelCircle(float2 local, float radius, float aa)
 {
     return SBSDisplayPanelAAMask(length(local) - radius, aa);
 }
@@ -60,12 +60,12 @@ half3 SBSDisplayPanelOrder(half3 rgb, half order)
     return (order < 0.5) ? rgb : rgb.bgr;
 }
 
-half3 SBSDisplayPanelLCD(half3 color, half2 screen, SBSDisplayPanelStyle st)
+half3 SBSDisplayPanelLCD(half3 color, float2 screen, SBSDisplayPanelStyle st)
 {
-    half pitch = max(st.pixelPitch, 1.0);
-    half2 cellUV = frac(screen / pitch);
-    half2 local = cellUV - half2(0.5, 0.5);
-    half aa = max(0.5 / pitch, 1.0e-3);
+    float pitch = max(st.pixelPitch, 1.0);
+    float2 cellUV = frac(screen / pitch);
+    float2 local = cellUV - float2(0.5, 0.5);
+    float aa = max(0.5 / pitch, 1.0e-3);
     half aperture = SBSDisplayPanelRect(local, saturate(st.fill) * 0.5, aa);
 
     half stripeR = 1.0 - step(1.0 / 3.0, cellUV.x);
@@ -79,16 +79,16 @@ half3 SBSDisplayPanelLCD(half3 color, half2 screen, SBSDisplayPanelStyle st)
     return color * subpixelMask * apertureMask;
 }
 
-half3 SBSDisplayPanelLED(half3 color, half2 screen, SBSDisplayPanelStyle st)
+half3 SBSDisplayPanelLED(half3 color, float2 screen, SBSDisplayPanelStyle st)
 {
-    half pitch = max(st.pixelPitch, 1.0);
-    half2 cellUV = frac(screen / pitch);
-    half aa = max(0.5 / pitch, 1.0e-3);
-    half radius = saturate(st.fill) / 6.0;
+    float pitch = max(st.pixelPitch, 1.0);
+    float2 cellUV = frac(screen / pitch);
+    float aa = max(0.5 / pitch, 1.0e-3);
+    float radius = saturate(st.fill) / 6.0;
 
-    half ledR = SBSDisplayPanelCircle(cellUV - half2(1.0 / 6.0, 0.5), radius, aa);
-    half ledG = SBSDisplayPanelCircle(cellUV - half2(3.0 / 6.0, 0.5), radius, aa);
-    half ledB = SBSDisplayPanelCircle(cellUV - half2(5.0 / 6.0, 0.5), radius, aa);
+    half ledR = SBSDisplayPanelCircle(cellUV - float2(1.0 / 6.0, 0.5), radius, aa);
+    half ledG = SBSDisplayPanelCircle(cellUV - float2(3.0 / 6.0, 0.5), radius, aa);
+    half ledB = SBSDisplayPanelCircle(cellUV - float2(5.0 / 6.0, 0.5), radius, aa);
     half3 emitters = SBSDisplayPanelOrder(half3(ledR, ledG, ledB), st.subpixelOrder);
 
     half aperture = max(emitters.r, max(emitters.g, emitters.b));
@@ -96,36 +96,36 @@ half3 SBSDisplayPanelLED(half3 color, half2 screen, SBSDisplayPanelStyle st)
     return color * lerp(half3(1.0, 1.0, 1.0), emitterMask, saturate(st.grid));
 }
 
-half SBSDisplayPanelWallMask(half2 screen, SBSDisplayPanelStyle st)
+half SBSDisplayPanelWallMask(float2 screen, SBSDisplayPanelStyle st)
 {
     if (st.seam <= 0.0)
         return 1.0;
 
-    half pitch = max(st.pixelPitch, 1.0);
-    half cells = max(floor(st.tileCells + 0.5), 2.0);
-    half period = pitch * cells;
-    half2 inTile = frac(screen / period) * period;
-    half2 edge = min(inTile, half2(period, period) - inTile);
-    half nearestEdge = min(edge.x, edge.y);
-    half halfSeam = st.seam * 0.5;
+    float pitch = max(st.pixelPitch, 1.0);
+    float cells = max(floor(st.tileCells + 0.5), 2.0);
+    float period = pitch * cells;
+    float2 inTile = frac(screen / period) * period;
+    float2 edge = min(inTile, float2(period, period) - inTile);
+    float nearestEdge = min(edge.x, edge.y);
+    float halfSeam = st.seam * 0.5;
     return smoothstep(halfSeam, halfSeam + 1.0, nearestEdge);
 }
 
-half SBSDisplayPanelTileBrightness(half2 screen, SBSDisplayPanelStyle st)
+half SBSDisplayPanelTileBrightness(float2 screen, SBSDisplayPanelStyle st)
 {
-    half pitch = max(st.pixelPitch, 1.0);
-    half cells = max(floor(st.tileCells + 0.5), 2.0);
-    half2 tile = floor(screen / (pitch * cells));
+    float pitch = max(st.pixelPitch, 1.0);
+    float cells = max(floor(st.tileCells + 0.5), 2.0);
+    float2 tile = floor(screen / (pitch * cells));
 
     // タイル番号の線形結合を折り返す。擬似乱数ではなく、隣接タイルの差を
     // 決定的に作るための単純な位相である。
-    half phase = frac(tile.x * 0.37 + tile.y * 0.61);
+    float phase = frac(tile.x * 0.37 + tile.y * 0.61);
     return 1.0 + (phase * 2.0 - 1.0) * saturate(st.tileVariation);
 }
 
 half3 SBSDisplayPanelApply(
     half3 color,
-    half2 screen,
+    float2 screen,
     half facing,
     SBSDisplayPanelStyle st)
 {
