@@ -362,6 +362,86 @@ def test_crt_vertex_tearing_respects_module_amount():
     ), "CRT の頂点裂けはモジュール全体の Amount に従う必要があります"
 
 
+def test_video_input_runs_before_pixel_art_and_crt():
+    modules = _package_modules()
+    phases = [phase.name for _, phase in order_phases(modules, "postpixel")]
+
+    assert phases.index("__VideoInput") < phases.index("__PixelArt")
+    assert phases.index("__VideoInput") < phases.index("__CrtGlitch")
+
+
+def test_display_panel_runs_after_video_and_pixel_before_crt():
+    modules = _package_modules()
+    phases = [phase.name for _, phase in order_phases(modules, "postpixel")]
+
+    assert phases.index("__VideoInput") < phases.index("__DisplayPanel")
+    assert phases.index("__PixelArt") < phases.index("__DisplayPanel")
+    assert phases.index("__DisplayPanel") < phases.index("__CrtGlitch")
+
+
+def test_display_panel_keeps_screen_coordinates_at_full_precision():
+    core = (MODULES_DIR / "DisplayPanel" / "DisplayPanelCore.hlsl").read_text(encoding="utf-8")
+
+    for function in (
+        "SBSDisplayPanelLCD",
+        "SBSDisplayPanelLED",
+        "SBSDisplayPanelWallMask",
+        "SBSDisplayPanelTileBrightness",
+    ):
+        assert re.search(rf"{function}\([^)]*float2 screen", core), (
+            f"{function} の画面座標は 4K・VR 幅で精度を失わない float2 が必要です"
+        )
+
+    assert re.search(r"half3 SBSDisplayPanelApply\(\s*half3 color,\s*float2 screen", core)
+    for declaration in ("float2 cellUV", "float2 inTile", "float2 tile"):
+        assert declaration in core
+
+
+@pytest.mark.parametrize(
+    ("relative_path", "guard", "operation"),
+    [
+        ("PixelArt/phase_postpixel.hlsl", "if (_Amount > 0.0)", "SCSampleClamp"),
+        ("SurfaceOverlay/phase_base.hlsl", "if (_Amount > 0.0)", "SCSampleRepeat"),
+        (
+            "CrtGlitch/crt_morph.hlsl",
+            "if (_Amount > 0.0 && _Glitch > 0.0 && _Tearing > 0.0)",
+            "SBSCrtTear",
+        ),
+        ("DisplayPanel/display_panel_postpixel.hlsl", "if (_Amount > 0.0)", "SBSDisplayPanelApply"),
+    ],
+)
+def test_disabled_modules_guard_expensive_operations(relative_path, guard, operation):
+    source = (MODULES_DIR / relative_path).read_text(encoding="utf-8")
+    assert guard in source
+    assert source.index(guard) < source.index(operation)
+
+
+def test_video_input_forward_add_only_attenuates_existing_light():
+    module = next(
+        module
+        for module in _package_modules()
+        if module.unique_id == "io.github.sabas0ba.videoinput"
+    )
+    postpixel = next(phase for phase in module.phases if phase.phase == "postpixel")
+    source = postpixel.path.read_text(encoding="utf-8")
+
+    guard = re.search(
+        r"#ifdef\s+UNITY_PASS_FORWARDADD(?P<body>.*?)#endif",
+        source,
+        re.DOTALL,
+    )
+    assert guard, "Video Input の postpixel に ForwardAdd 用の分岐がありません"
+    assert re.search(r"videoStyle\.additivePass\s*=\s*1\.0\s*;", guard.group("body"))
+
+    core = (MODULES_DIR / "VideoInput" / "VideoInputCore.hlsl").read_text(encoding="utf-8")
+    apply = core[core.index("half3 SBSVideoInputApply") : core.index("#endif")]
+    assert re.search(
+        r"if \(st\.additivePass > 0\.5\)\s+return base \* \(1\.0 - opacity\);",
+        apply,
+    )
+    assert apply.index("return base * (1.0 - opacity)") < apply.index("video.rgb")
+
+
 def test_crt_forward_add_does_not_add_light_independent_noise():
     module = next(
         module
@@ -440,18 +520,16 @@ def test_crt_apply_skips_disabled_stages_and_refreshes_gradients():
     )
 
 
-def test_crt_curvature_uses_matching_projection_matrices():
-    postvertex = (
-        MODULES_DIR / "CrtGlitch" / "crt_postvertex.hlsl"
-    ).read_text(encoding="utf-8")
+def test_crt_does_not_expose_model_dependent_curvature():
+    module_dir = MODULES_DIR / "CrtGlitch"
+    properties = (module_dir / "properties.hlsl").read_text(encoding="utf-8")
+    core = (module_dir / "CrtGlitchCore.hlsl").read_text(encoding="utf-8")
+    descriptor = (module_dir / "crt-glitch.scmodule").read_text(encoding="utf-8")
 
-    assert "unity_CameraProjection" in postvertex
-    assert "unity_CameraInvProjection" in postvertex
-    assert "UNITY_MATRIX_I_V" in postvertex
-    assert "UNITY_MATRIX_P._m00" not in postvertex
-    assert "UNITY_MATRIX_P._m11" not in postvertex
-    assert re.search(r"if \(crtClipPosition\.w > 1\.0e-3\)", postvertex)
-    assert "abs(crtClipPosition.w)" not in postvertex
+    assert "_Curvature" not in properties
+    assert "SBSCrtCurve" not in core
+    assert "postvertex" not in descriptor
+    assert not (module_dir / "crt_postvertex.hlsl").exists()
 
 
 @pytest.mark.parametrize("module", _package_modules(), ids=lambda m: m.unique_id)

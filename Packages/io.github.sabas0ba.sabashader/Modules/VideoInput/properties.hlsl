@@ -1,0 +1,7 @@
+SC_float(_Amount, 0, [SCRange(0,1)], "__Amount", "__AmountDesc")
+SC_Texture2D(_VideoTexture, "black", [], "__VideoTexture", "__VideoTextureDesc")
+SC_ScaleOffset(_VideoTexture)
+SC_color(_Tint, (1,1,1,1), [SCHDR], "__Tint", "__TintDesc")
+SC_float(_Brightness, 1, [SCRange(0,4)], "__Brightness", "__BrightnessDesc")
+SC_uint(_MirrorX, 0, [SCToggle], "__MirrorX", "__MirrorXDesc")
+SC_uint(_FlipY, 0, [SCToggle], "__FlipY", "__FlipYDesc")

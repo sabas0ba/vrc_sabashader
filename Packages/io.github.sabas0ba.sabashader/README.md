@@ -25,8 +25,10 @@
 [docs/shader-illust2d.md](https://github.com/sabas0ba/vrc_sabashader/blob/main/docs/shader-illust2d.md)
 を参照してください。描画例の図が付いています。
 
-雨・汗・雪・汚れを乗せる「表面の重ね掛け」、「ドット絵風」、走査線や映像の乱れを足す「ブラウン管・グリッチ」はモジュールとして
-同梱しています。使い方は
+雨・汗・雪・汚れを乗せる「表面の重ね掛け」、「ドット絵風」、RenderTexture を
+表示する「ビデオ入力」、LCD／LED の画素構造を重ねる「表示パネル」、
+走査線や映像の乱れを足す「ブラウン管・グリッチ」は
+モジュールとして同梱しています。使い方は
 [docs/modules.md](https://github.com/sabas0ba/vrc_sabashader/blob/main/docs/modules.md)
 を参照してください。
 

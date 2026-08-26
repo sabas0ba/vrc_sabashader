@@ -84,6 +84,15 @@ def test_shadercore_commit_is_pinned_consistently():
     )
 
 
+def test_demo_setup_enables_package_modules():
+    """新規 Demo Project でもレビューシーンが必要なプロパティを持つようにする。"""
+    setup = (REPO_ROOT / "tools" / "setup_demo_project.py").read_text(encoding="utf-8")
+
+    assert re.search(r"from tools\.setup_unity_project import .*\benable_modules\b", setup)
+    main = setup[setup.index("def main()") :]
+    assert main.index("clone_shadercore(") < main.index("enable_modules(project)")
+
+
 # --- C# の期待値とシェーダーの実態 --------------------------------------------
 
 

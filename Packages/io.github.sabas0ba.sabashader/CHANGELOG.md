@@ -2,7 +2,35 @@
 
 このプロジェクトは [Semantic Versioning](https://semver.org/lang/ja/) に従います。
 
-## [0.2.0] - 未リリース
+## [0.4.0] - 未リリース
+
+### Added
+
+- 表示パネルモジュール（`io.github.sabas0ba.displaypanel`）
+  - LCD の RGB ストライプと遮光部
+  - LED の RGB 発光点
+  - LED 大画面のパネル継ぎ目とパネル単位の輝度差
+
+### Changed
+
+- モジュールの `Amount` が `0` のとき、テクスチャ参照や画素効果の計算を省略
+
+## [0.3.0] - 未リリース
+
+### Added
+
+- ビデオ入力モジュール（`io.github.sabas0ba.videoinput`）
+  - 動画プレイヤーやカメラ等の `RenderTexture` を UV0 で表示
+  - Tiling / Offset、HDR Tint、明るさ、左右・上下反転
+  - ドット絵風とブラウン管・グリッチの前段で Unlit 合成
+
+### Removed
+
+- ブラウン管・グリッチの `Screen Curvature`。入力映像を再サンプリングせずに
+  モデル頂点を動かす近似は、モデルの頂点密度と画面内の位置によって不自然な
+  変形になるため削除
+
+## [0.2.0] - 2026-08-26
 
 ### Added
 

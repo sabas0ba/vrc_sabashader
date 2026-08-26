@@ -335,6 +335,38 @@ vec3 sceneCrtCard(vec2 uv)
     return SBSHsvToRgb(vec3(hue, 0.6, clamp(value, 0.0, 1.0)));
 }
 
+// mode 12: 外部の RenderTexture を模した入力カード
+//
+// テストではテクスチャを引けないため、色帯とアルファ勾配を手続きで作る。
+// UV の変形と、入力色・明るさ・アルファによる合成は出荷するコアをそのまま通す。
+vec4 sceneVideoInputSample(vec2 uv)
+{
+    vec2 bounded = clamp(uv, vec2(0.0, 0.0), vec2(0.9999, 0.9999));
+    int bar = int(floor(bounded.x * 8.0));
+    vec3 color = sceneSwatchColor(bar) * (0.35 + 0.65 * bounded.y);
+    float alpha = 0.25 + 0.75 * bounded.y;
+    return vec4(color, alpha);
+}
+
+vec4 sceneVideoInputSwatch(vec2 uv)
+{
+    SBSVideoInputStyle vst = sceneVideoInputStyle();
+    // 中央揃えではない範囲にして、反転と Tiling / Offset の順序も固定する。
+    vec2 sourceUV = SBSVideoInputUV(uv, vec4(0.75, 0.65, 0.05, 0.20), vst);
+    vec4 video = sceneVideoInputSample(sourceUV);
+    vec3 base = sceneCrtCard(uv);
+    return vec4(SBSVideoInputApply(base, video, vst), 1.0);
+}
+
+// mode 13: LCD / LED / LED Wall の画素構造
+vec4 sceneDisplayPanelSwatch(vec2 uv)
+{
+    SBSDisplayPanelStyle pst = sceneDisplayPanelStyle();
+    vec2 screen = uv * SCENE_RESOLUTION;
+    vec3 card = sceneCrtCard(uv);
+    return vec4(SBSDisplayPanelApply(card, screen, 0.72, pst), 1.0);
+}
+
 // mode 11: 立体（カプセル）にブラウン管とグリッチをかける
 //
 // 平らなテストカードには無いシルエットが入る。ずらしの 1 次近似は縁で
@@ -358,32 +390,14 @@ vec4 sceneCrtSwatch(vec2 uv)
     return vec4(SBSCrtApply(card, screen, SCENE_RESOLUTION, sceneCrtStyle()), 1.0);
 }
 
-// mode 12: 画面の丸み
-//
-// 本番では SBSCrtCurve の返り値でモデルの頂点を動かす。ここでは頂点が無いので、
-// 表を引く座標を同じ式で逆向きに曲げて、どれだけ膨らむかを見る。
-// 式の係数が変われば絵も変わるので、回帰としては同じ働きをする。
-vec4 sceneCrtCurveSwatch(vec2 uv)
-{
-    vec2 ndc = uv * 2.0 - 1.0;
-    vec2 curved = ndc - SBSCrtCurve(ndc, sceneCrtStyle());
-
-    vec2 source = curved * 0.5 + 0.5;
-
-    // 曲げた先が表の外へ出たところは背景にする。
-    if (source.x < 0.0 || source.x > 1.0 || source.y < 0.0 || source.y > 1.0)
-        return vec4(SCENE_BACKGROUND, 1.0);
-
-    return vec4(sceneCrtCard(source), 1.0);
-}
-
 void main()
 {
     vec2 uv = gl_FragCoord.xy / SCENE_RESOLUTION;
     vec2 ndc = uv * 2.0 - 1.0;
 
     vec4 col;
-    if (SCENE_MODE == 12) col = sceneCrtCurveSwatch(uv);
+    if (SCENE_MODE == 13) col = sceneDisplayPanelSwatch(uv);
+    else if (SCENE_MODE == 12) col = sceneVideoInputSwatch(uv);
     else if (SCENE_MODE == 11) col = sceneCrtSolid(ndc);
     else if (SCENE_MODE == 10) col = sceneCrtSwatch(uv);
     else if (SCENE_MODE == 9) col = sceneDropletSwatch(uv);

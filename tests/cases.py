@@ -25,7 +25,8 @@ MODE_PIXEL = 8
 MODE_DROPLET = 9
 MODE_CRT = 10
 MODE_CRT_SOLID = 11
-MODE_CRT_CURVE = 12
+MODE_VIDEO_INPUT = 12
+MODE_DISPLAY_PANEL = 13
 
 DEFAULT_STYLE: Dict[str, object] = {
     "shadeBorder1": 0.5,
@@ -107,7 +108,6 @@ DEFAULT_CRT: Dict[str, object] = {
     "mask": 0.0,
     "maskPitch": 6.0,
     "vignette": 0.0,
-    "curvature": 0.0,
     "aberration": 0.0,
     "roll": 0.0,
     "rollSpeed": 0.15,
@@ -131,6 +131,36 @@ DEFAULT_CRT: Dict[str, object] = {
 }
 
 MODULE_STYLE_DEFAULTS["SBSCrtStyle"] = DEFAULT_CRT
+
+# VideoInputCore.hlsl の SBSVideoInputStyle
+DEFAULT_VIDEO_INPUT: Dict[str, object] = {
+    "amount": 1.0,
+    "tint": (1.0, 1.0, 1.0, 1.0),
+    "brightness": 1.0,
+    "mirrorX": 0.0,
+    "flipY": 0.0,
+    "additivePass": 0.0,
+}
+
+MODULE_STYLE_DEFAULTS["SBSVideoInputStyle"] = DEFAULT_VIDEO_INPUT
+
+# DisplayPanelCore.hlsl の SBSDisplayPanelStyle
+DEFAULT_DISPLAY_PANEL: Dict[str, object] = {
+    "amount": 1.0,
+    "mode": 0.0,
+    "pixelPitch": 6.0,
+    "fill": 0.82,
+    "grid": 1.0,
+    "subpixel": 0.85,
+    "subpixelOrder": 0.0,
+    "brightness": 1.0,
+    "viewAngle": 0.0,
+    "tileCells": 16.0,
+    "seam": 2.0,
+    "tileVariation": 0.08,
+}
+
+MODULE_STYLE_DEFAULTS["SBSDisplayPanelStyle"] = DEFAULT_DISPLAY_PANEL
 
 DEFAULT_OUTLINE: Dict[str, object] = {
     "color": (0.15, 0.10, 0.13),
@@ -408,6 +438,72 @@ CASES: List[Case] = [
         resolution=(320, 160),
     ),
     Case(
+        name="video_input",
+        mode=MODE_VIDEO_INPUT,
+        description="外部テクスチャを Unlit で表示する。UV、入力色、入力アルファが変わると落ちる。",
+        resolution=(320, 160),
+    ),
+    Case(
+        name="video_input_mix",
+        mode=MODE_VIDEO_INPUT,
+        description="入力を色付けし、非対称な UV 範囲の中で上下左右反転する。元の色との合成率も見る。",
+        module_styles={
+            "SBSVideoInputStyle": {
+                "amount": 0.8,
+                "tint": (0.72, 1.05, 1.30, 0.85),
+                "brightness": 1.2,
+                "mirrorX": 1.0,
+                "flipY": 1.0,
+            }
+        },
+        resolution=(320, 160),
+    ),
+    Case(
+        name="display_lcd",
+        mode=MODE_DISPLAY_PANEL,
+        description="LCD の RGB ストライプと画素間の遮光部を表示する。",
+        module_styles={
+            "SBSDisplayPanelStyle": {
+                "mode": 0.0,
+                "pixelPitch": 9.0,
+                "fill": 0.82,
+                "subpixel": 0.9,
+            }
+        },
+        resolution=(320, 160),
+    ),
+    Case(
+        name="display_led",
+        mode=MODE_DISPLAY_PANEL,
+        description="LED の RGB 発光点と画素間の暗部を表示する。",
+        module_styles={
+            "SBSDisplayPanelStyle": {
+                "mode": 1.0,
+                "pixelPitch": 12.0,
+                "fill": 0.9,
+                "subpixel": 0.9,
+                "brightness": 1.15,
+            }
+        },
+        resolution=(320, 160),
+    ),
+    Case(
+        name="display_led_wall",
+        mode=MODE_DISPLAY_PANEL,
+        description="LED 大画面のタイル継ぎ目とタイル単位の輝度差を表示する。",
+        module_styles={
+            "SBSDisplayPanelStyle": {
+                "mode": 2.0,
+                "pixelPitch": 8.0,
+                "fill": 0.9,
+                "tileCells": 8.0,
+                "seam": 3.0,
+                "tileVariation": 0.15,
+            }
+        },
+        resolution=(320, 160),
+    ),
+    Case(
         name="crt_scanline",
         mode=MODE_CRT,
         description="走査線とシャドウマスクだけ。線の間隔と縞の周期がずれると落ちる。",
@@ -496,14 +592,6 @@ CASES: List[Case] = [
                 "time": 1.0,
             }
         },
-        resolution=(320, 160),
-    ),
-    Case(
-        name="crt_curve",
-        mode=MODE_CRT_CURVE,
-        description="画面の丸み。実際には頂点を動かすが、ここでは表を引く座標を"
-        "同じ式で曲げて、どれだけ膨らむかを見る。",
-        module_styles={"SBSCrtStyle": {"curvature": 0.25}},
         resolution=(320, 160),
     ),
     Case(

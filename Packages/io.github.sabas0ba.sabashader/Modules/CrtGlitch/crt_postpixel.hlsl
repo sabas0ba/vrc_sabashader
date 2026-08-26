@@ -16,7 +16,6 @@
     crtStyle.mask = _Mask;
     crtStyle.maskPitch = _MaskPitch;
     crtStyle.vignette = _Vignette;
-    crtStyle.curvature = _Curvature;
 
     crtStyle.aberration = _Aberration;
 

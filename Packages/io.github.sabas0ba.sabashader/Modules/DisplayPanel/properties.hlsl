@@ -1,0 +1,16 @@
+SC_float(_Amount, 0, [SCRange(0,1)], "__Amount", "__AmountDesc")
+SC_Foldout(__Panel)
+SC_uint(_Mode, 0, [SCEnum(LCD,0,LED,1,LED Wall,2)], "__Mode", "__ModeDesc")
+SC_float(_PixelPitch, 6, [SCRange(1,64)], "__PixelPitch", "__PixelPitchDesc")
+SC_float(_Fill, 0.82, [SCRange(0.1,1)], "__Fill", "__FillDesc")
+SC_float(_Grid, 1, [SCRange(0,1)], "__Grid", "__GridDesc")
+SC_float(_Subpixel, 0.85, [SCRange(0,1)], "__Subpixel", "__SubpixelDesc")
+SC_uint(_SubpixelOrder, 0, [SCEnum(RGB,0,BGR,1)], "__SubpixelOrder", "__SubpixelOrderDesc")
+SC_float(_Brightness, 1, [SCRange(0,4)], "__Brightness", "__BrightnessDesc")
+SC_float(_ViewAngle, 0, [SCRange(0,1)], "__ViewAngle", "__ViewAngleDesc")
+SC_FoldoutEnd
+SC_Foldout(__Wall)
+SC_float(_TileCells, 16, [SCRangeInt(2,64)], "__TileCells", "__TileCellsDesc")
+SC_float(_Seam, 2, [SCRange(0,16)], "__Seam", "__SeamDesc")
+SC_float(_TileVariation, 0.08, [SCRange(0,0.5)], "__TileVariation", "__TileVariationDesc")
+SC_FoldoutEnd

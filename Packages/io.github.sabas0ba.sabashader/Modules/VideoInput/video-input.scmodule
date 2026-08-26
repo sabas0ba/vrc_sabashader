@@ -1,0 +1,11 @@
+{
+    "name": "__VideoInput",
+    "uniqueID": "io.github.sabas0ba.videoinput",
+    "phases": [
+        {
+            "phase": "postpixel",
+            "path": "video_input_postpixel.hlsl",
+            "befores": ["__PixelArt", "__CrtGlitch"]
+        }
+    ]
+}

@@ -10,7 +10,8 @@ VRChat 向けシェーダー集です。**
 [![Unity](https://img.shields.io/badge/Unity-2022.3-black.svg?logo=unity)](https://unity.com/)
 
 収録しているのは、3D モデルを 2D イラスト調に見せるトゥーンシェーダー **Illust2D** と、
-その上に効果を足すモジュール（表面の重ね掛け・ドット絵風・ブラウン管とグリッチ）です。
+その上に効果を足すモジュール（表面の重ね掛け・ドット絵風・ビデオ入力・
+表示パネル・ブラウン管とグリッチ）です。
 [Shader Core](https://github.com/lilxyzw/Shader-Core) をベースにしています。
 
 シェーディングの数式は
@@ -62,7 +63,7 @@ HLSL が実際にコンパイルできるかは
 並びと表記は [GitHub Pages のサイト](https://sabas0ba.github.io/vrc_sabashader/)と揃えてあります。
 
 - [Illust2D のパラメータ](docs/shader-illust2d.md)
-- [モジュールのパラメータ](docs/modules.md)（表面の重ね掛け・ドット絵風・ブラウン管とグリッチ）
+- [モジュールのパラメータ](docs/modules.md)（表面の重ね掛け・ドット絵風・ビデオ入力・表示パネル・ブラウン管とグリッチ）
 - [アバターに適用して確認する](docs/avatar-demo.md)
 - [テストの仕組みと動かし方](docs/testing.md)
 - [シェーダーを追加する](docs/adding-a-shader.md)

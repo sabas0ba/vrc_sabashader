@@ -44,12 +44,6 @@ msgstr "Vignette"
 msgid "__VignetteDesc"
 msgstr "Darkens the image toward the edges of the screen."
 
-msgid "__Curvature"
-msgstr "Screen Curvature"
-
-msgid "__CurvatureDesc"
-msgstr "Bulges the image outward toward the edges. The picture itself cannot be bent, so the mesh vertices are moved instead. Coarse meshes will not curve, the model no longer lines up with other objects, and the shadow keeps the uncurved shape."
-
 msgid "__Aberration"
 msgstr "Chromatic Aberration"
 

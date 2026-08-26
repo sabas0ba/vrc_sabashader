@@ -1,0 +1,42 @@
+msgid ""
+msgstr ""
+"Language: en-US\n"
+
+msgid "__VideoInput"
+msgstr "Video Input"
+
+msgid "__Amount"
+msgstr "Amount"
+
+msgid "__AmountDesc"
+msgstr "0 disables the module; 1 fully replaces the rendered color with the input."
+
+msgid "__VideoTexture"
+msgstr "Input Texture"
+
+msgid "__VideoTextureDesc"
+msgstr "A RenderTexture supplied by a video player or another source."
+
+msgid "__Tint"
+msgstr "Input Tint"
+
+msgid "__TintDesc"
+msgstr "RGB tints the input and alpha scales its opacity. HDR values are supported."
+
+msgid "__Brightness"
+msgstr "Brightness"
+
+msgid "__BrightnessDesc"
+msgstr "Scales the input brightness independently of scene lighting."
+
+msgid "__MirrorX"
+msgstr "Mirror Horizontally"
+
+msgid "__MirrorXDesc"
+msgstr "Mirrors the input UV horizontally."
+
+msgid "__FlipY"
+msgstr "Flip Vertically"
+
+msgid "__FlipYDesc"
+msgstr "Use this when a RenderTexture appears upside down."

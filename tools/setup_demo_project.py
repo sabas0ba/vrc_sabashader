@@ -30,7 +30,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from tools.setup_unity_project import clone_shadercore, PACKAGE_DIR, REPO_ROOT  # noqa: E402
+from tools.setup_unity_project import clone_shadercore, enable_modules, PACKAGE_DIR, REPO_ROOT  # noqa: E402
 
 DEMO_DIR = REPO_ROOT / ".demo"
 PROJECT_DIR = DEMO_DIR / "UnityProject"
@@ -214,6 +214,7 @@ def main() -> int:
     packages = project / "Packages"
     copy_package(packages / PACKAGE_DIR.name)
     clone_shadercore(packages / "jp.lilxyzw.shadercore")
+    enable_modules(project)
 
     avatar_root = project / "Assets" / "Avatar"
     avatar_root.mkdir(parents=True, exist_ok=True)

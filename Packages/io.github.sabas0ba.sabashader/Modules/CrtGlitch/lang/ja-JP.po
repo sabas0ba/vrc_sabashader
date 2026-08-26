@@ -44,12 +44,6 @@ msgstr "周辺の落ち込み"
 msgid "__VignetteDesc"
 msgstr "画面の外側ほど暗くします。"
 
-msgid "__Curvature"
-msgstr "画面の丸み"
-
-msgid "__CurvatureDesc"
-msgstr "外側ほど外へ膨らませます。絵を曲げることはできないので、モデルの頂点そのものを動かします。粗いメッシュは曲がらず、他のオブジェクトとの位置関係も崩れます。影の形は曲がる前のまま残ります。"
-
 msgid "__Aberration"
 msgstr "色ずれ"
 

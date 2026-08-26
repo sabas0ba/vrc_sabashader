@@ -1,0 +1,84 @@
+msgid ""
+msgstr ""
+"Language: en-US\n"
+
+msgid "__DisplayPanel"
+msgstr "Display Panel"
+
+msgid "__Amount"
+msgstr "Amount"
+
+msgid "__AmountDesc"
+msgstr "Blends the display panel pixel structure. No panel work is executed at zero."
+
+msgid "__Panel"
+msgstr "Pixel Structure"
+
+msgid "__Mode"
+msgstr "Panel Type"
+
+msgid "__ModeDesc"
+msgstr "Selects LCD, LED, or an LED wall with tiled panel boundaries."
+
+msgid "__PixelPitch"
+msgstr "Pixel Pitch"
+
+msgid "__PixelPitchDesc"
+msgstr "Width of one display pixel in screen pixels."
+
+msgid "__Fill"
+msgstr "Fill Factor"
+
+msgid "__FillDesc"
+msgstr "Size of the transmissive or emissive area inside each display pixel."
+
+msgid "__Grid"
+msgstr "Pixel Grid"
+
+msgid "__GridDesc"
+msgstr "Blends the dark pixel gaps and emitter shape."
+
+msgid "__Subpixel"
+msgstr "Subpixel Separation"
+
+msgid "__SubpixelDesc"
+msgstr "Controls how distinctly the RGB subpixels are separated."
+
+msgid "__SubpixelOrder"
+msgstr "Subpixel Order"
+
+msgid "__SubpixelOrderDesc"
+msgstr "Arranges the horizontal color elements in RGB or BGR order."
+
+msgid "__Brightness"
+msgstr "Display Brightness"
+
+msgid "__BrightnessDesc"
+msgstr "Scales the brightness after panel processing."
+
+msgid "__ViewAngle"
+msgstr "Viewing-angle Falloff"
+
+msgid "__ViewAngleDesc"
+msgstr "Controls how much the panel darkens away from a frontal view."
+
+msgid "__Wall"
+msgstr "LED Wall"
+
+msgid "__TileCells"
+msgstr "Pixels per Tile"
+
+msgid "__TileCellsDesc"
+msgstr "Number of horizontal and vertical display pixels in one panel tile."
+
+msgid "__Seam"
+msgstr "Tile Seam Width"
+
+msgid "__SeamDesc"
+msgstr "Width of the dark boundary between panel tiles, in screen pixels."
+
+msgid "__TileVariation"
+msgstr "Tile Brightness Variation"
+
+msgid "__TileVariationDesc"
+msgstr "Adds a deterministic brightness difference between panel tiles."
