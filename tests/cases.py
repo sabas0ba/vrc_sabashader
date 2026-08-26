@@ -25,8 +25,7 @@ MODE_PIXEL = 8
 MODE_DROPLET = 9
 MODE_CRT = 10
 MODE_CRT_SOLID = 11
-MODE_CRT_CURVE = 12
-MODE_VIDEO_INPUT = 13
+MODE_VIDEO_INPUT = 12
 
 DEFAULT_STYLE: Dict[str, object] = {
     "shadeBorder1": 0.5,
@@ -108,7 +107,6 @@ DEFAULT_CRT: Dict[str, object] = {
     "mask": 0.0,
     "maskPitch": 6.0,
     "vignette": 0.0,
-    "curvature": 0.0,
     "aberration": 0.0,
     "roll": 0.0,
     "rollSpeed": 0.15,
@@ -530,14 +528,6 @@ CASES: List[Case] = [
                 "time": 1.0,
             }
         },
-        resolution=(320, 160),
-    ),
-    Case(
-        name="crt_curve",
-        mode=MODE_CRT_CURVE,
-        description="画面の丸み。実際には頂点を動かすが、ここでは表を引く座標を"
-        "同じ式で曲げて、どれだけ膨らむかを見る。",
-        module_styles={"SBSCrtStyle": {"curvature": 0.25}},
         resolution=(320, 160),
     ),
     Case(

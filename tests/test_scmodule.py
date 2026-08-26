@@ -474,18 +474,16 @@ def test_crt_apply_skips_disabled_stages_and_refreshes_gradients():
     )
 
 
-def test_crt_curvature_uses_matching_projection_matrices():
-    postvertex = (
-        MODULES_DIR / "CrtGlitch" / "crt_postvertex.hlsl"
-    ).read_text(encoding="utf-8")
+def test_crt_does_not_expose_model_dependent_curvature():
+    module_dir = MODULES_DIR / "CrtGlitch"
+    properties = (module_dir / "properties.hlsl").read_text(encoding="utf-8")
+    core = (module_dir / "CrtGlitchCore.hlsl").read_text(encoding="utf-8")
+    descriptor = (module_dir / "crt-glitch.scmodule").read_text(encoding="utf-8")
 
-    assert "unity_CameraProjection" in postvertex
-    assert "unity_CameraInvProjection" in postvertex
-    assert "UNITY_MATRIX_I_V" in postvertex
-    assert "UNITY_MATRIX_P._m00" not in postvertex
-    assert "UNITY_MATRIX_P._m11" not in postvertex
-    assert re.search(r"if \(crtClipPosition\.w > 1\.0e-3\)", postvertex)
-    assert "abs(crtClipPosition.w)" not in postvertex
+    assert "_Curvature" not in properties
+    assert "SBSCrtCurve" not in core
+    assert "postvertex" not in descriptor
+    assert not (module_dir / "crt_postvertex.hlsl").exists()
 
 
 @pytest.mark.parametrize("module", _package_modules(), ids=lambda m: m.unique_id)

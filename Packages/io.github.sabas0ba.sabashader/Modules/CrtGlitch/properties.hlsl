@@ -6,7 +6,6 @@ SC_float(_Mask, 0.3, [SCRange(0,1)], "__Mask", "__MaskDesc")
 SC_float(_MaskPitch, 6, [SCRange(3,24)], "__MaskPitch", "__MaskPitchDesc")
 SC_float(_Vignette, 0.35, [SCRange(0,1)], "__Vignette", "__VignetteDesc")
 SC_float(_Aberration, 1.5, [SCRange(0,8)], "__Aberration", "__AberrationDesc")
-SC_float(_Curvature, 0, [SCRange(0,0.5)], "__Curvature", "__CurvatureDesc")
 SC_FoldoutEnd
 SC_Foldout(__Grain)
 SC_float(_Noise, 0.05, [SCRange(0,1)], "__Noise", "__NoiseDesc")

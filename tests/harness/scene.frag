@@ -381,33 +381,13 @@ vec4 sceneCrtSwatch(vec2 uv)
     return vec4(SBSCrtApply(card, screen, SCENE_RESOLUTION, sceneCrtStyle()), 1.0);
 }
 
-// mode 12: 画面の丸み
-//
-// 本番では SBSCrtCurve の返り値でモデルの頂点を動かす。ここでは頂点が無いので、
-// 表を引く座標を同じ式で逆向きに曲げて、どれだけ膨らむかを見る。
-// 式の係数が変われば絵も変わるので、回帰としては同じ働きをする。
-vec4 sceneCrtCurveSwatch(vec2 uv)
-{
-    vec2 ndc = uv * 2.0 - 1.0;
-    vec2 curved = ndc - SBSCrtCurve(ndc, sceneCrtStyle());
-
-    vec2 source = curved * 0.5 + 0.5;
-
-    // 曲げた先が表の外へ出たところは背景にする。
-    if (source.x < 0.0 || source.x > 1.0 || source.y < 0.0 || source.y > 1.0)
-        return vec4(SCENE_BACKGROUND, 1.0);
-
-    return vec4(sceneCrtCard(source), 1.0);
-}
-
 void main()
 {
     vec2 uv = gl_FragCoord.xy / SCENE_RESOLUTION;
     vec2 ndc = uv * 2.0 - 1.0;
 
     vec4 col;
-    if (SCENE_MODE == 13) col = sceneVideoInputSwatch(uv);
-    else if (SCENE_MODE == 12) col = sceneCrtCurveSwatch(uv);
+    if (SCENE_MODE == 12) col = sceneVideoInputSwatch(uv);
     else if (SCENE_MODE == 11) col = sceneCrtSolid(ndc);
     else if (SCENE_MODE == 10) col = sceneCrtSwatch(uv);
     else if (SCENE_MODE == 9) col = sceneDropletSwatch(uv);
