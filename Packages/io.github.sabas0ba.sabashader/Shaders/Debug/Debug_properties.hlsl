@@ -1,0 +1,6 @@
+SC_uint(_Mode, 0, [SCEnum(Wireframe,0,VertexColor,1,VertexAlpha,2,UV0,3,UV1,4,UV2,5,UV3,6,WorldPosition,7,ObjectPosition,8,WorldNormal,9,WorldTangent,10,WorldBitangent,11,FrontFace,12,LightDirection,13,LightColor,14,LightAttenuation,15,ViewDirection,16,ViewFacing,17)], "__DebugMode", "__DebugModeDesc")
+SC_uint(_Cull, 0, [SCEnum(Off,0,Front,1,Back,2)], "__Cull", "__DebugCullDesc")
+SC_float(_CoordinateScale, 1, [SCRange(0.01,100)], "__CoordinateScale", "__CoordinateScaleDesc")
+SC_color(_WireColor, (0,1,0,1), [SCHDR], "__WireColor", "")
+SC_color(_BackgroundColor, (0,0,0,1), [SCHDR], "__BackgroundColor", "")
+SC_float(_WireWidth, 1, [SCRange(0.5,5)], "__WireWidth", "__WireWidthDesc")

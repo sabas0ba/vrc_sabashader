@@ -77,11 +77,9 @@ Unity 依存の処理（テクスチャサンプリング、SH、行列変換）
 
 1. `tests/cases.py` に `DEFAULT_STYLE` 相当と `Case` を足す
 2. 必要なら `tests/harness/scene.frag` にシーンモードを足す
-3. `tests/test_scshader_structure.py` の `OUR_SOURCES` に新しいファイルを足す
-4. `python -m pytest tests -k render --update-goldens` でゴールデンを作り、目視する
+3. `python -m pytest tests -k render --update-goldens` でゴールデンを作り、目視する
 
-`tests/test_scshader_structure.py` は今のところ Illust2D 固定です。
-2 本目を足すときは `SCSHADER` をパラメータ化してください。
+`tests/test_scshader_structure.py` は `Shaders/` 以下の `.scshader` を自動検出し、プロパティ、翻訳、include、展開結果を検査します。Unity 非依存の `*Core.hlsl` も headless GLSL のコンパイル対象へ自動的に入ります。shader 固有の default 値や pass 構成を検査する場合だけ専用テストを追加してください。
 
 ## 6. `.meta` とリリース
 

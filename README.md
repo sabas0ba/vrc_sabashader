@@ -9,7 +9,8 @@ VRChat 向けシェーダー集です。**
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 [![Unity](https://img.shields.io/badge/Unity-2022.3-black.svg?logo=unity)](https://unity.com/)
 
-収録しているのは、3D モデルを 2D イラスト調に見せるトゥーンシェーダー **Illust2D** と、
+収録しているのは、3D モデルを 2D イラスト調に見せるトゥーンシェーダー **Illust2D**、
+mesh とライティング入力を可視化する **Debug shader** と、
 その上に効果を足すモジュール（表面の重ね掛け・ドット絵風・ビデオ入力・
 表示パネル・ブラウン管とグリッチ）です。
 [Shader Core](https://github.com/lilxyzw/Shader-Core) をベースにしています。
@@ -50,7 +51,7 @@ HLSL が実際にコンパイルできるかは
 | パス | 中身 |
 | --- | --- |
 | `Packages/io.github.sabas0ba.sabashader/` | 配布する VPM パッケージ本体 |
-| `Packages/.../Shaders/Illust2D/` | Illust2D シェーダー一式 |
+| `Packages/.../Shaders/` | Illust2D と Debug shader |
 | `tests/` | ヘッドレス描画による回帰テストと構造チェック |
 | `.ci/UnityProject/` | Unity でのコンパイル検証用プロジェクトの雛形 |
 | `tools/` | `.meta` 生成・VPM リスティング生成・Pages のサイト生成・Unity プロジェクト組み立て |
@@ -63,6 +64,7 @@ HLSL が実際にコンパイルできるかは
 並びと表記は [GitHub Pages のサイト](https://sabas0ba.github.io/vrc_sabashader/)と揃えてあります。
 
 - [Illust2D のパラメータ](docs/shader-illust2d.md)
+- [Debug shader](docs/shader-debug.md)
 - [モジュールのパラメータ](docs/modules.md)（表面の重ね掛け・ドット絵風・ビデオ入力・表示パネル・ブラウン管とグリッチ）
 - [アバターに適用して確認する](docs/avatar-demo.md)
 - [テストの仕組みと動かし方](docs/testing.md)

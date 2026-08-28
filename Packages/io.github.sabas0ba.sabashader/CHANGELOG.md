@@ -2,7 +2,19 @@
 
 このプロジェクトは [Semantic Versioning](https://semver.org/lang/ja/) に従います。
 
-## [0.4.0] - 未リリース
+## [Unreleased]
+
+### Added
+
+- Debug shader（`SabaShader/Debug`）
+  - triangle wireframe
+  - UV0–UV3、vertex color、world／object position
+  - normal、tangent、bitangent、front face、view direction
+  - main light の方向、色、attenuation
+
+- 全表示モードを確認できる UPM sample `Debug Shader Demo`
+
+## [0.4.0] - 2026-08-27
 
 ### Added
 

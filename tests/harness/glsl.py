@@ -1,4 +1,4 @@
-"""Illust2DCore.hlsl を GLSL のテストシーンに組み立てる。
+"""各 shader と module の Core HLSL を GLSL のテストシーンに組み立てる。
 
 コアの HLSL は改変せずそのまま連結する。テスト対象と出荷物を同じコードに
 保つのがこのハーネスの目的なので、ここで書き換えを入れてはいけない。
@@ -9,7 +9,7 @@ from __future__ import annotations
 import re
 from typing import Dict, List, Optional, Sequence, Tuple
 
-from .paths import CORE_HLSL, MODULES_DIR, PRELUDE_GLSL, SCENE_FRAG
+from .paths import CORE_HLSL, MODULES_DIR, PRELUDE_GLSL, SCENE_FRAG, SHADERS_DIR
 
 _STRUCT_RE = r"struct\s+{name}\s*\{{(.*?)\}}\s*;"
 _FIELD_RE = re.compile(r"^\s*(half|half2|half3|half4|float|float2|float3|float4)\s+(\w+)\s*;")
@@ -20,6 +20,17 @@ _VECTOR_SIZES = {"half2": 2, "half3": 3, "half4": 4, "float2": 2, "float3": 3, "
 
 def read_core() -> str:
     return CORE_HLSL.read_text(encoding="utf-8")
+
+
+def shader_cores() -> List[Tuple[str, str]]:
+    """Illust2D 以外の shader が持つ、Unity 非依存の数式ファイル。"""
+    if not SHADERS_DIR.is_dir():
+        return []
+    return [
+        (path.relative_to(SHADERS_DIR).as_posix(), path.read_text(encoding="utf-8"))
+        for path in sorted(SHADERS_DIR.rglob("*Core.hlsl"))
+        if path != CORE_HLSL
+    ]
 
 
 def module_cores() -> List[Tuple[str, str]]:
@@ -108,6 +119,8 @@ def build_scene_source(
     core = read_core()
     fields = parse_struct_fields(core, "SBSStyle")
 
+    shaders = shader_cores()
+    shader_source = "\n".join(f"// ---- {name} ----\n{body}" for name, body in shaders)
     modules = module_cores()
     module_source = "\n".join(f"// ---- {name} ----\n{body}" for name, body in modules)
 
@@ -153,6 +166,7 @@ def build_scene_source(
             PRELUDE_GLSL.read_text(encoding="utf-8"),
             "// ---- Packages/io.github.sabas0ba.sabashader/Shaders/Illust2D/Illust2DCore.hlsl ----",
             core,
+            shader_source,
             module_source,
             header,
             "// ---- tests/harness/scene.frag ----",

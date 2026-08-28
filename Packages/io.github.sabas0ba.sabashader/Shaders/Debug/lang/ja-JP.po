@@ -1,0 +1,29 @@
+msgid "__DebugMode"
+msgstr "表示モード"
+
+msgid "__DebugModeDesc"
+msgstr "可視化するメッシュまたはライティングの情報"
+
+msgid "__Cull"
+msgstr "カリング"
+
+msgid "__DebugCullDesc"
+msgstr "表面または裏面を除外する設定"
+
+msgid "__CoordinateScale"
+msgstr "座標スケール"
+
+msgid "__CoordinateScaleDesc"
+msgstr "UV と位置の繰り返し表示に使う倍率"
+
+msgid "__WireColor"
+msgstr "ワイヤー色"
+
+msgid "__BackgroundColor"
+msgstr "背景色"
+
+msgid "__WireWidth"
+msgstr "ワイヤー幅"
+
+msgid "__WireWidthDesc"
+msgstr "三角形の辺を表示する幅（画面ピクセル）"

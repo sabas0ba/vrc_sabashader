@@ -1,0 +1,29 @@
+msgid "__DebugMode"
+msgstr "Display Mode"
+
+msgid "__DebugModeDesc"
+msgstr "Mesh or lighting information to visualize"
+
+msgid "__Cull"
+msgstr "Culling"
+
+msgid "__DebugCullDesc"
+msgstr "Select which face orientation to discard"
+
+msgid "__CoordinateScale"
+msgstr "Coordinate Scale"
+
+msgid "__CoordinateScaleDesc"
+msgstr "Multiplier used to repeat UV and position visualization"
+
+msgid "__WireColor"
+msgstr "Wire Color"
+
+msgid "__BackgroundColor"
+msgstr "Background Color"
+
+msgid "__WireWidth"
+msgstr "Wire Width"
+
+msgid "__WireWidthDesc"
+msgstr "Triangle edge width in screen pixels"

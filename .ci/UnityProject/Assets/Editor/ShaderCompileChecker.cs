@@ -19,6 +19,7 @@ namespace SabaShader.CI
     {
         public const string PackagePath = "Packages/io.github.sabas0ba.sabashader";
         public const string Illust2DPath = PackagePath + "/Shaders/Illust2D/Illust2D.scshader";
+        public const string DebugPath = PackagePath + "/Shaders/Debug/Debug.scshader";
 
         public static readonly string[] ExpectedPasses =
         {
@@ -37,6 +38,21 @@ namespace SabaShader.CI
             "_ShadeBorder1",
             "_OutlineWidth",
             "_Cull",
+        };
+
+        public static readonly string[] DebugExpectedPasses =
+        {
+            "FORWARD",
+        };
+
+        public static readonly string[] DebugRequiredProperties =
+        {
+            "_Mode",
+            "_Cull",
+            "_CoordinateScale",
+            "_WireColor",
+            "_BackgroundColor",
+            "_WireWidth",
         };
 
         /// <summary>batchmode 用のエントリポイント。問題があれば終了コード 1 で落とす。</summary>
@@ -103,8 +119,13 @@ namespace SabaShader.CI
 
                 if (IsIllust2D(path))
                 {
-                    CollectPassFailures(path, shader, failures);
-                    CollectMaterialFailures(path, shader, failures);
+                    CollectPassFailures(path, shader, ExpectedPasses, failures);
+                    CollectMaterialFailures(path, shader, RequiredProperties, failures);
+                }
+                else if (IsDebug(path))
+                {
+                    CollectPassFailures(path, shader, DebugExpectedPasses, failures);
+                    CollectMaterialFailures(path, shader, DebugRequiredProperties, failures);
                 }
             }
 
@@ -156,6 +177,11 @@ namespace SabaShader.CI
             return path.EndsWith("Illust2D.scshader", StringComparison.Ordinal);
         }
 
+        private static bool IsDebug(string path)
+        {
+            return path.EndsWith("Debug.scshader", StringComparison.Ordinal);
+        }
+
         private static void CollectMessageFailures(string path, Shader shader, List<string> failures)
         {
             var messages = ShaderUtil.GetShaderMessages(shader);
@@ -183,12 +209,16 @@ namespace SabaShader.CI
             }
         }
 
-        private static void CollectPassFailures(string path, Shader shader, List<string> failures)
+        private static void CollectPassFailures(
+            string path,
+            Shader shader,
+            IEnumerable<string> expectedPasses,
+            List<string> failures)
         {
             var found = PassNames(shader);
             Debug.Log($"[ShaderCompileChecker] {path}: パス [{string.Join(", ", found)}]");
 
-            foreach (var expected in ExpectedPasses)
+            foreach (var expected in expectedPasses)
             {
                 if (!found.Contains(expected))
                 {
@@ -197,13 +227,17 @@ namespace SabaShader.CI
             }
         }
 
-        private static void CollectMaterialFailures(string path, Shader shader, List<string> failures)
+        private static void CollectMaterialFailures(
+            string path,
+            Shader shader,
+            IEnumerable<string> requiredProperties,
+            List<string> failures)
         {
             Material material = null;
             try
             {
                 material = new Material(shader);
-                foreach (var property in RequiredProperties)
+                foreach (var property in requiredProperties)
                 {
                     if (!material.HasProperty(property))
                     {

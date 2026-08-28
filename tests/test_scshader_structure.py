@@ -7,12 +7,14 @@ Shader Core のインポータと同じ手順で展開し、マーカーの取�
 from __future__ import annotations
 
 import re
+from dataclasses import dataclass
+from pathlib import Path
 from typing import Dict, List, Tuple
 
 import pytest
 
 from cases import DEFAULT_OUTLINE, DEFAULT_STYLE, PROPERTY_TO_OUTLINE, PROPERTY_TO_STYLE
-from harness.paths import LANG_DIR, PROPERTIES_HLSL, SCSHADER, SHADER_DIR
+from harness.paths import LANG_DIR, PROPERTIES_HLSL, SCSHADER, SHADER_DIR, SHADERS_DIR
 from harness.scshader import (
     ShaderExpander,
     ensure_shadercore,
@@ -76,6 +78,38 @@ OUR_SOURCES = [
 ]
 
 
+@dataclass(frozen=True)
+class ShaderFiles:
+    directory: Path
+    shader: Path
+    properties: Path
+    lang: Path
+    sources: Tuple[Path, ...]
+
+    @property
+    def name(self) -> str:
+        return self.shader.stem
+
+
+def _discover_shaders() -> Tuple[ShaderFiles, ...]:
+    shaders = []
+    for shader in sorted(SHADERS_DIR.rglob("*.scshader")):
+        directory = shader.parent
+        shaders.append(
+            ShaderFiles(
+                directory=directory,
+                shader=shader,
+                properties=directory / f"{shader.stem}_properties.hlsl",
+                lang=directory / "lang",
+                sources=tuple(sorted(directory.glob("*.hlsl"))) + (shader,),
+            )
+        )
+    return tuple(shaders)
+
+
+SHADERS = _discover_shaders()
+
+
 def _our_sources() -> List[Tuple[str, str]]:
     return [(name, (SHADER_DIR / name).read_text(encoding="utf-8")) for name in OUR_SOURCES]
 
@@ -100,6 +134,155 @@ def _number(text: str) -> float:
 
 def _vector(text: str) -> Tuple[float, ...]:
     return tuple(float(part) for part in text.strip("()").split(","))
+
+
+@pytest.fixture(params=SHADERS, ids=lambda shader: shader.name)
+def shader_files(request: pytest.FixtureRequest) -> ShaderFiles:
+    return request.param
+
+
+@pytest.fixture
+def expanded_shader(shader_files: ShaderFiles):
+    shadercore = ensure_shadercore()
+    if shadercore is None:
+        pytest.skip("Shader Core を取得できませんでした (ネットワーク不通)")
+    return ShaderExpander(
+        shader_files.shader,
+        package_roots(shadercore),
+        package_modules(),
+    ).expand()
+
+
+# --- 全シェーダー共通 ---------------------------------------------------------
+
+
+def test_all_shader_files_are_complete(shader_files: ShaderFiles):
+    assert shader_files.properties.is_file(), (
+        f"{shader_files.name}: {shader_files.properties.name} がありません"
+    )
+    for language in ("ja-JP", "en-US"):
+        assert (shader_files.lang / f"{language}.po").is_file(), (
+            f"{shader_files.name}: lang/{language}.po がありません"
+        )
+
+
+def test_all_shader_properties_parse(shader_files: ShaderFiles):
+    props = parse_properties(shader_files.properties)
+    assert props, f"{shader_files.name}: プロパティが 1 つも読み取れません"
+
+
+def test_all_shader_property_names_are_unique(shader_files: ShaderFiles):
+    names = [
+        name
+        for prop in parse_properties(shader_files.properties)
+        for name in prop.declared_names()
+    ]
+    duplicates = sorted({name for name in names if names.count(name) > 1})
+    assert not duplicates, f"{shader_files.name}: プロパティ名が重複しています: {duplicates}"
+
+
+def test_all_shader_foldouts_are_balanced(shader_files: ShaderFiles):
+    depth_box = 0
+    depth_foldout = 0
+    for prop in parse_properties(shader_files.properties):
+        depth_box += {"Box": 1, "BoxEnd": -1}.get(prop.type, 0)
+        depth_foldout += {"Foldout": 1, "FoldoutEnd": -1}.get(prop.type, 0)
+        assert depth_box >= 0 and depth_foldout >= 0, (
+            f"{shader_files.name}: SC_BoxEnd / SC_FoldoutEnd が多すぎます"
+        )
+    assert depth_box == 0, f"{shader_files.name}: SC_Box が閉じられていません"
+    assert depth_foldout == 0, f"{shader_files.name}: SC_Foldout が閉じられていません"
+
+
+def test_all_shader_used_properties_are_declared(shader_files: ShaderFiles):
+    expander = ShaderExpander(shader_files.shader, {}, package_modules())
+    declared = set(expander.declared_property_names()) | EXTERNAL_NAMES
+    sources = [
+        (path.name, path.read_text(encoding="utf-8"))
+        for path in shader_files.sources
+    ]
+    used = used_property_names(sources)
+    undeclared = {name: files for name, files in used.items() if name not in declared}
+    assert not undeclared, (
+        f"{shader_files.name}: 宣言されていないプロパティを参照しています: "
+        f"{ {key: sorted(value) for key, value in sorted(undeclared.items())} }"
+    )
+
+
+def test_all_shader_declared_properties_are_used(shader_files: ShaderFiles):
+    expander = ShaderExpander(shader_files.shader, {})
+    bodies = "\n".join(
+        strip_comments(path.read_text(encoding="utf-8"))
+        for path in shader_files.sources
+        if path != shader_files.properties
+    )
+    unused = sorted(
+        name
+        for name in expander.declared_property_names()
+        if name != "_ShaderLabDummy"
+        and re.search(rf"(?<![\w]){re.escape(name)}(?![\w])", bodies) is None
+    )
+    assert not unused, f"{shader_files.name}: どこからも参照されていないプロパティ: {unused}"
+
+
+@pytest.mark.parametrize("language", ["ja-JP", "en-US"])
+def test_all_shader_localization_covers_every_key(shader_files: ShaderFiles, language: str):
+    entries = _parse_po((shader_files.lang / f"{language}.po").read_text(encoding="utf-8"))
+    missing = []
+    for prop in parse_properties(shader_files.properties):
+        for text in (prop.display, prop.description):
+            if not text:
+                continue
+            key = text.strip('"')
+            if key.startswith("__") and key not in entries and key not in SHADERCORE_L10N_KEYS:
+                missing.append(key)
+        if prop.type == "Foldout" and prop.name.startswith("__") and prop.name not in entries:
+            missing.append(prop.name)
+    assert not missing, f"{shader_files.name}: {language}.po に翻訳が無いキー: {sorted(set(missing))}"
+
+
+@pytest.mark.parametrize("language", ["ja-JP", "en-US"])
+def test_all_shader_localization_has_no_stale_keys(shader_files: ShaderFiles, language: str):
+    entries = _parse_po((shader_files.lang / f"{language}.po").read_text(encoding="utf-8"))
+    used = {""}
+    for prop in parse_properties(shader_files.properties):
+        for text in (prop.display, prop.description):
+            if text:
+                used.add(text.strip('"'))
+        if prop.type == "Foldout":
+            used.add(prop.name)
+    stale = sorted(set(entries) - used)
+    assert not stale, f"{shader_files.name}: {language}.po に使われていないキー: {stale}"
+
+
+def test_all_shaders_expand_without_markers(expanded_shader, shader_files: ShaderFiles):
+    leftovers = sorted(set(re.findall(r"__SC_[A-Za-z0-9_]+__", expanded_shader.source)))
+    assert not leftovers, f"{shader_files.name}: 展開されなかったマーカー: {leftovers}"
+
+
+def test_all_shader_includes_resolve(expanded_shader, shader_files: ShaderFiles):
+    allowed = {
+        "UnityCG.cginc",
+        "AutoLight.cginc",
+        "Packages/jp.lilxyzw.shadercore/ShaderLibrary/warnings.hlsl",
+    }
+    unexpected = sorted(set(expanded_shader.unresolved_includes) - allowed)
+    assert not unexpected, f"{shader_files.name}: 解決できない include: {unexpected}"
+
+
+def test_all_shader_delimiters_are_balanced(expanded_shader, shader_files: ShaderFiles):
+    text = strip_comments(expanded_shader.source)
+    assert text.count("{") == text.count("}"), f"{shader_files.name}: 波括弧の対応がありません"
+    assert text.count("(") == text.count(")"), f"{shader_files.name}: 丸括弧の対応がありません"
+
+
+def test_all_shader_passes_have_fragment(expanded_shader, shader_files: ShaderFiles):
+    passes = expanded_shader.source.count("HLSLPROGRAM")
+    fragments = len(re.findall(r"\bhalf4 frag\s*\(", expanded_shader.source))
+    assert passes > 0, f"{shader_files.name}: HLSLPROGRAM がありません"
+    assert fragments == passes, (
+        f"{shader_files.name}: frag の数が pass 数と一致しません: {fragments} != {passes}"
+    )
 
 
 # --- プロパティ ---------------------------------------------------------------

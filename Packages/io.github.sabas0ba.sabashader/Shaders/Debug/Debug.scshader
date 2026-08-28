@@ -1,0 +1,41 @@
+Shader "SabaShader/Debug"
+{
+    Properties
+    {
+        __SC_SHADERLAB_properties__
+        [SCHide]_ShaderLabDummy("", Float) = 0
+    }
+
+    SubShader
+    {
+        Tags
+        {
+            "RenderType" = "Opaque"
+            "Queue" = "Geometry"
+            "VRCFallback" = "Unlit"
+        }
+
+        Pass
+        {
+            Name "FORWARD"
+            Tags { "LightMode" = "ForwardBase" }
+            Cull [_Cull]
+            ZWrite On
+
+            HLSLPROGRAM
+            #pragma target 4.0
+            #pragma geometry geom
+            #define SC_CUSTOM_V2F
+            struct SCCustomV2F
+            {
+                half4 color;
+            };
+            #include "Packages/jp.lilxyzw.shadercore/ShaderLibrary/birp_forward.hlsl"
+            #include "DebugGeometry.hlsl"
+            #include "DebugFragment.hlsl"
+            ENDHLSL
+        }
+    }
+
+    CustomEditor "SCMaterialEditor"
+}
