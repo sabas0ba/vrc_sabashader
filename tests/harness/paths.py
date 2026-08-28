@@ -9,7 +9,8 @@ TESTS_DIR = HARNESS_DIR.parent
 REPO_ROOT = TESTS_DIR.parent
 
 PACKAGE_DIR = REPO_ROOT / "Packages" / "io.github.sabas0ba.sabashader"
-SHADER_DIR = PACKAGE_DIR / "Shaders" / "Illust2D"
+SHADERS_DIR = PACKAGE_DIR / "Shaders"
+SHADER_DIR = SHADERS_DIR / "Illust2D"
 MODULES_DIR = PACKAGE_DIR / "Modules"
 
 CORE_HLSL = SHADER_DIR / "Illust2DCore.hlsl"
