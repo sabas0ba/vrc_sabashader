@@ -26,6 +26,11 @@
       "displayName": "Debug Shader Demo",
       "description": "Debug shader の各表示モードを同一シーンで確認します。",
       "path": "Samples~/DebugShaderDemo"
+    },
+    {
+      "displayName": "Advanced Shader Suite Demo",
+      "description": "Decal、Surface Detail、Spatial Interior、Transition の代表設定を確認します。",
+      "path": "Samples~/AdvancedShaderSuiteDemo"
     }
   ],
   "legacyFolders": {}

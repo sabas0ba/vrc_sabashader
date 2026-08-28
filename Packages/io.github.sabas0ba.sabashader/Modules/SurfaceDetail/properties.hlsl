@@ -1,0 +1,18 @@
+SC_float(_Amount, 0, [SCRange(0,1)], "__Amount", "__AmountDesc")
+SC_uint(_Mode, 0, [SCEnum(Skin,0,Fabric,1)], "__Mode", "__ModeDesc")
+SC_Texture2D(_Texture, "gray", [], "__Texture", "__TextureDesc")
+SC_ScaleOffset(_Texture)
+SC_float(_TextureStrength, 0, [SCRange(0,2)], "__TextureStrength", "__TextureStrengthDesc")
+SC_uint(_MaskChannel, 4, [SCEnum(R,0,G,1,B,2,A,3,None,4)], "__MaskChannel", "__MaskChannelDesc")
+SC_float(_Scale, 120, [SCRange(2,512)], "__Scale", "__ScaleDesc")
+SC_float(_AlbedoVariation, 0.08, [SCRange(0,0.5)], "__AlbedoVariation", "__AlbedoVariationDesc")
+SC_float(_NormalStrength, 0.35, [SCRange(0,2)], "__NormalStrength", "__NormalStrengthDesc")
+SC_float(_RoughnessVariation, 0.35, [SCRange(0,1)], "__RoughnessVariation", "__RoughnessVariationDesc")
+SC_Foldout(__Skin)
+SC_float(_Pore, 0.7, [SCRange(0,2)], "__Pore", "__PoreDesc")
+SC_FoldoutEnd
+SC_Foldout(__Fabric)
+SC_float(_Weave, 0.8, [SCRange(0,2)], "__Weave", "__WeaveDesc")
+SC_float(_Sheen, 0.25, [SCRange(0,2)], "__Sheen", "__SheenDesc")
+SC_color(_SheenColor, (1,0.95,0.9,1), [SCHDR], "__SheenColor", "__SheenColorDesc")
+SC_FoldoutEnd

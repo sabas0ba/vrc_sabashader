@@ -1,0 +1,11 @@
+{
+    "name": "__Decal",
+    "uniqueID": "io.github.sabas0ba.decal",
+    "phases": [
+        {
+            "phase": "base",
+            "path": "decal_base.hlsl",
+            "befores": ["__SurfaceDetail"]
+        }
+    ]
+}

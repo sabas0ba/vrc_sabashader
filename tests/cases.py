@@ -162,6 +162,91 @@ DEFAULT_DISPLAY_PANEL: Dict[str, object] = {
 
 MODULE_STYLE_DEFAULTS["SBSDisplayPanelStyle"] = DEFAULT_DISPLAY_PANEL
 
+# DecalCore.hlsl の SBSDecalStyle
+DEFAULT_DECAL: Dict[str, object] = {
+    "amount": 0.0,
+    "mapping": 0.0,
+    "blendMode": 0.0,
+    "tint": (1.0, 1.0, 1.0, 1.0),
+    "projectorCenter": (0.0, 0.0, 0.0),
+    "projectorRotation": (0.0, 0.0, 0.0),
+    "projectorSize": (1.0, 1.0, 0.2),
+    "angleFade": 0.2,
+    "edgeSoftness": 0.03,
+}
+
+MODULE_STYLE_DEFAULTS["SBSDecalStyle"] = DEFAULT_DECAL
+
+# SurfaceDetailCore.hlsl の SBSSurfaceDetailStyle
+DEFAULT_SURFACE_DETAIL: Dict[str, object] = {
+    "amount": 0.0,
+    "mode": 0.0,
+    "scale": 120.0,
+    "textureStrength": 0.0,
+    "albedoVariation": 0.08,
+    "normalStrength": 0.35,
+    "roughnessVariation": 0.35,
+    "pore": 0.7,
+    "weave": 0.8,
+    "sheen": 0.25,
+    "sheenColor": (1.0, 0.95, 0.9),
+}
+
+MODULE_STYLE_DEFAULTS["SBSSurfaceDetailStyle"] = DEFAULT_SURFACE_DETAIL
+
+# SpatialInteriorCore.hlsl の SBSSpatialStyle
+DEFAULT_SPATIAL: Dict[str, object] = {
+    "amount": 0.0,
+    "preset": 0.0,
+    "side": 1.0,
+    "region": 0.0,
+    "colorA": (0.015, 0.025, 0.09),
+    "colorB": (0.35, 0.08, 0.55),
+    "emission": 2.0,
+    "scale": 5.0,
+    "depth": 2.0,
+    "parallax": 1.0,
+    "starDensity": 0.28,
+    "starSize": 0.18,
+    "nebula": 0.7,
+    "nebulaScale": 0.55,
+    "time": 0.0,
+    "riftCenter": (0.5, 0.5),
+    "riftSize": (0.8, 0.8),
+    "riftNoise": 0.22,
+    "edgeWidth": 0.08,
+    "edgeColor": (0.15, 0.8, 1.0),
+    "additivePass": 0.0,
+}
+
+MODULE_STYLE_DEFAULTS["SBSSpatialStyle"] = DEFAULT_SPATIAL
+
+# TransitionCore.hlsl の SBSTransitionStyle
+DEFAULT_TRANSITION: Dict[str, object] = {
+    "progress": 1.0,
+    "mode": 0.0,
+    "direction": (0.0, 1.0, 0.0),
+    "boundsMin": -1.0,
+    "boundsMax": 1.0,
+    "noiseScale": 8.0,
+    "noiseAmount": 0.3,
+    "edgeWidth": 0.06,
+    "edgeColor": (0.3, 1.6, 2.0),
+    "displacement": 0.2,
+    "blockScale": 8.0,
+    "liquidAmplitude": 0.06,
+    "liquidFrequency": 5.0,
+    "liquidSpeed": 1.0,
+    "liquidWobble": 0.5,
+    "liquidPuddle": 0.0,
+    "liquidPuddleHeight": 0.08,
+    "liquidPuddleSpread": 0.45,
+    "liquidTint": (0.25, 0.55, 1.0, 0.35),
+    "time": 0.0,
+}
+
+MODULE_STYLE_DEFAULTS["SBSTransitionStyle"] = DEFAULT_TRANSITION
+
 DEFAULT_OUTLINE: Dict[str, object] = {
     "color": (0.15, 0.10, 0.13),
     "hueShift": 0.02,

@@ -1,0 +1,123 @@
+msgid ""
+msgstr ""
+"Language: en-US\n"
+
+msgid "__Transition"
+msgstr "Appearance Transition"
+
+msgid "__Progress"
+msgstr "Progress"
+
+msgid "__ProgressDesc"
+msgstr "Drive this from an Animation Controller. 0 is the initial state; 1 is fully visible or solid."
+
+msgid "__Mode"
+msgstr "Mode"
+
+msgid "__ModeDesc"
+msgstr "Select upward dissolve, glitch spawn, or liquid-to-solid."
+
+msgid "__Direction"
+msgstr "Direction"
+
+msgid "__DirectionDesc"
+msgstr "Object-space transition direction. Only XYZ is used."
+
+msgid "__Bounds"
+msgstr "Height Range"
+
+msgid "__BoundsDesc"
+msgstr "Minimum and maximum values along the direction axis. Only XY is used."
+
+msgid "__NoiseScale"
+msgstr "Noise Scale"
+
+msgid "__NoiseScaleDesc"
+msgstr "Density of the object-space noise used at the dissolve boundary."
+
+msgid "__Noise"
+msgstr "Noise"
+
+msgid "__NoiseDesc"
+msgstr "Irregularity of the dissolve boundary. It becomes zero at progress 0 and 1."
+
+msgid "__EdgeWidth"
+msgstr "Edge Width"
+
+msgid "__EdgeWidthDesc"
+msgstr "Width of the emissive visibility boundary."
+
+msgid "__EdgeColor"
+msgstr "Edge Color"
+
+msgid "__EdgeColorDesc"
+msgstr "HDR color of the visibility boundary. Alpha scales its intensity."
+
+msgid "__EdgeEmission"
+msgstr "Edge Emission"
+
+msgid "__EdgeEmissionDesc"
+msgstr "Unlit brightness of the boundary color."
+
+msgid "__Displacement"
+msgstr "Disassembly Offset"
+
+msgid "__DisplacementDesc"
+msgstr "Object-space vertex displacement used by dissolve and glitch modes."
+
+msgid "__BlockScale"
+msgstr "Glitch Block Density"
+
+msgid "__BlockScaleDesc"
+msgstr "Density of cells shared by glitch visibility and vertex displacement."
+
+msgid "__Liquid"
+msgstr "Liquid to Solid"
+
+msgid "__LiquidAmplitude"
+msgstr "Liquid Deformation"
+
+msgid "__LiquidAmplitudeDesc"
+msgstr "Vertex wave and sag amount at progress 0."
+
+msgid "__LiquidFrequency"
+msgstr "Wave Density"
+
+msgid "__LiquidFrequencyDesc"
+msgstr "Object-space frequency of the liquid wave."
+
+msgid "__LiquidSpeed"
+msgstr "Wave Speed"
+
+msgid "__LiquidSpeedDesc"
+msgstr "Time scale of the liquid wave."
+
+msgid "__LiquidWobble"
+msgstr "Irregular Wobble"
+
+msgid "__LiquidWobbleDesc"
+msgstr "Blends waves from different directions and frequencies. Values above 1 also increase deformation."
+
+msgid "__LiquidPuddle"
+msgstr "Puddle Initial State"
+
+msgid "__LiquidPuddleDesc"
+msgstr "At progress 0, compresses the mesh to the lower bound and expands it horizontally."
+
+msgid "__LiquidPuddleHeight"
+msgstr "Puddle Thickness"
+
+msgid "__LiquidPuddleHeightDesc"
+msgstr "Puddle thickness relative to the height range. The minimum Bounds value is the ground plane."
+
+msgid "__LiquidPuddleSpread"
+msgstr "Puddle Spread"
+
+msgid "__LiquidPuddleSpreadDesc"
+msgstr "Object-space expansion ratio in the plane perpendicular to Direction."
+
+msgid "__LiquidTint"
+msgstr "Liquid Tint"
+
+msgid "__LiquidTintDesc"
+msgstr "RGB multiplies the base albedo and alpha controls its blend at progress 0."

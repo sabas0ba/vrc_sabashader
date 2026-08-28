@@ -1,0 +1,90 @@
+msgid ""
+msgstr ""
+"Language: en-US\n"
+
+msgid "__SurfaceDetail"
+msgstr "Surface Micro Detail"
+
+msgid "__Amount"
+msgstr "Amount"
+
+msgid "__AmountDesc"
+msgstr "0 disables the module; 1 applies the configured micro detail."
+
+msgid "__Mode"
+msgstr "Material"
+
+msgid "__ModeDesc"
+msgstr "Select skin pores or fabric weave with grazing sheen."
+
+msgid "__Texture"
+msgstr "Detail Texture"
+
+msgid "__TextureDesc"
+msgstr "RGB adds color variation and RG adds an optional micro normal."
+
+msgid "__TextureStrength"
+msgstr "Texture Strength"
+
+msgid "__TextureStrengthDesc"
+msgstr "Controls how strongly the detail texture affects color and normals."
+
+msgid "__MaskChannel"
+msgstr "Mask Channel"
+
+msgid "__MaskChannelDesc"
+msgstr "Multiplies the effect by the selected Shared Mask channel."
+
+msgid "__Scale"
+msgstr "Density"
+
+msgid "__ScaleDesc"
+msgstr "Number of procedural pores or threads across UV space."
+
+msgid "__AlbedoVariation"
+msgstr "Color Variation"
+
+msgid "__AlbedoVariationDesc"
+msgstr "Brightness variation following the micro pattern."
+
+msgid "__NormalStrength"
+msgstr "Micro Normal"
+
+msgid "__NormalStrengthDesc"
+msgstr "Tangent-space normal strength produced by pores or weave."
+
+msgid "__RoughnessVariation"
+msgstr "Reflection Variation"
+
+msgid "__RoughnessVariationDesc"
+msgstr "Variation applied to roughness and the micro specular response."
+
+msgid "__Skin"
+msgstr "Skin"
+
+msgid "__Pore"
+msgstr "Pores"
+
+msgid "__PoreDesc"
+msgstr "Depth of the procedural pores."
+
+msgid "__Fabric"
+msgstr "Fabric"
+
+msgid "__Weave"
+msgstr "Weave"
+
+msgid "__WeaveDesc"
+msgstr "Relief of the alternating warp and weft threads."
+
+msgid "__Sheen"
+msgstr "Sheen"
+
+msgid "__SheenDesc"
+msgstr "Strength of skin micro specular or fabric grazing sheen."
+
+msgid "__SheenColor"
+msgstr "Sheen Color"
+
+msgid "__SheenColorDesc"
+msgstr "HDR color applied to micro specular and grazing sheen."

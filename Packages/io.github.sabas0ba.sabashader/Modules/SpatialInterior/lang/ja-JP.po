@@ -1,0 +1,135 @@
+msgid ""
+msgstr ""
+"Language: ja-JP\n"
+
+msgid "__SpatialInterior"
+msgstr "異空間surface"
+
+msgid "__Amount"
+msgstr "強さ"
+
+msgid "__AmountDesc"
+msgstr "0 で無効。1 で対象surfaceを異空間へ置き換えます。"
+
+msgid "__Preset"
+msgstr "空間preset"
+
+msgid "__PresetDesc"
+msgstr "宇宙、星空、cyber空間、泥状空間の生成方式と配色を切り替えます。"
+
+msgid "__Side"
+msgstr "適用面"
+
+msgid "__SideDesc"
+msgstr "表面、裏面、両面から選択します。裏面にはCulling Offが必要です。"
+
+msgid "__Region"
+msgstr "領域"
+
+msgid "__RegionDesc"
+msgstr "surface全体またはUV上の不規則なriftへ適用します。"
+
+msgid "__MaskChannel"
+msgstr "マスクchannel"
+
+msgid "__MaskChannelDesc"
+msgstr "Shared Maskの指定channelを適用率へ掛けます。"
+
+msgid "__ColorA"
+msgstr "深部色"
+
+msgid "__ColorADesc"
+msgstr "Universe presetの暗部に使用するHDR色です。"
+
+msgid "__ColorB"
+msgstr "nebula色"
+
+msgid "__ColorBDesc"
+msgstr "Universe presetのnebula明部に使用するHDR色です。"
+
+msgid "__Emission"
+msgstr "発光"
+
+msgid "__EmissionDesc"
+msgstr "ライトに依存しない異空間とrift edgeの明るさです。"
+
+msgid "__Scale"
+msgstr "空間scale"
+
+msgid "__ScaleDesc"
+msgstr "星とnebulaを生成するobject-space座標の倍率です。"
+
+msgid "__Depth"
+msgstr "奥行き"
+
+msgid "__DepthDesc"
+msgstr "視線方向へ参照位置をずらす仮想空間の深さです。"
+
+msgid "__Parallax"
+msgstr "parallax"
+
+msgid "__ParallaxDesc"
+msgstr "視点移動に対する異空間の見かけの移動量です。"
+
+msgid "__StarDensity"
+msgstr "星の密度"
+
+msgid "__StarDensityDesc"
+msgstr "cell内に星を生成する確率です。"
+
+msgid "__StarSize"
+msgstr "星の大きさ"
+
+msgid "__StarSizeDesc"
+msgstr "星のcell内半径です。"
+
+msgid "__Nebula"
+msgstr "nebula"
+
+msgid "__NebulaDesc"
+msgstr "手続き生成する雲状領域の強さです。"
+
+msgid "__NebulaScale"
+msgstr "nebula scale"
+
+msgid "__NebulaScaleDesc"
+msgstr "nebula patternの空間周波数です。"
+
+msgid "__TimeScale"
+msgstr "移動速度"
+
+msgid "__TimeScaleDesc"
+msgstr "異空間patternが時間で移動する速度です。"
+
+msgid "__Rift"
+msgstr "Rift"
+
+msgid "__RiftCenter"
+msgstr "中心"
+
+msgid "__RiftCenterDesc"
+msgstr "rift中心のUV座標です。XYのみ使用します。"
+
+msgid "__RiftSize"
+msgstr "大きさ"
+
+msgid "__RiftSizeDesc"
+msgstr "riftのUV幅と高さです。XYのみ使用します。"
+
+msgid "__RiftNoise"
+msgstr "境界の乱れ"
+
+msgid "__RiftNoiseDesc"
+msgstr "rift境界へ加える不規則さです。"
+
+msgid "__EdgeWidth"
+msgstr "edge幅"
+
+msgid "__EdgeWidthDesc"
+msgstr "発光するrift境界の幅です。"
+
+msgid "__EdgeColor"
+msgstr "edge色"
+
+msgid "__EdgeColorDesc"
+msgstr "rift境界のHDR発光色です。アルファを強度へ掛けます。"

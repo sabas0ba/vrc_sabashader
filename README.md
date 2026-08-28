@@ -12,7 +12,8 @@ VRChat 向けシェーダー集です。**
 収録しているのは、3D モデルを 2D イラスト調に見せるトゥーンシェーダー **Illust2D**、
 mesh とライティング入力を可視化する **Debug shader** と、
 その上に効果を足すモジュール（表面の重ね掛け・ドット絵風・ビデオ入力・
-表示パネル・ブラウン管とグリッチ）です。
+表示パネル・ブラウン管とグリッチ・Decal・Surface Detail・Spatial Interior・
+Transition）です。
 [Shader Core](https://github.com/lilxyzw/Shader-Core) をベースにしています。
 
 シェーディングの数式は
@@ -66,6 +67,7 @@ HLSL が実際にコンパイルできるかは
 - [Illust2D のパラメータ](docs/shader-illust2d.md)
 - [Debug shader](docs/shader-debug.md)
 - [モジュールのパラメータ](docs/modules.md)（表面の重ね掛け・ドット絵風・ビデオ入力・表示パネル・ブラウン管とグリッチ）
+- [高度シェーダーモジュール](docs/modules-advanced.md)（Decal・Surface Detail・Spatial Interior・Transition）
 - [アバターに適用して確認する](docs/avatar-demo.md)
 - [テストの仕組みと動かし方](docs/testing.md)
 - [シェーダーを追加する](docs/adding-a-shader.md)

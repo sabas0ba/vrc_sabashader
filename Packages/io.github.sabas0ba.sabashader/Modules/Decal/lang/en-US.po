@@ -1,0 +1,81 @@
+msgid ""
+msgstr ""
+"Language: en-US\n"
+
+msgid "__Decal"
+msgstr "Decal"
+
+msgid "__Amount"
+msgstr "Amount"
+
+msgid "__AmountDesc"
+msgstr "0 disables the module; 1 applies the image at full configured opacity."
+
+msgid "__Texture"
+msgstr "Decal Texture"
+
+msgid "__TextureDesc"
+msgstr "An image with alpha to place on the surface."
+
+msgid "__Tint"
+msgstr "Tint and Opacity"
+
+msgid "__TintDesc"
+msgstr "RGB tints the image and alpha scales its opacity."
+
+msgid "__Mapping"
+msgstr "Mapping"
+
+msgid "__MappingDesc"
+msgstr "UV Space uses mesh UVs; Projection uses an object-space projector."
+
+msgid "__UVChannel"
+msgstr "UV Channel"
+
+msgid "__UVChannelDesc"
+msgstr "The UV channel used by UV Space mapping."
+
+msgid "__BlendMode"
+msgstr "Blend Mode"
+
+msgid "__BlendModeDesc"
+msgstr "Select alpha blending, multiplication, or addition."
+
+msgid "__MaskChannel"
+msgstr "Mask Channel"
+
+msgid "__MaskChannelDesc"
+msgstr "Multiplies opacity by the selected Shared Mask channel."
+
+msgid "__Projection"
+msgstr "Projection"
+
+msgid "__ProjectorCenter"
+msgstr "Center"
+
+msgid "__ProjectorCenterDesc"
+msgstr "Object-space projector center. Only XYZ is used."
+
+msgid "__ProjectorRotation"
+msgstr "Rotation"
+
+msgid "__ProjectorRotationDesc"
+msgstr "Projector XYZ rotation in degrees."
+
+msgid "__ProjectorSize"
+msgstr "Bounds"
+
+msgid "__ProjectorSizeDesc"
+msgstr "Projector width, height, and depth in object-space units."
+
+msgid "__AngleFade"
+msgstr "Angle Limit"
+
+msgid "__AngleFadeDesc"
+msgstr "Suppresses projection onto surfaces that do not face the projector."
+
+msgid "__EdgeSoftness"
+msgstr "Edge Fade"
+
+msgid "__EdgeSoftnessDesc"
+msgstr "Softens the projector and depth boundaries."

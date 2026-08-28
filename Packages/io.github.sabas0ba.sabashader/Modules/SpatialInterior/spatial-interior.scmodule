@@ -1,0 +1,11 @@
+{
+    "name": "__SpatialInterior",
+    "uniqueID": "io.github.sabas0ba.spatialinterior",
+    "phases": [
+        {
+            "phase": "postpixel",
+            "path": "spatial_interior_postpixel.hlsl",
+            "befores": ["__PixelArt", "__DisplayPanel", "__CrtGlitch", "__Transition"]
+        }
+    ]
+}

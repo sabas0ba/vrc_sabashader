@@ -100,6 +100,8 @@ void SCVertexPost(inout SCVertexData vertex, SCPositionAndDirection camera, SCPo
 
 void SCPixelClip(v2f i, bool isFront, float tangentDir)
 {
+    __SC_PHASE_pixelclip__
+
     if (_AlphaMode == 1)
     {
         half alpha = SCSample(_BaseTexture, sampler_BaseTexture, SBSBaseUV(i.uv[0].xy)).a * _BaseColor.a;

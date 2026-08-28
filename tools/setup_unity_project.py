@@ -58,18 +58,25 @@ def copy_package(destination: Path) -> None:
     print(f"パッケージを配置しました: {destination}")
 
 
-def copy_debug_sample(project: Path) -> None:
-    """Debug Shader Demo を Package Manager と同じ配置へ展開する。"""
+def copy_samples(project: Path) -> None:
+    """全 UPM sample を Package Manager と同じ配置へ展開する。"""
     package = json.loads((PACKAGE_DIR / "package.json").read_text(encoding="utf-8"))
-    sample = next(item for item in package["samples"] if item["displayName"] == "Debug Shader Demo")
-    source = PACKAGE_DIR / sample["path"]
-    destination = project / "Assets" / "Samples" / package["displayName"] / package["version"] / sample["displayName"]
+    for sample in package.get("samples", []):
+        source = PACKAGE_DIR / sample["path"]
+        destination = (
+            project
+            / "Assets"
+            / "Samples"
+            / package["displayName"]
+            / package["version"]
+            / sample["displayName"]
+        )
 
-    if destination.exists():
-        shutil.rmtree(destination)
-    destination.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copytree(source, destination)
-    print(f"Debug Shader Demo を配置しました: {destination}")
+        if destination.exists():
+            shutil.rmtree(destination)
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copytree(source, destination)
+        print(f"{sample['displayName']} を配置しました: {destination}")
 
 
 def enable_modules(project: Path) -> None:
@@ -142,7 +149,7 @@ def main() -> int:
         return 1
 
     copy_package(packages / PACKAGE_DIR.name)
-    copy_debug_sample(args.project)
+    copy_samples(args.project)
     clone_shadercore(packages / "jp.lilxyzw.shadercore")
     enable_modules(args.project)
 

@@ -14,6 +14,33 @@
 
 - 全表示モードを確認できる UPM sample `Debug Shader Demo`
 
+- Decalモジュール（`io.github.sabas0ba.decal`）
+  - UV0–UV3を使うUV Space配置
+  - object-space projector、投影角度と境界のfade
+  - Alpha、Multiply、Add合成とShared Mask
+
+- Surface Detailモジュール（`io.github.sabas0ba.surfacedetail`）
+  - Skinの毛穴とFabricの織りを手続き生成
+  - micro normal、色、roughness、sheenの微細変化
+  - detail textureとShared Mask
+
+- Spatial Interiorモジュール（`io.github.sabas0ba.spatialinterior`）
+  - Universe、Starfield、Cyber、Mudの4preset
+  - parallax付きのstar field、nebula、3D格子、泥状noise
+  - Front／Back／BothとUV上のRift領域
+  - Shared Maskによる髪内側、服裏側などへの部分適用
+
+- Transitionモジュール（`io.github.sabas0ba.transition`）
+  - Upward Dissolve、Glitch Spawn、Liquid to Solid
+  - Liquid to Solidの複合波による不規則な変形と水たまり初期状態
+  - Animation Controllerから制御する共通の`Progress`
+  - Forward、ShadowCaster、Outlineで一致するclip
+
+- 4モジュールの代表設定を確認できるUPM sample `Advanced Shader Suite Demo`
+  - シリンダー側面へ同じエンブレムを貼るUV Space／Projection比較
+  - Transitionの自動再生と再生成を伴わない手動`Progress`確認
+  - サンプル専用Componentを示すInspector警告
+
 ## [0.4.0] - 2026-08-27
 
 ### Added

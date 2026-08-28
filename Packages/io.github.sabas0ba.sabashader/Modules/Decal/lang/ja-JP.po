@@ -1,0 +1,81 @@
+msgid ""
+msgstr ""
+"Language: ja-JP\n"
+
+msgid "__Decal"
+msgstr "デカール"
+
+msgid "__Amount"
+msgstr "強さ"
+
+msgid "__AmountDesc"
+msgstr "0 で無効。1 で入力画像を指定どおり合成します。"
+
+msgid "__Texture"
+msgstr "デカール画像"
+
+msgid "__TextureDesc"
+msgstr "アルファを含む貼り付け画像を指定します。"
+
+msgid "__Tint"
+msgstr "色と不透明度"
+
+msgid "__TintDesc"
+msgstr "RGB を画像へ掛け、アルファを合成率へ掛けます。"
+
+msgid "__Mapping"
+msgstr "座標方式"
+
+msgid "__MappingDesc"
+msgstr "UV Space はmeshのUV、Projectionはobject-space projectorを使用します。"
+
+msgid "__UVChannel"
+msgstr "UV channel"
+
+msgid "__UVChannelDesc"
+msgstr "UV Spaceで参照するUV channelです。"
+
+msgid "__BlendMode"
+msgstr "合成方式"
+
+msgid "__BlendModeDesc"
+msgstr "通常合成、乗算、加算から選択します。"
+
+msgid "__MaskChannel"
+msgstr "マスクchannel"
+
+msgid "__MaskChannelDesc"
+msgstr "Shared Maskの指定channelを合成率へ掛けます。"
+
+msgid "__Projection"
+msgstr "Projection"
+
+msgid "__ProjectorCenter"
+msgstr "中心"
+
+msgid "__ProjectorCenterDesc"
+msgstr "projectorの中心をobject-space座標で指定します。XYZのみ使用します。"
+
+msgid "__ProjectorRotation"
+msgstr "回転"
+
+msgid "__ProjectorRotationDesc"
+msgstr "projectorのXYZ回転をdegreeで指定します。"
+
+msgid "__ProjectorSize"
+msgstr "範囲"
+
+msgid "__ProjectorSizeDesc"
+msgstr "projectorの幅、高さ、奥行きをobject-space単位で指定します。"
+
+msgid "__AngleFade"
+msgstr "角度制限"
+
+msgid "__AngleFadeDesc"
+msgstr "projectorへ正対していない面への投影を抑制します。"
+
+msgid "__EdgeSoftness"
+msgstr "端部fade"
+
+msgid "__EdgeSoftnessDesc"
+msgstr "projectorの境界と奥行き境界をぼかす割合です。"
