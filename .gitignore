@@ -24,6 +24,7 @@ _preview/
 .ci/UnityProject/Packages/jp.lilxyzw.shadercore/
 .ci/UnityProject/Packages/packages-lock.json
 .ci/UnityProject/Assets/Illust2DCheck/
+.ci/UnityProject/Assets/Samples/
 # 検証用プロジェクトの .meta は Unity が作り直すので追跡しない
 .ci/UnityProject/Assets/**/*.meta
 .ci/UnityProject/ProjectSettings/*

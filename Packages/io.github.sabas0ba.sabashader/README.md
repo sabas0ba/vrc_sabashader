@@ -30,6 +30,7 @@ avatar／world の mesh とライティング入力を確認する場合は `Sab
 各表示モードと制約は
 [docs/shader-debug.md](https://github.com/sabas0ba/vrc_sabashader/blob/main/docs/shader-debug.md)
 を参照してください。
+Package Manager の Samples から `Debug Shader Demo` を Import すると、全表示モードを同時に確認できるシーンを利用できます。
 
 雨・汗・雪・汚れを乗せる「表面の重ね掛け」、「ドット絵風」、RenderTexture を
 表示する「ビデオ入力」、LCD／LED の画素構造を重ねる「表示パネル」、

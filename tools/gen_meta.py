@@ -98,6 +98,10 @@ def iter_assets(root: Path) -> Iterable[Path]:
     for path in sorted(root.rglob("*")):
         if path.suffix == ".meta" or path.name in IGNORED_NAMES:
             continue
+        # Unity Package Manager の特殊フォルダーは AssetDatabase に現れないため、
+        # ルート自体の .meta を生成しない。sample 内のアセットは引き続き対象にする。
+        if path.is_dir() and path.name.endswith("~"):
+            continue
         if any(part.startswith(".") for part in path.relative_to(root).parts):
             continue
         yield path

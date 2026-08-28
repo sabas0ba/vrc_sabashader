@@ -2,6 +2,10 @@
 
 `SabaShader/Debug` は、mesh と Built-in Render Pipeline から shader に渡される情報を可視化します。色や質感の制作には使わず、avatar／world の設定確認に使用します。
 
+## Demo Scene
+
+Unity Package Manager で SabaShader を選択し、Samples の `Debug Shader Demo` を Import してください。`DebugShaderDemo.unity` には全18モードの検証オブジェクトが配置されています。頂点カラーと UV0～UV3 は、同梱の `DebugShaderDemoObject` が外部アセットを使わず生成します。
+
 ## 使用方法
 
 1. 確認対象の material で `SabaShader/Debug` を選ぶ

@@ -12,6 +12,8 @@
   - normal、tangent、bitangent、front face、view direction
   - main light の方向、色、attenuation
 
+- 全表示モードを確認できる UPM sample `Debug Shader Demo`
+
 ## [0.4.0] - 2026-08-27
 
 ### Added
