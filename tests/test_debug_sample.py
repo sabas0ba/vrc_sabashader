@@ -4,11 +4,19 @@ from __future__ import annotations
 
 import json
 
+from PIL import Image
+
 from harness.paths import PACKAGE_DIR, REPO_ROOT
 
 SAMPLE_DIR = PACKAGE_DIR / "Samples~" / "DebugShaderDemo"
 PACKAGE_JSON = PACKAGE_DIR / "package.json"
 BUILDER = REPO_ROOT / ".ci" / "UnityProject" / "Assets" / "Editor" / "DebugShaderDemoBuilder.cs"
+DOCUMENTATION = REPO_ROOT / "docs" / "shader-debug.md"
+CAPTURES = {
+    "debug_shader_demo.png": (2560, 1440),
+    "debug_shader_mesh_modes.png": (2560, 960),
+    "debug_shader_lighting_modes.png": (2560, 480),
+}
 
 
 def test_package_declares_debug_shader_sample():
@@ -50,3 +58,17 @@ def test_builder_contains_stable_mode_mapping_and_scene_path():
     assert "ModeNames.Length" in source
     assert "PackageInfo.FindForAssetPath" in source
     assert 'DebugShaderDemo.unity"' in source
+    for filename, (width, height) in CAPTURES.items():
+        assert f'"{filename}"' in source
+        assert f", {width}, {height}," in source
+
+
+def test_documentation_captures_have_expected_dimensions():
+    golden = REPO_ROOT / "tests" / "golden"
+    documentation = DOCUMENTATION.read_text(encoding="utf-8")
+    for filename, expected_size in CAPTURES.items():
+        path = golden / filename
+        assert f"../tests/golden/{filename}" in documentation
+        assert path.is_file(), f"Unity capture がありません: {path.relative_to(REPO_ROOT)}"
+        with Image.open(path) as image:
+            assert image.size == expected_size

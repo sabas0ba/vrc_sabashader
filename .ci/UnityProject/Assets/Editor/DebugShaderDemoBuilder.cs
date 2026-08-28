@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using UnityEditor;
@@ -68,6 +69,48 @@ namespace SabaShader.CI
                 Debug.LogException(exception);
                 EditorApplication.Exit(1);
             }
+        }
+
+        public static void CaptureBatch()
+        {
+            try
+            {
+                Capture();
+                EditorApplication.Exit(0);
+            }
+            catch (Exception exception)
+            {
+                Debug.LogException(exception);
+                EditorApplication.Exit(1);
+            }
+        }
+
+        public static void Capture()
+        {
+            var outputDirectory = ArgumentValue("-captureOutputDirectory");
+            if (string.IsNullOrEmpty(outputDirectory))
+            {
+                throw new ArgumentException("-captureOutputDirectory <path> を指定してください。");
+            }
+
+            var failures = ShaderCompileChecker.CollectFailures();
+            if (failures.Count > 0)
+            {
+                throw new InvalidOperationException(string.Join("\n", failures));
+            }
+
+            Build();
+            EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
+            var camera = UnityEngine.Object.FindObjectOfType<Camera>();
+            if (camera == null)
+            {
+                throw new InvalidOperationException("Debug Shader Demo に Camera がありません。");
+            }
+
+            Directory.CreateDirectory(outputDirectory);
+            CaptureView(camera, Path.Combine(outputDirectory, "debug_shader_demo.png"), 2560, 1440, 0.35f, 4.5f);
+            CaptureView(camera, Path.Combine(outputDirectory, "debug_shader_mesh_modes.png"), 2560, 960, 0.9f, 2.4f);
+            CaptureView(camera, Path.Combine(outputDirectory, "debug_shader_lighting_modes.png"), 2560, 480, -2.55f, 1.2f);
         }
 
         public static void Build()
@@ -169,7 +212,7 @@ namespace SabaShader.CI
             label.text = $"{mode:00}  {ModeNames[mode]}";
             label.anchor = TextAnchor.MiddleCenter;
             label.alignment = TextAlignment.Center;
-            label.characterSize = 0.13f;
+            label.characterSize = 0.04f;
             label.fontSize = 48;
             label.color = new Color(0.9f, 0.92f, 0.96f, 1.0f);
         }
@@ -213,6 +256,67 @@ namespace SabaShader.CI
             title.characterSize = 0.18f;
             title.fontSize = 56;
             title.color = Color.white;
+        }
+
+        static void CaptureView(
+            Camera camera,
+            string output,
+            int width,
+            int height,
+            float verticalPosition,
+            float orthographicSize)
+        {
+            var originalPosition = camera.transform.position;
+            var originalSize = camera.orthographicSize;
+            var originalTarget = camera.targetTexture;
+            var originalActive = RenderTexture.active;
+            var target = new RenderTexture(
+                width,
+                height,
+                24,
+                RenderTextureFormat.ARGB32,
+                RenderTextureReadWrite.sRGB)
+            {
+                antiAliasing = 4,
+            };
+            var texture = new Texture2D(width, height, TextureFormat.RGBA32, false);
+
+            try
+            {
+                camera.transform.position = new Vector3(originalPosition.x, verticalPosition, originalPosition.z);
+                camera.orthographicSize = orthographicSize;
+                camera.targetTexture = target;
+                camera.Render();
+
+                RenderTexture.active = target;
+                texture.ReadPixels(new Rect(0, 0, width, height), 0, 0);
+                texture.Apply();
+                File.WriteAllBytes(output, texture.EncodeToPNG());
+                Debug.Log("[DebugShaderDemoBuilder] 書き出しました: " + output);
+            }
+            finally
+            {
+                camera.transform.position = originalPosition;
+                camera.orthographicSize = originalSize;
+                camera.targetTexture = originalTarget;
+                RenderTexture.active = originalActive;
+                UnityEngine.Object.DestroyImmediate(texture);
+                UnityEngine.Object.DestroyImmediate(target);
+            }
+        }
+
+        static string ArgumentValue(string name)
+        {
+            var arguments = Environment.GetCommandLineArgs();
+            for (var index = 0; index + 1 < arguments.Length; index++)
+            {
+                if (arguments[index] == name)
+                {
+                    return arguments[index + 1];
+                }
+            }
+
+            return null;
         }
 
         static void EnsureDirectory(string assetPath)
