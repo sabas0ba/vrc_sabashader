@@ -114,6 +114,10 @@ def test_transition_clips_forward_shadow_and_outline_with_one_progress():
     ).read_text(encoding="utf-8")
     assert "__SC_PHASE_pixelclip__" in common
     assert "__SC_PHASE_outlineclip__" in outline
+    transition_core = (MODULES_DIR / "Transition" / "TransitionCore.hlsl").read_text(
+        encoding="utf-8"
+    )
+    assert not re.search(r"\b(?:half|float)\s+active\b", transition_core)
 
 
 def test_liquid_transition_supports_irregular_wobble_and_puddle_initial_state():

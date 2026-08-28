@@ -113,12 +113,12 @@ half3 SBSTransitionMorphOffset(half3 objectPosition, half3 objectNormal, SBSTran
     {
         half3 block = floor(objectPosition * max(st.blockScale, 1.0e-3));
         half seed = SBSTransitionHash3(block);
-        half active = 1.0 - saturate(abs(progress - seed) / max(st.edgeWidth * 2.0, 0.02));
+        half transitionActivity = 1.0 - saturate(abs(progress - seed) / max(st.edgeWidth * 2.0, 0.02));
         half3 randomDirection = half3(
             SBSTransitionHash3(block + half3(17.0, 3.0, 5.0)) * 2.0 - 1.0,
             SBSTransitionHash3(block + half3(7.0, 19.0, 11.0)) * 2.0 - 1.0,
             SBSTransitionHash3(block + half3(13.0, 2.0, 23.0)) * 2.0 - 1.0);
-        return randomDirection * max(st.displacement, 0.0) * active;
+        return randomDirection * max(st.displacement, 0.0) * transitionActivity;
     }
 
     half liquid = 1.0 - progress;
