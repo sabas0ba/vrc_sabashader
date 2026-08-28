@@ -1,0 +1,15 @@
+{
+    "name": "__SurfaceDetail",
+    "uniqueID": "io.github.sabas0ba.surfacedetail",
+    "phases": [
+        {
+            "phase": "base",
+            "path": "surface_detail_base.hlsl",
+            "afters": ["__Decal"]
+        },
+        {
+            "phase": "add",
+            "path": "surface_detail_add.hlsl"
+        }
+    ]
+}

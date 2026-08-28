@@ -20,6 +20,8 @@ half4 frag(v2f i, bool isFront : SV_IsFrontFace) : SV_Target
     float2 uv = SBSBaseUV(vertex.uv[0].xy);
     half4 albedo = saturate(SCSample(_BaseTexture, sampler_BaseTexture, uv) * _BaseColor);
 
+    __SC_PHASE_outlineclip__
+
     if (_AlphaMode == 1) clip(albedo.a - _Cutoff);
 
     SBSStyle style = SBSGetStyle();

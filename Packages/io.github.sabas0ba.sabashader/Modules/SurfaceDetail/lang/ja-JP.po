@@ -1,0 +1,90 @@
+msgid ""
+msgstr ""
+"Language: ja-JP\n"
+
+msgid "__SurfaceDetail"
+msgstr "表面micro detail"
+
+msgid "__Amount"
+msgstr "強さ"
+
+msgid "__AmountDesc"
+msgstr "0 で無効。1 でmicro detailを設定どおり適用します。"
+
+msgid "__Mode"
+msgstr "材質"
+
+msgid "__ModeDesc"
+msgstr "肌のporeまたは布の織りとgrazing sheenを選択します。"
+
+msgid "__Texture"
+msgstr "detail texture"
+
+msgid "__TextureDesc"
+msgstr "RGBを色の微差、RGを追加のmicro normalとして使用します。"
+
+msgid "__TextureStrength"
+msgstr "texture強度"
+
+msgid "__TextureStrengthDesc"
+msgstr "detail textureが色と法線へ与える強さです。"
+
+msgid "__MaskChannel"
+msgstr "マスクchannel"
+
+msgid "__MaskChannelDesc"
+msgstr "Shared Maskの指定channelを効果へ掛けます。"
+
+msgid "__Scale"
+msgstr "密度"
+
+msgid "__ScaleDesc"
+msgstr "UV内に生成するporeまたは糸の密度です。"
+
+msgid "__AlbedoVariation"
+msgstr "色の微差"
+
+msgid "__AlbedoVariationDesc"
+msgstr "micro patternに沿ってalbedoへ加える明暗差です。"
+
+msgid "__NormalStrength"
+msgstr "micro normal"
+
+msgid "__NormalStrengthDesc"
+msgstr "poreまたは織りによる接空間法線の強さです。"
+
+msgid "__RoughnessVariation"
+msgstr "反射のばらつき"
+
+msgid "__RoughnessVariationDesc"
+msgstr "micro patternによるroughnessとspecularの不均一さです。"
+
+msgid "__Skin"
+msgstr "肌"
+
+msgid "__Pore"
+msgstr "pore"
+
+msgid "__PoreDesc"
+msgstr "手続き生成するporeの深さです。"
+
+msgid "__Fabric"
+msgstr "布"
+
+msgid "__Weave"
+msgstr "織り"
+
+msgid "__WeaveDesc"
+msgstr "縦糸と横糸の凹凸です。"
+
+msgid "__Sheen"
+msgstr "sheen"
+
+msgid "__SheenDesc"
+msgstr "肌の微細反射または布のgrazing sheenの強さです。"
+
+msgid "__SheenColor"
+msgstr "sheen色"
+
+msgid "__SheenColorDesc"
+msgstr "micro specularとgrazing sheenへ掛けるHDR色です。"

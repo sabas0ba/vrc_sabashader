@@ -1,0 +1,27 @@
+{
+    "name": "__Transition",
+    "uniqueID": "io.github.sabas0ba.transition",
+    "phases": [
+        {
+            "phase": "morph",
+            "path": "transition_morph.hlsl"
+        },
+        {
+            "phase": "base",
+            "path": "transition_base.hlsl"
+        },
+        {
+            "phase": "postpixel",
+            "path": "transition_postpixel.hlsl",
+            "afters": ["__SpatialInterior", "__CrtGlitch"]
+        },
+        {
+            "phase": "pixelclip",
+            "path": "transition_pixelclip.hlsl"
+        },
+        {
+            "phase": "outlineclip",
+            "path": "transition_outlineclip.hlsl"
+        }
+    ]
+}

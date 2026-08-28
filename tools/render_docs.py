@@ -55,6 +55,7 @@ PAGES: List[tuple] = [
     ("shader-illust2d.md", "Illust2D"),
     ("shader-debug.md", "Debug"),
     ("modules.md", "モジュール"),
+    ("modules-advanced.md", "高度モジュール"),
     ("avatar-demo.md", "アバターで確認"),
     ("testing.md", "テスト"),
     ("adding-a-shader.md", "シェーダーを追加"),

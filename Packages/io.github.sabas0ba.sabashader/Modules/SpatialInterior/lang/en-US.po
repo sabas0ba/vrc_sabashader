@@ -1,0 +1,135 @@
+msgid ""
+msgstr ""
+"Language: en-US\n"
+
+msgid "__SpatialInterior"
+msgstr "Spatial Interior"
+
+msgid "__Amount"
+msgstr "Amount"
+
+msgid "__AmountDesc"
+msgstr "0 disables the module; 1 replaces the selected surface with the spatial field."
+
+msgid "__Preset"
+msgstr "Spatial Preset"
+
+msgid "__PresetDesc"
+msgstr "Selects Universe, Starfield, Cyber, or Mud generation and palette."
+
+msgid "__Side"
+msgstr "Surface Side"
+
+msgid "__SideDesc"
+msgstr "Apply to front faces, back faces, or both. Back faces require Culling Off."
+
+msgid "__Region"
+msgstr "Region"
+
+msgid "__RegionDesc"
+msgstr "Apply to the full surface or an irregular UV-space rift."
+
+msgid "__MaskChannel"
+msgstr "Mask Channel"
+
+msgid "__MaskChannelDesc"
+msgstr "Multiplies the effect by the selected Shared Mask channel."
+
+msgid "__ColorA"
+msgstr "Deep Color"
+
+msgid "__ColorADesc"
+msgstr "HDR color used in dark regions of the Universe preset."
+
+msgid "__ColorB"
+msgstr "Nebula Color"
+
+msgid "__ColorBDesc"
+msgstr "HDR color used in bright nebula regions of the Universe preset."
+
+msgid "__Emission"
+msgstr "Emission"
+
+msgid "__EmissionDesc"
+msgstr "Unlit brightness of the spatial field and rift edge."
+
+msgid "__Scale"
+msgstr "Spatial Scale"
+
+msgid "__ScaleDesc"
+msgstr "Object-space coordinate scale used to generate stars and nebulae."
+
+msgid "__Depth"
+msgstr "Depth"
+
+msgid "__DepthDesc"
+msgstr "Virtual depth used to offset the sampled position along the view direction."
+
+msgid "__Parallax"
+msgstr "Parallax"
+
+msgid "__ParallaxDesc"
+msgstr "Apparent motion of the spatial field as the viewpoint changes."
+
+msgid "__StarDensity"
+msgstr "Star Density"
+
+msgid "__StarDensityDesc"
+msgstr "Probability of creating a star in a spatial cell."
+
+msgid "__StarSize"
+msgstr "Star Size"
+
+msgid "__StarSizeDesc"
+msgstr "Radius of a star inside its spatial cell."
+
+msgid "__Nebula"
+msgstr "Nebula"
+
+msgid "__NebulaDesc"
+msgstr "Strength of the procedural cloud field."
+
+msgid "__NebulaScale"
+msgstr "Nebula Scale"
+
+msgid "__NebulaScaleDesc"
+msgstr "Spatial frequency of the nebula pattern."
+
+msgid "__TimeScale"
+msgstr "Motion Speed"
+
+msgid "__TimeScaleDesc"
+msgstr "Speed at which the spatial pattern moves over time."
+
+msgid "__Rift"
+msgstr "Rift"
+
+msgid "__RiftCenter"
+msgstr "Center"
+
+msgid "__RiftCenterDesc"
+msgstr "UV center of the rift. Only XY is used."
+
+msgid "__RiftSize"
+msgstr "Size"
+
+msgid "__RiftSizeDesc"
+msgstr "UV width and height of the rift. Only XY is used."
+
+msgid "__RiftNoise"
+msgstr "Boundary Noise"
+
+msgid "__RiftNoiseDesc"
+msgstr "Irregular displacement applied to the rift boundary."
+
+msgid "__EdgeWidth"
+msgstr "Edge Width"
+
+msgid "__EdgeWidthDesc"
+msgstr "Width of the emissive rift boundary."
+
+msgid "__EdgeColor"
+msgstr "Edge Color"
+
+msgid "__EdgeColorDesc"
+msgstr "HDR color of the rift boundary. Alpha scales its intensity."

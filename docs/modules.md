@@ -1,8 +1,11 @@
 # モジュールのパラメータ
 
-パッケージに同梱しているモジュール（`.scmodule`）4 つの説明です。
+パッケージに同梱している既存モジュール（`.scmodule`）5つの説明です。
 モジュールはシェーダー本体が描いた結果の上に効果を足す仕組みで、
 Illust2D 以外の `.scshader` にも後から乗せられます。
+
+Decal、Surface Detail、Spatial Interior、Transition は
+[高度シェーダーモジュール](modules-advanced.md)を参照してください。
 
 > このページの図は、すべて[描画回帰テスト](testing.md#1-描画回帰テストヘッドレス)の
 > ゴールデン画像です。出荷する `*Core.hlsl` をそのまま描いたものなので、
