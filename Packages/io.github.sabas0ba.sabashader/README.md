@@ -7,6 +7,7 @@
 | シェーダー | 用途 |
 | --- | --- |
 | `SabaShader/Illust2D` | 3D モデルを 2D イラスト調に見せるトゥーンシェーダー |
+| `SabaShader/Debug` | mesh、UV、vertex color、法線、ライト入力を可視化する診断用シェーダー |
 
 ## 必要環境
 
@@ -24,6 +25,11 @@
 各パラメータの詳細は
 [docs/shader-illust2d.md](https://github.com/sabas0ba/vrc_sabashader/blob/main/docs/shader-illust2d.md)
 を参照してください。描画例の図が付いています。
+
+avatar／world の mesh とライティング入力を確認する場合は `SabaShader/Debug` を使用します。
+各表示モードと制約は
+[docs/shader-debug.md](https://github.com/sabas0ba/vrc_sabashader/blob/main/docs/shader-debug.md)
+を参照してください。
 
 雨・汗・雪・汚れを乗せる「表面の重ね掛け」、「ドット絵風」、RenderTexture を
 表示する「ビデオ入力」、LCD／LED の画素構造を重ねる「表示パネル」、

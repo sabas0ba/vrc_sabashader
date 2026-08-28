@@ -106,6 +106,17 @@ def test_expected_passes_match_the_shader(checker_source):
     )
 
 
+def test_debug_expected_passes_match_the_shader(checker_source):
+    expected = _csharp_string_array(checker_source, "DebugExpectedPasses")
+    shader = REPO_ROOT / "Packages" / "io.github.sabas0ba.sabashader" / "Shaders" / "Debug" / "Debug.scshader"
+    actual = re.findall(r'Name\s+"([^"]+)"', shader.read_text(encoding="utf-8"))
+
+    assert sorted(expected) == sorted(actual), (
+        "ShaderCompileChecker.DebugExpectedPasses と Debug.scshader のパス名が食い違っています: "
+        f"C#={sorted(expected)} shader={sorted(actual)}"
+    )
+
+
 def test_required_properties_are_actually_declared(checker_source):
     required = _csharp_string_array(checker_source, "RequiredProperties")
     declared = set(ShaderExpander(SCSHADER, {}, package_modules()).declared_property_names())
@@ -133,10 +144,25 @@ def test_required_properties_cover_each_property_kind(checker_source):
         assert kind in kinds, f"RequiredProperties が {kind} 型のプロパティを 1 つも見ていません"
 
 
+def test_debug_required_properties_are_actually_declared(checker_source):
+    required = _csharp_string_array(checker_source, "DebugRequiredProperties")
+    shader = REPO_ROOT / "Packages" / "io.github.sabas0ba.sabashader" / "Shaders" / "Debug" / "Debug.scshader"
+    declared = set(ShaderExpander(shader, {}, package_modules()).declared_property_names())
+
+    missing = [name for name in required if name not in declared]
+    assert not missing, (
+        "ShaderCompileChecker.DebugRequiredProperties にあるが Debug_properties.hlsl に無いプロパティ: "
+        f"{missing}"
+    )
+
+
 def test_checker_targets_the_real_package_path(checker_source):
     assert 'PackagePath = "Packages/io.github.sabas0ba.sabashader"' in checker_source
     relative = SCSHADER.relative_to(REPO_ROOT / "Packages" / "io.github.sabas0ba.sabashader").as_posix()
     assert relative in checker_source, f"Illust2DPath が {relative} を指していません"
+    debug = REPO_ROOT / "Packages" / "io.github.sabas0ba.sabashader" / "Shaders" / "Debug" / "Debug.scshader"
+    relative_debug = debug.relative_to(REPO_ROOT / "Packages" / "io.github.sabas0ba.sabashader").as_posix()
+    assert relative_debug in checker_source, f"DebugPath が {relative_debug} を指していません"
 
 
 # --- ワークフロー -------------------------------------------------------------
