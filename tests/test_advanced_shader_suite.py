@@ -116,6 +116,22 @@ def test_transition_clips_forward_shadow_and_outline_with_one_progress():
     assert "__SC_PHASE_outlineclip__" in outline
 
 
+def test_liquid_transition_supports_irregular_wobble_and_puddle_initial_state():
+    properties = (MODULES_DIR / "Transition" / "properties.hlsl").read_text(encoding="utf-8")
+    core = (MODULES_DIR / "Transition" / "TransitionCore.hlsl").read_text(encoding="utf-8")
+
+    for property_name in (
+        "_LiquidWobble",
+        "_LiquidPuddle",
+        "_LiquidPuddleHeight",
+        "_LiquidPuddleSpread",
+    ):
+        assert property_name in properties
+    assert "waveA" in core and "waveB" in core and "waveC" in core
+    assert "targetHeight" in core and "puddleOffset" in core
+    assert "saturate(st.liquidPuddle)" in core
+
+
 def test_package_declares_advanced_suite_sample():
     package = json.loads(PACKAGE_JSON.read_text(encoding="utf-8"))
     sample = next(
@@ -130,7 +146,9 @@ def test_sample_contains_scene_component_and_readme():
     expected = {
         "AdvancedShaderSuiteDemo.unity",
         "AdvancedShaderDemoObject.cs",
+        "Editor",
         "README.md",
+        "Textures",
     }
     assert expected <= {path.name for path in SAMPLE_DIR.iterdir()}
 
@@ -147,8 +165,11 @@ def test_demo_component_uses_transient_generated_assets_and_all_features():
 
     assert 'ShaderName = "SabaShader/Illust2D"' in source
     assert "HideFlags.HideAndDontSave" in source
-    assert "CreateDecalTexture" in source
+    assert "decalTextureAsset" in source
+    assert "CreateDecalTexture" not in source
     assert "normals[index] = -normals[index]" in source
+    assert '[AddComponentMenu("")]' in source
+    assert "ApplyProgress();" in source
     for feature in (
         "DecalUV",
         "DecalProjection",
@@ -165,15 +186,44 @@ def test_demo_component_uses_transient_generated_assets_and_all_features():
         assert feature in source
 
 
+def test_demo_component_is_clearly_marked_as_sample_only():
+    editor = (SAMPLE_DIR / "Editor" / "AdvancedShaderDemoObjectEditor.cs").read_text(
+        encoding="utf-8"
+    )
+
+    assert "SAMPLE ONLY / サンプル専用" in editor
+    assert "EditorGUILayout.HelpBox" in editor
+    assert "Auto Animate in Play Mode" in editor
+    assert "Rebuild Demo Preview" in editor
+    assert "EditorGUI.DisabledScope(animateInPlayMode.boolValue)" in editor
+
+
 def test_builder_contains_stable_scene_and_capture_mapping():
     source = BUILDER.read_text(encoding="utf-8")
 
     assert "FeatureNames.Length" in source
     assert "PackageInfo.FindForAssetPath" in source
     assert 'AdvancedShaderSuiteDemo.unity"' in source
+    assert 'PrimitiveType.Cylinder' in source
+    assert 'DecalDemoEmblem.png' in source
     for filename, (width, height) in CAPTURES.items():
         assert f'"{filename}"' in source
         assert f", {width}, {height}," in source
+
+
+def test_decal_demo_uses_a_directional_transparent_logo_texture():
+    path = SAMPLE_DIR / "Textures" / "DecalDemoEmblem.png"
+
+    assert path.is_file()
+    with Image.open(path) as image:
+        assert image.mode == "RGBA"
+        assert image.getextrema()[3][0] == 0
+        assert image.getextrema()[3][1] == 255
+        assert min(image.size) >= 512
+
+    meta = path.with_name(path.name + ".meta").read_text(encoding="utf-8")
+    assert "TextureImporter:" in meta
+    assert "alphaIsTransparency: 1" in meta
 
 
 def test_setup_unity_project_copies_every_declared_sample():

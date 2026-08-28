@@ -4,9 +4,10 @@ namespace SabaShader.Samples
 {
     /// <summary>
     /// Decal、Surface Detail、Spatial Interior、Transition の表示用マテリアルを生成する。
-    /// 生成するマテリアルとテクスチャはシーンやプロジェクトへ保存しない。
+    /// 生成するマテリアルと内向きmeshはシーンやプロジェクトへ保存しない。
     /// </summary>
     [ExecuteAlways]
+    [AddComponentMenu("")]
     [DisallowMultipleComponent]
     [RequireComponent(typeof(MeshFilter), typeof(MeshRenderer))]
     public sealed class AdvancedShaderDemoObject : MonoBehaviour
@@ -36,12 +37,14 @@ namespace SabaShader.Samples
         [SerializeField, Range(0.0f, 1.0f)] float progress = 0.5f;
         [SerializeField] bool animateInPlayMode;
         [SerializeField, Min(0.01f)] float animationSpeed = 0.25f;
+        [SerializeField, HideInInspector] Texture2D decalTextureAsset;
         [SerializeField, HideInInspector] Mesh sourceMesh;
 
         Mesh previewMesh;
         Material sourceMaterial;
         Material previewMaterial;
-        Texture2D decalTexture;
+        Feature appliedFeature;
+        bool hasAppliedFeature;
 
         public void Apply()
         {
@@ -59,6 +62,8 @@ namespace SabaShader.Samples
 
             RebuildMesh(meshFilter);
             RebuildMaterial(meshRenderer);
+            appliedFeature = feature;
+            hasAppliedFeature = true;
         }
 
         void OnEnable()
@@ -68,22 +73,32 @@ namespace SabaShader.Samples
 
         void OnValidate()
         {
-            var meshRenderer = GetComponent<MeshRenderer>();
-            if (meshRenderer != null)
+            progress = Mathf.Clamp01(progress);
+            animationSpeed = Mathf.Max(0.01f, animationSpeed);
+            if (!isActiveAndEnabled)
             {
-                RebuildMaterial(meshRenderer);
+                return;
             }
+
+            if (previewMaterial == null || !hasAppliedFeature || appliedFeature != feature)
+            {
+                Apply();
+                return;
+            }
+
+            ApplyProgress();
         }
 
         void Update()
         {
-            if (!Application.isPlaying || !animateInPlayMode || previewMaterial == null)
+            if (!Application.isPlaying || !animateInPlayMode || previewMaterial == null ||
+                !IsTransitionFeature(feature))
             {
                 return;
             }
 
             progress = Mathf.PingPong(Time.time * animationSpeed, 1.0f);
-            previewMaterial.SetFloat(Transition + "Progress", progress);
+            ApplyProgress();
         }
 
         void OnDisable()
@@ -102,10 +117,24 @@ namespace SabaShader.Samples
 
             DestroyGenerated(previewMesh);
             DestroyGenerated(previewMaterial);
-            DestroyGenerated(decalTexture);
             previewMesh = null;
             previewMaterial = null;
-            decalTexture = null;
+            hasAppliedFeature = false;
+        }
+
+        void ApplyProgress()
+        {
+            if (previewMaterial != null && IsTransitionFeature(feature))
+            {
+                previewMaterial.SetFloat(Transition + "Progress", progress);
+            }
+        }
+
+        static bool IsTransitionFeature(Feature value)
+        {
+            return value == Feature.UpwardDissolve ||
+                value == Feature.GlitchSpawn ||
+                value == Feature.LiquidSolid;
         }
 
         void RebuildMesh(MeshFilter meshFilter)
@@ -144,9 +173,7 @@ namespace SabaShader.Samples
         void RebuildMaterial(MeshRenderer meshRenderer)
         {
             DestroyGenerated(previewMaterial);
-            DestroyGenerated(decalTexture);
             previewMaterial = null;
-            decalTexture = null;
 
             var shader = Shader.Find(ShaderName);
             if (shader == null)
@@ -246,9 +273,8 @@ namespace SabaShader.Samples
 
         void ConfigureDecal(Material material, bool projection)
         {
-            decalTexture = CreateDecalTexture();
             material.SetFloat(Decal + "Amount", 1.0f);
-            material.SetTexture(Decal + "Texture", decalTexture);
+            material.SetTexture(Decal + "Texture", decalTextureAsset);
             material.SetColor(Decal + "Tint", Color.white);
             material.SetInteger(Decal + "Mapping", projection ? 1 : 0);
             material.SetInteger(Decal + "UVChannel", 0);
@@ -348,48 +374,17 @@ namespace SabaShader.Samples
             material.SetFloat(Transition + "EdgeEmission", 3.0f);
             material.SetFloat(Transition + "Displacement", mode == 1 ? 0.32f : 0.22f);
             material.SetFloat(Transition + "BlockScale", 7.0f);
-            material.SetFloat(Transition + "LiquidAmplitude", 0.16f);
+            material.SetFloat(Transition + "LiquidAmplitude", mode == 2 ? 0.28f : 0.16f);
             material.SetFloat(Transition + "LiquidFrequency", 6.5f);
-            material.SetFloat(Transition + "LiquidSpeed", 0.0f);
+            material.SetFloat(Transition + "LiquidSpeed", mode == 2 ? 1.2f : 0.0f);
+            material.SetFloat(Transition + "LiquidWobble", mode == 2 ? 1.35f : 0.5f);
+            material.SetInteger(Transition + "LiquidPuddle", mode == 2 ? 1 : 0);
+            material.SetFloat(Transition + "LiquidPuddleHeight", 0.1f);
+            material.SetFloat(Transition + "LiquidPuddleSpread", 0.65f);
             material.SetColor(Transition + "LiquidTint", new Color(0.12f, 0.55f, 1.0f, 0.75f));
             material.SetColor("_BaseColor", mode == 2
                 ? new Color(0.42f, 0.72f, 0.9f, 1.0f)
                 : new Color(0.65f, 0.34f, 0.78f, 1.0f));
-        }
-
-        static Texture2D CreateDecalTexture()
-        {
-            const int size = 128;
-            var texture = new Texture2D(size, size, TextureFormat.RGBA32, false, false)
-            {
-                name = "Advanced Demo Decal",
-                hideFlags = HideFlags.HideAndDontSave,
-                wrapMode = TextureWrapMode.Clamp,
-                filterMode = FilterMode.Bilinear,
-            };
-            var pixels = new Color[size * size];
-
-            for (var y = 0; y < size; y++)
-            {
-                for (var x = 0; x < size; x++)
-                {
-                    var point = new Vector2(
-                        (x + 0.5f) / size * 2.0f - 1.0f,
-                        (y + 0.5f) / size * 2.0f - 1.0f);
-                    var radius = point.magnitude;
-                    var alpha = 1.0f - Mathf.SmoothStep(0.72f, 0.96f, radius);
-                    var angle = Mathf.Atan2(point.y, point.x);
-                    var stripe = Mathf.Sin(angle * 6.0f + radius * 18.0f) * 0.5f + 0.5f;
-                    var inner = 1.0f - Mathf.SmoothStep(0.0f, 0.62f, radius);
-                    var cyan = new Color(0.05f, 0.92f, 1.0f, alpha);
-                    var magenta = new Color(1.0f, 0.12f, 0.62f, alpha);
-                    pixels[y * size + x] = Color.Lerp(magenta, cyan, Mathf.Lerp(stripe, inner, 0.35f));
-                }
-            }
-
-            texture.SetPixels(pixels);
-            texture.Apply(false, true);
-            return texture;
         }
 
         static void DestroyGenerated(Object target)

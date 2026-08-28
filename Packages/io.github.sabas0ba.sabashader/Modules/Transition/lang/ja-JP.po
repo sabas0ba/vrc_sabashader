@@ -92,6 +92,30 @@ msgstr "波の速度"
 msgid "__LiquidSpeedDesc"
 msgstr "液体波形の時間変化速度です。"
 
+msgid "__LiquidWobble"
+msgstr "不規則な揺れ"
+
+msgid "__LiquidWobbleDesc"
+msgstr "異なる方向と周波数の波を合成し、液体変形を不規則にします。1を超えると変形量も増加します。"
+
+msgid "__LiquidPuddle"
+msgstr "初期状態を水たまりにする"
+
+msgid "__LiquidPuddleDesc"
+msgstr "進行度0でmeshを方向軸の下端へ圧縮し、水平方向へ広げます。"
+
+msgid "__LiquidPuddleHeight"
+msgstr "水たまりの厚さ"
+
+msgid "__LiquidPuddleHeightDesc"
+msgstr "高さ範囲に対する水たまりの厚さです。Boundsの最小値が接地面になります。"
+
+msgid "__LiquidPuddleSpread"
+msgstr "水たまりの広がり"
+
+msgid "__LiquidPuddleSpreadDesc"
+msgstr "方向軸に直交する面へmeshを広げるobject-space比率です。"
+
 msgid "__LiquidTint"
 msgstr "液体色"
 

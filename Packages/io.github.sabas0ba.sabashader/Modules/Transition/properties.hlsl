@@ -10,8 +10,12 @@ SC_float(_EdgeEmission, 2, [SCRange(0,8)], "__EdgeEmission", "__EdgeEmissionDesc
 SC_float(_Displacement, 0.2, [SCRange(0,1)], "__Displacement", "__DisplacementDesc")
 SC_float(_BlockScale, 8, [SCRange(0.5,64)], "__BlockScale", "__BlockScaleDesc")
 SC_Foldout(__Liquid)
-SC_float(_LiquidAmplitude, 0.06, [SCRange(0,0.5)], "__LiquidAmplitude", "__LiquidAmplitudeDesc")
+SC_float(_LiquidAmplitude, 0.06, [SCRange(0,1.5)], "__LiquidAmplitude", "__LiquidAmplitudeDesc")
 SC_float(_LiquidFrequency, 5, [SCRange(0.1,32)], "__LiquidFrequency", "__LiquidFrequencyDesc")
 SC_float(_LiquidSpeed, 1, [SCRange(-8,8)], "__LiquidSpeed", "__LiquidSpeedDesc")
+SC_float(_LiquidWobble, 0.5, [SCRange(0,2)], "__LiquidWobble", "__LiquidWobbleDesc")
+SC_uint(_LiquidPuddle, 0, [SCToggle], "__LiquidPuddle", "__LiquidPuddleDesc")
+SC_float(_LiquidPuddleHeight, 0.08, [SCRange(0.01,0.5)], "__LiquidPuddleHeight", "__LiquidPuddleHeightDesc")
+SC_float(_LiquidPuddleSpread, 0.45, [SCRange(0,2)], "__LiquidPuddleSpread", "__LiquidPuddleSpreadDesc")
 SC_color(_LiquidTint, (0.25,0.55,1,0.35), [SCHDR], "__LiquidTint", "__LiquidTintDesc")
 SC_FoldoutEnd

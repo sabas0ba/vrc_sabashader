@@ -32,10 +32,14 @@
 
 - Transitionモジュール（`io.github.sabas0ba.transition`）
   - Upward Dissolve、Glitch Spawn、Liquid to Solid
+  - Liquid to Solidの複合波による不規則な変形と水たまり初期状態
   - Animation Controllerから制御する共通の`Progress`
   - Forward、ShadowCaster、Outlineで一致するclip
 
 - 4モジュールの代表設定を確認できるUPM sample `Advanced Shader Suite Demo`
+  - シリンダー側面へ同じエンブレムを貼るUV Space／Projection比較
+  - Transitionの自動再生と再生成を伴わない手動`Progress`確認
+  - サンプル専用Componentを示すInspector警告
 
 ## [0.4.0] - 2026-08-27
 

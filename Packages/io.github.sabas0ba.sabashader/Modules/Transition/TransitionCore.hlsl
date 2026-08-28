@@ -19,6 +19,10 @@ struct SBSTransitionStyle
     half liquidAmplitude;
     half liquidFrequency;
     half liquidSpeed;
+    half liquidWobble;
+    half liquidPuddle;
+    half liquidPuddleHeight;
+    half liquidPuddleSpread;
     half4 liquidTint;
     half time;
 };
@@ -118,10 +122,27 @@ half3 SBSTransitionMorphOffset(half3 objectPosition, half3 objectNormal, SBSTran
     }
 
     half liquid = 1.0 - progress;
-    half phase = dot(objectPosition, half3(0.73, 1.17, 0.41)) * max(st.liquidFrequency, 0.0)
-        + st.time * st.liquidSpeed;
-    half wave = sin(phase) * max(st.liquidAmplitude, 0.0) * liquid;
-    return objectNormal * wave - direction * max(st.liquidAmplitude, 0.0) * liquid * 0.35;
+    half frequency = max(st.liquidFrequency, 1.0e-3);
+    half phase = st.time * st.liquidSpeed;
+    half waveA = sin(dot(objectPosition, half3(0.73, 1.17, 0.41)) * frequency + phase);
+    half waveB = sin(dot(objectPosition, half3(-1.31, 0.47, 0.89)) * frequency * 1.73 - phase * 1.37);
+    half waveC = sin(dot(objectPosition, half3(0.37, -0.83, 1.43)) * frequency * 2.41 + phase * 0.71);
+    half wobble = max(st.liquidWobble, 0.0);
+    half complexWave = (waveA + waveB * 0.55 + waveC * 0.3) / 1.85;
+    half waveShape = lerp(waveA, complexWave, saturate(wobble)) * (1.0 + max(wobble - 1.0, 0.0));
+    half amplitude = max(st.liquidAmplitude, 0.0);
+    half3 waveOffset = objectNormal * waveShape * amplitude * liquid;
+    waveOffset -= direction * amplitude * liquid * 0.2;
+
+    half range = max(st.boundsMax - st.boundsMin, 1.0e-4);
+    half height = dot(objectPosition, direction);
+    half normalizedHeight = saturate((height - st.boundsMin) / range);
+    half targetHeight = st.boundsMin + normalizedHeight * range * saturate(st.liquidPuddleHeight);
+    half3 planarPosition = objectPosition - direction * height;
+    half3 puddleOffset = direction * (targetHeight - height);
+    puddleOffset += planarPosition * max(st.liquidPuddleSpread, 0.0);
+    half puddleBlend = saturate(st.liquidPuddle) * liquid * liquid * (3.0 - 2.0 * liquid);
+    return waveOffset + puddleOffset * puddleBlend;
 }
 
 half3 SBSTransitionLiquidAlbedo(half3 albedo, SBSTransitionStyle st)

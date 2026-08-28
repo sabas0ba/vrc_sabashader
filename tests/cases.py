@@ -237,6 +237,10 @@ DEFAULT_TRANSITION: Dict[str, object] = {
     "liquidAmplitude": 0.06,
     "liquidFrequency": 5.0,
     "liquidSpeed": 1.0,
+    "liquidWobble": 0.5,
+    "liquidPuddle": 0.0,
+    "liquidPuddleHeight": 0.08,
+    "liquidPuddleSpread": 0.45,
     "liquidTint": (0.25, 0.55, 1.0, 0.35),
     "time": 0.0,
 }

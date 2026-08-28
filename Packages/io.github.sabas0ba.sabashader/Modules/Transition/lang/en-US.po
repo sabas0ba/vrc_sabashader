@@ -92,6 +92,30 @@ msgstr "Wave Speed"
 msgid "__LiquidSpeedDesc"
 msgstr "Time scale of the liquid wave."
 
+msgid "__LiquidWobble"
+msgstr "Irregular Wobble"
+
+msgid "__LiquidWobbleDesc"
+msgstr "Blends waves from different directions and frequencies. Values above 1 also increase deformation."
+
+msgid "__LiquidPuddle"
+msgstr "Puddle Initial State"
+
+msgid "__LiquidPuddleDesc"
+msgstr "At progress 0, compresses the mesh to the lower bound and expands it horizontally."
+
+msgid "__LiquidPuddleHeight"
+msgstr "Puddle Thickness"
+
+msgid "__LiquidPuddleHeightDesc"
+msgstr "Puddle thickness relative to the height range. The minimum Bounds value is the ground plane."
+
+msgid "__LiquidPuddleSpread"
+msgstr "Puddle Spread"
+
+msgid "__LiquidPuddleSpreadDesc"
+msgstr "Object-space expansion ratio in the plane perpendicular to Direction."
+
 msgid "__LiquidTint"
 msgstr "Liquid Tint"
 

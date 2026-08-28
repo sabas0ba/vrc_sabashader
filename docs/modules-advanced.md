@@ -21,13 +21,20 @@ Package Manager の `Samples` から `Advanced Shader Suite Demo` を Import し
 
 ![4モジュールの代表設定を同一シーンで比較したUnityキャプチャ](../tests/golden/advanced_shader_suite_demo.png)
 
-モジュール構成を変更した後にサンプルがマゼンタになる場合は、各オブジェクトの
-`Advanced Shader Demo Object` で `Apply` を実行するか、コンポーネントを有効化し直します。
+`Advanced Shader Demo Object` はサンプル専用の表示補助Componentで、通常の
+`Add Component` メニューからは除外しています。アバターやワールドには追加しません。
+モジュール構成を変更した後にサンプルがマゼンタになる場合は、各オブジェクトで
+`Rebuild Demo Preview` を実行するか、コンポーネントを有効化し直します。
+Transitionの3オブジェクトはPlay Modeで自動再生します。手動で確認する場合は
+`Auto Animate in Play Mode` を無効にしてから `Progress` を操作します。
 
 ## Decal
 
 任意画像をアルベドへ合成します。用途は肌のタトゥー、衣服のロゴ、汚れ、識別記号などです。
 UV Space と object-space Projection を切り替えられます。
+サンプルでは方向の分かる同一エンブレムを2本のシリンダー側面へ貼り、UV展開に沿う場合と
+object-spaceの直方体から投影する場合を比較できます。
+このエンブレムは画像生成によるサンプル専用の架空図案で、SabaShaderの正式ロゴではありません。
 
 ![UV SpaceとProjection、肌と布の微細質感、空間表現の比較](../tests/golden/advanced_shader_surface_features.png)
 
@@ -139,11 +146,17 @@ Universe以外は用途を選んだ時点で識別できる固定paletteを持�
 | --- | --- | --- |
 | Upward Dissolve | object-spaceの方向に境界が移動し、縁を発光させながらclipする | Direction、Bounds、Noise、Displacement |
 | Glitch Spawn | object-spaceのblock単位で表示し、境界付近の頂点をずらす | Block Scale、Edge Width、Displacement |
-| Liquid to Solid | clipせず、法線方向の波と色付けを減衰させてsolidへ戻す | Liquid Amplitude、Frequency、Speed、Tint |
+| Liquid to Solid | clipせず、複数方向の波、水たまり形状、色付けを減衰させてsolidへ戻す | Liquid Amplitude、Wobble、Puddle、Frequency、Speed、Tint |
 
 Upward DissolveとGlitch SpawnはForward、ShadowCaster、Outlineで同じfieldを使用するため、
 本体、影、輪郭線の欠け方が一致します。Liquid to Solidは常に表示され、`Progress` に応じて
 変形と色だけが変わります。
+
+Liquid to Solidの `Irregular Wobble` は異なる方向と周波数の3波を合成します。`1`を超えると
+不規則さに加えて変形量も増加します。`Puddle Initial State` を有効にすると、`Progress = 0`で
+meshを `Direction` 軸の `Bounds` 最小値へ圧縮し、軸に直交する方向へ広げます。
+`Puddle Thickness` は `Bounds` の高さ範囲に対する厚さ、`Puddle Spread` はobject-spaceの
+拡大率です。接地位置は `Bounds.x` で調整します。
 
 ### Animation Controllerからの制御
 

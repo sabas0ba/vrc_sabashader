@@ -38,10 +38,12 @@ IMPORTER_BY_SUFFIX = {
     ".po": "LocalizationImporter",
 }
 
+TEXTURE_SUFFIXES = {".png", ".jpg", ".jpeg"}
+
 # Shader Core の SCShaderImporter.cs (tag 0.1.9) の GUID
 SCSHADER_IMPORTER_GUID = "11c23ed6ad66fef4699c7e3c88c88784"
 
-TRAILING = "  externalObjects: {}\n  userData: \n  assetBundleName: \n  assetBundleVariant: \n"
+TRAILING = "  externalObjects: {}\n  userData:\n  assetBundleName:\n  assetBundleVariant:\n"
 
 
 def guid_for(relative_path: str) -> str:
@@ -60,9 +62,9 @@ def meta_body(path: Path, relative_path: str) -> str:
             "  internalIDToNameTable: []\n"
             "  externalObjects: {}\n"
             "  serializedVersion: 2\n"
-            "  userData: \n"
-            "  assetBundleName: \n"
-            "  assetBundleVariant: \n"
+            "  userData:\n"
+            "  assetBundleName:\n"
+            "  assetBundleVariant:\n"
             f"  script: {{fileID: 11500000, guid: {SCSHADER_IMPORTER_GUID}, type: 3}}\n"
         )
 
@@ -74,9 +76,9 @@ def meta_body(path: Path, relative_path: str) -> str:
             "  defaultReferences: []\n"
             "  executionOrder: 0\n"
             "  icon: {instanceID: 0}\n"
-            "  userData: \n"
-            "  assetBundleName: \n"
-            "  assetBundleVariant: \n"
+            "  userData:\n"
+            "  assetBundleName:\n"
+            "  assetBundleVariant:\n"
         )
 
     if path.suffix == ".shader":
@@ -88,6 +90,59 @@ def meta_body(path: Path, relative_path: str) -> str:
             "  userData: \n"
             "  assetBundleName: \n"
             "  assetBundleVariant: \n"
+        )
+
+    if path.suffix.lower() in TEXTURE_SUFFIXES:
+        return (
+            f"fileFormatVersion: 2\nguid: {guid}\nTextureImporter:\n"
+            "  internalIDToNameTable: []\n"
+            "  externalObjects: {}\n"
+            "  serializedVersion: 12\n"
+            "  mipmaps:\n"
+            "    mipMapMode: 0\n"
+            "    enableMipMap: 1\n"
+            "    sRGBTexture: 1\n"
+            "  isReadable: 0\n"
+            "  textureSettings:\n"
+            "    serializedVersion: 2\n"
+            "    filterMode: 1\n"
+            "    aniso: 1\n"
+            "    mipBias: 0\n"
+            "    wrapU: 1\n"
+            "    wrapV: 1\n"
+            "    wrapW: 1\n"
+            "  alphaUsage: 1\n"
+            "  alphaIsTransparency: 1\n"
+            "  textureType: 0\n"
+            "  textureShape: 1\n"
+            "  maxTextureSize: 2048\n"
+            "  platformSettings:\n"
+            "  - serializedVersion: 3\n"
+            "    buildTarget: DefaultTexturePlatform\n"
+            "    maxTextureSize: 2048\n"
+            "    textureFormat: -1\n"
+            "    textureCompression: 1\n"
+            "    compressionQuality: 50\n"
+            "    crunchedCompression: 0\n"
+            "    allowsAlphaSplitting: 0\n"
+            "    overridden: 0\n"
+            "  spriteSheet:\n"
+            "    serializedVersion: 2\n"
+            "    sprites: []\n"
+            "    outline: []\n"
+            "    physicsShape: []\n"
+            "    bones: []\n"
+            "    spriteID:\n"
+            "    internalID: 0\n"
+            "    vertices: []\n"
+            "    indices:\n"
+            "    edges: []\n"
+            "    weights: []\n"
+            "    secondaryTextures: []\n"
+            "    nameFileIdTable: {}\n"
+            "  userData:\n"
+            "  assetBundleName:\n"
+            "  assetBundleVariant:\n"
         )
 
     importer = IMPORTER_BY_SUFFIX.get(path.suffix, "DefaultImporter")

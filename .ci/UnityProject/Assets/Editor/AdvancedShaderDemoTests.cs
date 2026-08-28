@@ -36,7 +36,34 @@ namespace SabaShader.CI
                 var renderer = component.GetComponent<MeshRenderer>();
                 Assert.That(renderer.sharedMaterial, Is.Not.Null, component.name);
                 Assert.That(renderer.sharedMaterial.shader.name, Is.EqualTo("SabaShader/Illust2D"), component.name);
+
+                var serialized = new SerializedObject(component);
+                var feature = serialized.FindProperty("feature").enumValueIndex;
+                Assert.That(
+                    serialized.FindProperty("animateInPlayMode").boolValue,
+                    Is.EqualTo(feature >= 8),
+                    component.name);
             }
+        }
+
+        [Test]
+        public void ManualProgressUpdateReusesGeneratedMaterial()
+        {
+            var scene = EditorSceneManager.OpenScene(AdvancedShaderDemoBuilder.ScenePath, OpenSceneMode.Single);
+            var component = scene.GetRootGameObjects()
+                .SelectMany(root => root.GetComponentsInChildren<MonoBehaviour>(true))
+                .First(candidate => candidate != null && candidate.name.StartsWith("08 Transition"));
+            var renderer = component.GetComponent<MeshRenderer>();
+            var material = renderer.sharedMaterial;
+            var serialized = new SerializedObject(component);
+            serialized.FindProperty("animateInPlayMode").boolValue = false;
+            serialized.FindProperty("progress").floatValue = 0.73f;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+
+            Assert.That(renderer.sharedMaterial, Is.SameAs(material));
+            Assert.That(
+                renderer.sharedMaterial.GetFloat("_io_github_sabas0ba_transition_Progress"),
+                Is.EqualTo(0.73f).Within(0.0001f));
         }
 
         [Test]

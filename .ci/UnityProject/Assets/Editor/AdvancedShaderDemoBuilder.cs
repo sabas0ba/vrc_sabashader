@@ -30,8 +30,8 @@ namespace SabaShader.CI
 
         static readonly string[] FeatureNames =
         {
-            "Decal / UV Space",
-            "Decal / Projection",
+            "Decal / UV Cylinder",
+            "Decal / Projected Logo",
             "Surface / Skin",
             "Surface / Fabric",
             "Spatial / Universe Rift",
@@ -45,8 +45,8 @@ namespace SabaShader.CI
 
         static readonly PrimitiveType[] PrimitiveTypes =
         {
-            PrimitiveType.Sphere,
-            PrimitiveType.Cube,
+            PrimitiveType.Cylinder,
+            PrimitiveType.Cylinder,
             PrimitiveType.Sphere,
             PrimitiveType.Cube,
             PrimitiveType.Sphere,
@@ -203,10 +203,27 @@ namespace SabaShader.CI
             demoObject.transform.SetParent(parent, false);
             demoObject.transform.localPosition = position;
             demoObject.transform.localScale = ObjectScale(feature);
+            if (feature <= 1)
+            {
+                demoObject.transform.localRotation = Quaternion.Euler(-8.0f, -18.0f, 0.0f);
+            }
+
             var component = demoObject.AddComponent(componentType);
             var serialized = new SerializedObject(component);
             serialized.FindProperty("feature").enumValueIndex = feature;
             serialized.FindProperty("progress").floatValue = ProgressValues[feature];
+            serialized.FindProperty("animateInPlayMode").boolValue = feature >= 8;
+            if (feature <= 1)
+            {
+                var decalTexture = AssetDatabase.LoadAssetAtPath<Texture2D>(
+                    SampleDirectory + "/Textures/DecalDemoEmblem.png");
+                if (decalTexture == null)
+                {
+                    throw new InvalidOperationException("DecalDemoEmblem.png を読み込めませんでした。");
+                }
+
+                serialized.FindProperty("decalTextureAsset").objectReferenceValue = decalTexture;
+            }
             serialized.ApplyModifiedPropertiesWithoutUndo();
             componentType.GetMethod("Apply", BindingFlags.Instance | BindingFlags.Public)?.Invoke(component, null);
 
@@ -224,6 +241,11 @@ namespace SabaShader.CI
 
         static Vector3 ObjectScale(int feature)
         {
+            if (feature <= 1)
+            {
+                return new Vector3(1.35f, 0.75f, 1.35f);
+            }
+
             if (feature == 8 || feature == 9)
             {
                 return new Vector3(1.05f, 1.05f, 1.05f);

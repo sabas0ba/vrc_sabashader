@@ -16,6 +16,10 @@
     transitionStyle.liquidAmplitude = _LiquidAmplitude;
     transitionStyle.liquidFrequency = _LiquidFrequency;
     transitionStyle.liquidSpeed = _LiquidSpeed;
+    transitionStyle.liquidWobble = _LiquidWobble;
+    transitionStyle.liquidPuddle = _LiquidPuddle;
+    transitionStyle.liquidPuddleHeight = _LiquidPuddleHeight;
+    transitionStyle.liquidPuddleSpread = _LiquidPuddleSpread;
     transitionStyle.liquidTint = _LiquidTint;
     transitionStyle.time = SCTime();
 
