@@ -93,10 +93,60 @@ half SBSBankHeight(half3 objectPosition, SBSBankStyle st)
     return saturate((height - st.boundsMin) / range);
 }
 
+half SBSBankActivity(half progress)
+{
+    progress = saturate(progress);
+    return 4.0 * progress * (1.0 - progress);
+}
+
+half3 SBSBankShatterDirection(half3 objectPosition, SBSBankStyle st)
+{
+    half3 cell = floor(objectPosition * max(st.blockScale, 1.0e-3));
+    half3 direction = half3(
+        SBSBankHash3(cell + half3(17.0, 3.0, 5.0)) * 2.0 - 1.0,
+        SBSBankHash3(cell + half3(7.0, 19.0, 11.0)) * 2.0 - 1.0,
+        SBSBankHash3(cell + half3(13.0, 2.0, 23.0)) * 2.0 - 1.0);
+    return normalize(direction + half3(1.0e-3, 1.0e-3, 1.0e-3));
+}
+
+half SBSBankFlameField(half3 objectPosition, SBSBankStyle st)
+{
+    half scale = max(st.noiseScale, 1.0e-3);
+    half3 upward = normalize(st.direction);
+    half3 flow = objectPosition * scale - upward * st.time * st.patternSpeed * 0.45;
+    half broad = SBSBankNoise3(flow);
+    half detail = SBSBankNoise3(flow * 1.91 + half3(7.0, 13.0, 3.0));
+    half flame = lerp(broad, detail, 0.38);
+    half turbulence = (flame - 0.46) * st.noiseAmount * (0.7 + SBSBankActivity(st.progress));
+    return st.visibilityProgress - SBSBankHeight(objectPosition, st) + turbulence;
+}
+
+half SBSBankGlitchAmount(half3 objectPosition, SBSBankStyle st)
+{
+    half bandScale = max(st.blockScale, 1.0e-3);
+    half band = floor(objectPosition.y * bandScale + st.time * st.patternSpeed * 4.0);
+    half offset = SBSBankHash3(half3(band, band * 0.37, band * 1.71)) * 2.0 - 1.0;
+    return offset * SBSBankActivity(st.progress);
+}
+
+half SBSBankMeltField(half3 objectPosition, SBSBankStyle st)
+{
+    half height = SBSBankHeight(objectPosition, st);
+    if (st.role < 0.5)
+        return st.visibilityProgress - height;
+
+    half scale = max(st.noiseScale, 1.0e-3);
+    half3 dripPosition = objectPosition * half3(scale * 0.42, scale * 0.1, scale * 0.42);
+    dripPosition.y += st.time * st.patternSpeed * 0.18;
+    half drip = SBSBankNoise3(dripPosition);
+    half warp = (drip - 0.44) * st.noiseAmount * (0.6 + SBSBankActivity(st.progress));
+    return st.visibilityProgress - height + warp;
+}
+
 half SBSBankField(half3 objectPosition, SBSBankStyle st)
 {
     half progress = saturate(st.visibilityProgress);
-    half envelope = 4.0 * progress * (1.0 - progress);
+    half envelope = SBSBankActivity(progress);
     half scale = max(st.noiseScale, 1.0e-3);
     half noise = SBSBankNoise3(objectPosition * scale);
 
@@ -122,9 +172,29 @@ half SBSBankField(half3 objectPosition, SBSBankStyle st)
             + (noise - 0.5) * st.noiseAmount * 1.4 * envelope;
     }
 
-    half3 shadowCell = floor(objectPosition * max(st.blockScale * 0.5, 1.0e-3));
-    half shadow = lerp(noise, SBSBankHash3(shadowCell), 0.3);
-    return progress - shadow;
+    if (st.style < 4.5)
+    {
+        half3 shadowCell = floor(objectPosition * max(st.blockScale * 0.5, 1.0e-3));
+        half shadow = lerp(noise, SBSBankHash3(shadowCell), 0.3);
+        return progress - shadow;
+    }
+    if (st.style < 5.5)
+        return SBSBankFlameField(objectPosition, st);
+    if (st.style < 6.5)
+    {
+        half3 shardCell = floor(objectPosition * max(st.blockScale, 1.0e-3));
+        return progress - SBSBankHash3(shardCell);
+    }
+    if (st.style < 7.5)
+    {
+        half glitch = SBSBankGlitchAmount(objectPosition, st);
+        half3 shifted = objectPosition + half3(glitch * st.noiseAmount, 0.0, 0.0);
+        half fine = SBSBankNoise3(shifted * scale);
+        half3 block = floor(shifted * max(st.blockScale, 1.0e-3));
+        half coarse = SBSBankHash3(block);
+        return progress - lerp(fine, coarse, envelope * 0.82);
+    }
+    return SBSBankMeltField(objectPosition, st);
 }
 
 half SBSBankVisibility(half3 objectPosition, SBSBankStyle st)
@@ -150,6 +220,7 @@ half3 SBSBankMorphOffset(half3 objectPosition, half3 objectNormal, SBSBankStyle 
     half scale = max(st.noiseScale, 1.0e-3);
     half seed = SBSBankHash3(floor(objectPosition * scale));
     half3 direction = normalize(st.direction);
+    half envelope = SBSBankActivity(progress);
 
     if (st.style < 0.5)
         return (direction * (0.2 + seed * 0.3) + objectNormal * (seed - 0.5) * 0.2)
@@ -167,7 +238,30 @@ half3 SBSBankMorphOffset(half3 objectPosition, half3 objectNormal, SBSBankStyle 
         return objectNormal * st.displacement * edge * (0.25 + seed * 0.35);
     if (st.style < 3.5)
         return -direction * st.displacement * edge * (0.3 + seed * 0.7);
-    return -objectNormal * st.displacement * edge * (0.25 + seed * 0.5);
+    if (st.style < 4.5)
+        return -objectNormal * st.displacement * edge * (0.25 + seed * 0.5);
+    if (st.style < 5.5)
+    {
+        half flutter = SBSBankNoise3(objectPosition * scale - direction * st.time * st.patternSpeed);
+        return (direction * (0.35 + flutter) + objectNormal * (seed - 0.5) * 0.55)
+            * st.displacement * saturate(edge + envelope * 0.25);
+    }
+    if (st.style < 6.5)
+    {
+        half3 shardDirection = SBSBankShatterDirection(objectPosition, st);
+        return shardDirection * st.displacement * (0.2 + envelope * 1.8)
+            * saturate(edge + envelope * 0.65);
+    }
+    if (st.style < 7.5)
+    {
+        half glitch = SBSBankGlitchAmount(objectPosition, st);
+        return half3(glitch, (seed - 0.5) * 0.15, -glitch * 0.28)
+            * st.displacement;
+    }
+    if (st.role < 0.5)
+        return half3(0.0, 0.0, 0.0);
+    return (-direction * (0.55 + seed) + objectNormal * (seed - 0.5) * 0.18)
+        * st.displacement * envelope;
 }
 
 half SBSBankPattern(half3 objectPosition, half3 normal, half3 viewDirection, SBSBankStyle st)
@@ -201,8 +295,38 @@ half SBSBankPattern(half3 objectPosition, half3 normal, half3 viewDirection, SBS
         return saturate(crack + rim * 0.2);
     }
 
-    half shadow = SBSBankNoise3(objectPosition * scale + st.direction * phase * 0.1);
-    return saturate(shadow * shadow + rim * 0.55);
+    if (st.style < 4.5)
+    {
+        half shadow = SBSBankNoise3(objectPosition * scale + st.direction * phase * 0.1);
+        return saturate(shadow * shadow + rim * 0.55);
+    }
+    if (st.style < 5.5)
+    {
+        half3 flow = objectPosition * scale - normalize(st.direction) * phase * 0.6;
+        half broad = SBSBankNoise3(flow);
+        half detail = SBSBankNoise3(flow * 2.13 + half3(11.0, 5.0, 17.0));
+        half flame = saturate((broad * 0.7 + detail * 0.3 - 0.38) * 2.4);
+        return saturate(flame + rim * 0.65);
+    }
+    if (st.style < 6.5)
+    {
+        half3 cell = abs(frac(objectPosition * scale) - 0.5);
+        half shardEdge = 1.0 - saturate(min(cell.x, min(cell.y, cell.z)) * 13.0);
+        return saturate(shardEdge + rim * 0.3);
+    }
+    if (st.style < 7.5)
+    {
+        half band = floor(objectPosition.y * scale * 2.0 + phase * 5.0);
+        half scanline = step(0.72, SBSBankHash3(half3(band, band * 0.31, 4.0)));
+        half channel = 1.0 - saturate(abs(frac(objectPosition.x * scale + phase) - 0.5) * 8.0);
+        return saturate(scanline * 0.7 + channel + rim * 0.2);
+    }
+    if (st.role < 0.5)
+        return 0.0;
+    half3 liquidPosition = objectPosition * half3(scale * 0.55, scale * 0.12, scale * 0.55);
+    liquidPosition.y += phase * 0.25;
+    half liquid = SBSBankNoise3(liquidPosition);
+    return saturate((liquid - 0.35) * 1.8 + rim * 0.15);
 }
 
 half3 SBSBankSurfaceColor(
@@ -212,13 +336,19 @@ half3 SBSBankSurfaceColor(
     half3 viewDirection,
     SBSBankStyle st)
 {
-    half activity = 4.0 * saturate(st.progress) * (1.0 - saturate(st.progress));
+    half activity = SBSBankActivity(st.progress);
     half pattern = SBSBankPattern(objectPosition, normal, viewDirection, st) * activity;
+    half edge = SBSBankEdge(objectPosition, st);
+    if (st.style >= 7.5 && st.role < 0.5)
+    {
+        pattern = 0.0;
+        edge = 0.0;
+    }
     half3 result = base;
     if (st.role > 1.5)
         result = st.coverColor.rgb;
     result += st.patternColor.rgb * st.patternColor.a * st.patternEmission * pattern;
-    result += st.edgeColor * SBSBankEdge(objectPosition, st);
+    result += st.edgeColor * edge;
     return result;
 }
 

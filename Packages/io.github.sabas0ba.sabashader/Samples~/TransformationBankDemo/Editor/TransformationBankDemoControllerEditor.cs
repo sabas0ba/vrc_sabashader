@@ -53,7 +53,7 @@ namespace SabaShader.Samples.Editor
             }
 
             EditorGUILayout.HelpBox(
-                "Play Modeでは上段の5 Styleが同期して自動再生します。下段は安全なtimingを示す固定snapshotです。\n" +
+                "Play Modeでは上段の9 Styleが同期して自動再生します。下段は安全なtimingを示す固定snapshotです。\n" +
                 "実利用では material._io_github_sabas0ba_transformationbank_Progress を" +
                 "Animation Controllerから制御します。",
                 MessageType.Info);

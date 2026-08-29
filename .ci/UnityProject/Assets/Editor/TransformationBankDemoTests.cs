@@ -11,21 +11,21 @@ namespace SabaShader.CI
         const string Bank = "_io_github_sabas0ba_transformationbank_";
 
         [Test]
-        public void SampleSceneContainsFiveStylesAndFiveTimelineSnapshots()
+        public void SampleSceneContainsNineStylesAndFiveTimelineSnapshots()
         {
             var sceneAsset = AssetDatabase.LoadAssetAtPath<SceneAsset>(TransformationBankDemoBuilder.ScenePath);
             Assert.That(sceneAsset, Is.Not.Null, "Transformation Bank Demo sample がAssetsに配置されていません。");
 
             var components = OpenComponents();
-            Assert.That(components, Has.Length.EqualTo(10));
+            Assert.That(components, Has.Length.EqualTo(14));
             var serialized = components.Select(component => new SerializedObject(component)).ToArray();
             Assert.That(
                 serialized.Count(item => item.FindProperty("animateInPlayMode").boolValue),
-                Is.EqualTo(5));
+                Is.EqualTo(9));
             Assert.That(
                 serialized.Where(item => item.FindProperty("animateInPlayMode").boolValue)
                     .Select(item => item.FindProperty("style").enumValueIndex),
-                Is.EquivalentTo(new[] { 0, 1, 2, 3, 4 }));
+                Is.EquivalentTo(new[] { 0, 1, 2, 3, 4, 5, 6, 7, 8 }));
             var timeline = serialized
                 .Where(item => !item.FindProperty("animateInPlayMode").boolValue)
                 .Select(item => item.FindProperty("progress").floatValue)
@@ -47,6 +47,28 @@ namespace SabaShader.CI
                 AssertRole(serialized, "outgoingRenderer", 1, component.name);
                 AssertRole(serialized, "incomingRenderer", 0, component.name);
                 AssertRole(serialized, "safetyCoverRenderer", 2, component.name);
+            }
+        }
+
+        [Test]
+        public void EveryStationUsesDistinctRoleShapesAndCoverEnclosesThem()
+        {
+            foreach (var component in OpenComponents())
+            {
+                var serialized = new SerializedObject(component);
+                var outgoing = (Renderer)serialized.FindProperty("outgoingRenderer").objectReferenceValue;
+                var incoming = (Renderer)serialized.FindProperty("incomingRenderer").objectReferenceValue;
+                var cover = (Renderer)serialized.FindProperty("safetyCoverRenderer").objectReferenceValue;
+
+                Assert.That(outgoing.GetComponent<MeshFilter>().sharedMesh.name, Does.Contain("Capsule"));
+                Assert.That(incoming.GetComponent<MeshFilter>().sharedMesh.name, Does.Contain("Cylinder"));
+                Assert.That(cover.GetComponent<MeshFilter>().sharedMesh.name, Does.Contain("Sphere"));
+                Assert.That(cover.bounds.extents.x, Is.GreaterThan(incoming.bounds.extents.x));
+                Assert.That(cover.bounds.extents.y, Is.GreaterThan(incoming.bounds.extents.y));
+                Assert.That(cover.bounds.extents.x, Is.GreaterThan(outgoing.bounds.extents.x));
+                Assert.That(cover.bounds.extents.y, Is.GreaterThan(outgoing.bounds.extents.y));
+                Assert.That(EllipsoidContainment(incoming.bounds.extents, cover.bounds.extents), Is.LessThan(1.0f));
+                Assert.That(EllipsoidContainment(outgoing.bounds.extents, cover.bounds.extents), Is.LessThan(1.0f));
             }
         }
 
@@ -108,6 +130,13 @@ namespace SabaShader.CI
             Assert.That(renderer.sharedMaterial.GetInteger(Bank + "Role"), Is.EqualTo(role));
             Assert.That(renderer.sharedMaterial.GetFloat(Bank + "Progress"),
                 Is.EqualTo(controller.FindProperty("progress").floatValue).Within(0.0001f));
+        }
+
+        static float EllipsoidContainment(Vector3 innerExtents, Vector3 coverExtents)
+        {
+            var radial = Mathf.Max(innerExtents.x, innerExtents.z) / coverExtents.x;
+            var vertical = innerExtents.y / coverExtents.y;
+            return radial * radial + vertical * vertical;
         }
     }
 }

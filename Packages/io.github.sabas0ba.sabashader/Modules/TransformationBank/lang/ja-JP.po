@@ -21,7 +21,7 @@ msgid "__Style"
 msgstr "演出"
 
 msgid "__StyleDesc"
-msgstr "魔法、サイバー、星界、地属性、影の表面演出から選択します。"
+msgstr "魔法、サイバー、星界、地属性、影、炎、破片、グリッチ、液体融解から選択します。"
 
 msgid "__IncomingOutgoingWindow"
 msgstr "衣装表示区間"
@@ -57,7 +57,7 @@ msgid "__Noise"
 msgstr "境界noise"
 
 msgid "__NoiseDesc"
-msgstr "ArcaneとGaiaの表示境界を乱す量です。"
+msgstr "表示境界、炎、グリッチ、液体融解を乱す量です。"
 
 msgid "__EdgeWidth"
 msgstr "edge幅"
@@ -87,7 +87,7 @@ msgid "__BlockScale"
 msgstr "block密度"
 
 msgid "__BlockScaleDesc"
-msgstr "CyberとUmbraの表示判定に使うcell密度です。"
+msgstr "Cyber、Umbra、Shatter、Glitchの表示判定に使うcell密度です。"
 
 msgid "__Surface"
 msgstr "表面演出"
@@ -108,7 +108,7 @@ msgid "__PatternScale"
 msgstr "pattern密度"
 
 msgid "__PatternScaleDesc"
-msgstr "object-space上の紋様、格子、星、ひび、影の密度です。"
+msgstr "object-space上の紋様、格子、星、ひび、影、炎、破片、scanline、液体の密度です。"
 
 msgid "__PatternSpeed"
 msgstr "pattern速度"

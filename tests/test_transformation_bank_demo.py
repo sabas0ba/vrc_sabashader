@@ -36,8 +36,8 @@ def test_sample_contains_scene_controller_inspector_and_readme():
     component_guid = guid_for(
         (SAMPLE_DIR / "TransformationBankDemoController.cs").relative_to(PACKAGE_DIR).as_posix()
     )
-    assert scene.count(f"guid: {component_guid}") == 10
-    assert scene.count("  animateInPlayMode: 1") == 5
+    assert scene.count(f"guid: {component_guid}") == 14
+    assert scene.count("  animateInPlayMode: 1") == 9
     assert scene.count("  animateInPlayMode: 0") == 5
 
 
@@ -53,7 +53,17 @@ def test_demo_controller_generates_three_transient_role_materials():
     assert "MaterialPropertyBlock" in source
     assert "StabilizeTextRendering();" in source
     assert '[AddComponentMenu("")]' in source
-    for style in ("Arcane", "Cyber", "Astral", "Gaia", "Umbra"):
+    for style in (
+        "Arcane",
+        "Cyber",
+        "Astral",
+        "Gaia",
+        "Umbra",
+        "Flame",
+        "Shatter",
+        "Glitch",
+        "Melt",
+    ):
         assert style in source
 
 
@@ -68,12 +78,14 @@ def test_demo_inspector_is_sample_only_and_supports_manual_scrub():
     assert "material._io_github_sabas0ba_transformationbank_Progress" in source
 
 
-def test_builder_has_five_styles_five_timeline_snapshots_and_capture():
+def test_builder_has_nine_styles_distinct_roles_five_timeline_snapshots_and_capture():
     source = BUILDER.read_text(encoding="utf-8")
 
-    assert 'StyleNames = { "Arcane", "Cyber", "Astral", "Gaia", "Umbra" }' in source
+    assert '"Flame", "Shatter", "Glitch", "Melt"' in source
     assert "TimelineProgress = { 0.0f, 0.25f, 0.5f, 0.75f, 1.0f }" in source
-    assert 'PrimitiveType.Capsule' in source
+    assert 'CreateShell(station.transform, "Outgoing / Old Outfit", PrimitiveType.Capsule' in source
+    assert 'CreateShell(station.transform, "Incoming / New Outfit", PrimitiveType.Cylinder' in source
+    assert 'CreateShell(station.transform, "Safety Cover", PrimitiveType.Sphere' in source
     assert '"transformation_bank_demo.png"' in source
     assert ", 2560, 1440);" in source
 

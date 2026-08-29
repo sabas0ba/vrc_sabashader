@@ -1,6 +1,6 @@
 SC_float(_Progress, 1, [SCRange(0,1)], "__Progress", "__ProgressDesc")
 SC_uint(_Role, 0, [SCEnum(Incoming,0,Outgoing,1,Safety Cover,2)], "__Role", "__RoleDesc")
-SC_uint(_Style, 0, [SCEnum(Arcane,0,Cyber,1,Astral,2,Gaia,3,Umbra,4)], "__Style", "__StyleDesc")
+SC_uint(_Style, 0, [SCEnum(Arcane,0,Cyber,1,Astral,2,Gaia,3,Umbra,4,Flame,5,Shatter,6,Glitch,7,Melt,8)], "__Style", "__StyleDesc")
 SC_float4(_IncomingOutgoingWindow, (0.25,0.65,0.35,0.75), [], "__IncomingOutgoingWindow", "__IncomingOutgoingWindowDesc")
 SC_float4(_CoverWindow, (0.1,0.3,0.7,0.9), [], "__CoverWindow", "__CoverWindowDesc")
 SC_float4(_Direction, (0,1,0,0), [], "__Direction", "__DirectionDesc")

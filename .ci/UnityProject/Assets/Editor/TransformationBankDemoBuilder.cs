@@ -9,7 +9,7 @@ using UnityEngine.Rendering;
 
 namespace SabaShader.CI
 {
-    /// <summary>Transformation Bankの5 StyleとSafety Cover timingを表示するUPM sampleを生成する。</summary>
+    /// <summary>Transformation Bankの9 StyleとSafety Cover timingを表示するUPM sampleを生成する。</summary>
     public static class TransformationBankDemoBuilder
     {
         public static string SampleDirectory
@@ -28,8 +28,13 @@ namespace SabaShader.CI
 
         public static string ScenePath => SampleDirectory + "/TransformationBankDemo.unity";
 
-        static readonly string[] StyleNames = { "Arcane", "Cyber", "Astral", "Gaia", "Umbra" };
+        static readonly string[] StyleNames =
+        {
+            "Arcane", "Cyber", "Astral", "Gaia", "Umbra",
+            "Flame", "Shatter", "Glitch", "Melt",
+        };
         static readonly float[] TimelineProgress = { 0.0f, 0.25f, 0.5f, 0.75f, 1.0f };
+        static int textSortingOrder;
 
         [MenuItem("SabaShader/Demo/Build Transformation Bank Demo")]
         public static void BuildAndOpen()
@@ -129,33 +134,41 @@ namespace SabaShader.CI
 
         static void PopulateScene(Type componentType)
         {
+            textSortingOrder = 0;
             RenderSettings.ambientMode = AmbientMode.Flat;
             RenderSettings.ambientLight = new Color(0.2f, 0.22f, 0.3f, 1.0f);
 
             var root = new GameObject("Transformation Bank Demo");
             CreateCamera(root.transform);
             CreateLight(root.transform);
-            CreateText(root.transform, "Title", "SabaShader / Transformation Bank", new Vector3(0.0f, 4.65f, -0.8f), 0.17f, 58, Color.white);
-            CreateText(root.transform, "Style Row", "5 VFX STYLES / PLAY MODE", new Vector3(-7.4f, 3.45f, -0.8f), 0.07f, 44, new Color(0.46f, 0.76f, 1.0f, 1.0f), TextAnchor.MiddleLeft);
-            CreateText(root.transform, "Timeline Row", "SAFETY TIMELINE / FIXED", new Vector3(-7.4f, -0.72f, -0.8f), 0.07f, 44, new Color(1.0f, 0.66f, 0.28f, 1.0f), TextAnchor.MiddleLeft);
+            CreateText(root.transform, "Title", "SabaShader / Transformation Bank", new Vector3(0.0f, 5.35f, -0.8f), 0.15f, 58, Color.white);
+            CreateText(root.transform, "Style Row", "9 VFX STYLES / PLAY MODE", new Vector3(-8.2f, 4.45f, -0.8f), 0.065f, 44, new Color(0.46f, 0.76f, 1.0f, 1.0f), TextAnchor.MiddleLeft);
+            CreateText(root.transform, "Timeline Row", "OLD CAPSULE  >  SAFETY SPHERE  >  NEW CYLINDER", new Vector3(-8.2f, -1.35f, -0.8f), 0.062f, 44, new Color(1.0f, 0.66f, 0.28f, 1.0f), TextAnchor.MiddleLeft);
 
-            const float spacing = 2.75f;
             for (var index = 0; index < StyleNames.Length; index++)
             {
-                var x = (index - 2) * spacing;
+                var firstRow = index < 5;
+                var x = firstRow ? (index - 2) * 3.0f : (index - 6.5f) * 3.0f;
+                var y = firstRow ? 3.05f : 0.45f;
                 CreateStation(
                     root.transform,
                     componentType,
                     $"Style {index:00} / {StyleNames[index]}",
-                    new Vector3(x, 1.72f, 0.0f),
+                    new Vector3(x, y, 0.0f),
                     index,
                     0.5f,
                     true);
+            }
+
+            const float timelineSpacing = 3.0f;
+            for (var index = 0; index < TimelineProgress.Length; index++)
+            {
+                var x = (index - 2) * timelineSpacing;
                 CreateStation(
                     root.transform,
                     componentType,
                     $"Timeline {index:00} / {TimelineProgress[index]:0.00}",
-                    new Vector3(x, -2.5f, 0.0f),
+                    new Vector3(x, -3.25f, 0.0f),
                     0,
                     TimelineProgress[index],
                     false);
@@ -176,15 +189,15 @@ namespace SabaShader.CI
             station.transform.SetParent(parent, false);
             station.transform.localPosition = position;
 
-            var outgoing = CreateShell(station.transform, "Outgoing / Old Outfit", 1.1f);
-            var incoming = CreateShell(station.transform, "Incoming / New Outfit", 1.035f);
-            var cover = CreateShell(station.transform, "Safety Cover", 0.97f);
+            var outgoing = CreateShell(station.transform, "Outgoing / Old Outfit", PrimitiveType.Capsule, new Vector3(0.55f, 0.78f, 0.55f));
+            var incoming = CreateShell(station.transform, "Incoming / New Outfit", PrimitiveType.Cylinder, new Vector3(0.63f, 0.84f, 0.63f));
+            var cover = CreateShell(station.transform, "Safety Cover", PrimitiveType.Sphere, new Vector3(1.4f, 2.0f, 1.4f));
             var label = CreateText(
                 station.transform,
                 "Progress Label",
                 string.Empty,
-                new Vector3(0.0f, -1.72f, -0.7f),
-                0.052f,
+                new Vector3(0.0f, -1.3f, -0.7f),
+                0.047f,
                 44,
                 new Color(0.9f, 0.93f, 1.0f, 1.0f));
 
@@ -203,12 +216,12 @@ namespace SabaShader.CI
             componentType.GetMethod("Apply", BindingFlags.Instance | BindingFlags.Public)?.Invoke(component, null);
         }
 
-        static Renderer CreateShell(Transform parent, string name, float shellScale)
+        static Renderer CreateShell(Transform parent, string name, PrimitiveType primitive, Vector3 scale)
         {
-            var shell = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+            var shell = GameObject.CreatePrimitive(primitive);
             shell.name = name;
             shell.transform.SetParent(parent, false);
-            shell.transform.localScale = new Vector3(0.78f, 1.28f, 0.78f) * shellScale;
+            shell.transform.localScale = scale;
             var collider = shell.GetComponent<Collider>();
             if (collider != null)
             {
@@ -244,7 +257,9 @@ namespace SabaShader.CI
             textMesh.color = color;
             var propertyBlock = new MaterialPropertyBlock();
             propertyBlock.SetColor("_Color", Color.white);
-            textObject.GetComponent<MeshRenderer>().SetPropertyBlock(propertyBlock);
+            var renderer = textObject.GetComponent<MeshRenderer>();
+            renderer.SetPropertyBlock(propertyBlock);
+            renderer.sortingOrder = 30000 - textSortingOrder++;
             return textMesh;
         }
 
@@ -256,7 +271,7 @@ namespace SabaShader.CI
             cameraObject.transform.localPosition = new Vector3(0.0f, 0.15f, -14.0f);
             var camera = cameraObject.AddComponent<Camera>();
             camera.orthographic = true;
-            camera.orthographicSize = 5.35f;
+            camera.orthographicSize = 6.2f;
             camera.clearFlags = CameraClearFlags.SolidColor;
             camera.backgroundColor = new Color(0.006f, 0.008f, 0.018f, 1.0f);
             camera.nearClipPlane = 0.1f;

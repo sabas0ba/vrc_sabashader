@@ -34,7 +34,7 @@
     },
     {
       "displayName": "Transformation Bank Demo",
-      "description": "衣装の旧・新・Safety Coverを5種類のVFXで切り替える変身バンクを確認します。",
+      "description": "衣装の旧・新・Safety Coverを9種類のVFXと異なる形状で切り替える変身バンクを確認します。",
       "path": "Samples~/TransformationBankDemo"
     }
   ],

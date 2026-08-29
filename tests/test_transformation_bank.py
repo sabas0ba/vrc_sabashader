@@ -42,7 +42,10 @@ def test_bank_exposes_roles_styles_and_animation_progress():
 
     assert re.search(r"SC_float\(_Progress,\s*1\s*,", source)
     assert "Incoming,0,Outgoing,1,Safety Cover,2" in source
-    assert "Arcane,0,Cyber,1,Astral,2,Gaia,3,Umbra,4" in source
+    assert (
+        "Arcane,0,Cyber,1,Astral,2,Gaia,3,Umbra,4,"
+        "Flame,5,Shatter,6,Glitch,7,Melt,8"
+    ) in source
     assert "_IncomingOutgoingWindow" in source
     assert "_CoverWindow" in source
 
@@ -95,8 +98,31 @@ def test_animation_property_and_safety_constraints_are_documented():
     assert "Opaque" in source
     assert "Safety Cover" in source
     assert NONTOON_COMMIT in source
-    for style in ("Arcane", "Cyber", "Astral", "Gaia", "Umbra"):
+    for style in (
+        "Arcane",
+        "Cyber",
+        "Astral",
+        "Gaia",
+        "Umbra",
+        "Flame",
+        "Shatter",
+        "Glitch",
+        "Melt",
+    ):
         assert style in source
+
+
+def test_extended_styles_define_distinct_morph_and_surface_paths():
+    source = (BANK_DIR / "TransformationBankCore.hlsl").read_text(encoding="utf-8")
+
+    assert "SBSBankFlameField" in source
+    assert "SBSBankShatterDirection" in source
+    assert "SBSBankGlitchAmount" in source
+    assert "SBSBankMeltField" in source
+    assert "st.style < 5.5" in source
+    assert "st.style < 6.5" in source
+    assert "st.style < 7.5" in source
+    assert "st.role < 0.5" in source
 
 
 def test_nontoon_expansion_includes_bank_clip_and_properties():

@@ -70,11 +70,12 @@ Animation Clipでは3つのRendererへ同じ0、1のkeyframeを記録します�
 
 ## Style
 
-Package ManagerのSamplesから `Transformation Bank Demo` をImportすると、5 Styleの同期再生と
-Safety Cover timelineを1シーンで確認できます。上段はPlay Modeで自動再生し、下段はProgress
-0、0.25、0.5、0.75、1の固定snapshotです。
+Package ManagerのSamplesから `Transformation Bank Demo` をImportすると、9 Styleの同期再生と
+Safety Cover timelineを1シーンで確認できます。上2段はPlay Modeで自動再生し、下段はProgress
+0、0.25、0.5、0.75、1の固定snapshotです。旧衣装はCapsule、新衣装はCylinder、Safety Coverは
+両方を完全に囲むSphereとして表示するため、Roleを形状でも識別できます。
 
-![5 StyleとSafety Cover timelineを比較したUnityキャプチャ](../tests/golden/transformation_bank_demo.png)
+![9 Styleと3種類のRole形状を比較したUnityキャプチャ](../tests/golden/transformation_bank_demo.png)
 
 | Style | 表示境界 | 表面演出 | Safety Coverの例 |
 | --- | --- | --- | --- |
@@ -83,15 +84,24 @@ Safety Cover timelineを1シーンで確認できます。上段はPlay Modeで�
 | Astral | 3D noise | 星と強いrim | 星界の人型shell |
 | Gaia | 下から上へのnoise | 岩のひび | 土、岩、結晶の殻 |
 | Umbra | noiseとblock | 流れる影とrim | 不透明な影のローブ |
+| Flame | 上昇するturbulence | 炎色のnoise、発光rim | 不透明な炎の鎧 |
+| Shatter | cell単位のclip | 破片境界と全方向への散開 | 結晶または金属片の殻 |
+| Glitch | 細密noiseから粗いblockへ遷移 | scanline、横方向の断続変位 | 不透明なdigital shell |
+| Melt | Outgoingを上から下へclip | 下方向の液体変位 | 不透明な液体膜 |
+
+ShatterはmeshのtriangleをParticleへ変換する方式ではなく、object-space cellごとに破片を分離して
+散開させます。そのため追加のmesh dataを必要とせずSkinnedMeshRendererでも使用できますが、実際の
+polygon単位の剛体回転は行いません。MeltではIncomingの頂点変位と表面patternを無効にし、旧衣装が
+溶けた後に新衣装の形状が変形せず現れるようにしています。
 
 `Pattern Color` と `Edge Color` はHDR色です。Safety Coverでは中央区間の基底色を
 `Safety Cover Color` で置き換え、アルファを1にします。Safety Cover側のシェーダーも
 Opaqueに設定してください。Transparentのrender queueや半透明blendを使うと、深度と描画順に
 よって内側が見えるため、安全条件には使用できません。
 
-頂点変位は既存頂点だけを動かします。粗い衣装meshではCyberのblockやGaiaの崩れが大きな面の
-移動に見えます。変位量を増やす場合はSkinnedMeshRendererのboundsも広げ、カメラ角度による
-cullingを確認してください。
+頂点変位は既存頂点だけを動かします。粗い衣装meshではCyber、Shatter、Glitchの変位が大きな面の
+移動に見えます。Shatterを細かく見せるには適度に分割されたmeshを使用します。変位量を増やす場合は
+SkinnedMeshRendererのboundsも広げ、カメラ角度によるcullingを確認してください。
 
 ## NonToon
 

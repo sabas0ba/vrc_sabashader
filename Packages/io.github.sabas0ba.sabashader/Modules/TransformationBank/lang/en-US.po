@@ -21,7 +21,7 @@ msgid "__Style"
 msgstr "Style"
 
 msgid "__StyleDesc"
-msgstr "Select arcane, cyber, astral, earth, or shadow surface effects."
+msgstr "Select arcane, cyber, astral, earth, shadow, flame, shatter, glitch, or melt effects."
 
 msgid "__IncomingOutgoingWindow"
 msgstr "Costume Windows"
@@ -57,7 +57,7 @@ msgid "__Noise"
 msgstr "Boundary Noise"
 
 msgid "__NoiseDesc"
-msgstr "Irregularity of Arcane and Gaia visibility boundaries."
+msgstr "Irregularity of visibility boundaries, flames, glitches, and liquid melting."
 
 msgid "__EdgeWidth"
 msgstr "Edge Width"
@@ -87,7 +87,7 @@ msgid "__BlockScale"
 msgstr "Block Density"
 
 msgid "__BlockScaleDesc"
-msgstr "Cell density used by Cyber and Umbra visibility."
+msgstr "Cell density used by Cyber, Umbra, Shatter, and Glitch visibility."
 
 msgid "__Surface"
 msgstr "Surface Effect"
@@ -108,7 +108,7 @@ msgid "__PatternScale"
 msgstr "Pattern Density"
 
 msgid "__PatternScaleDesc"
-msgstr "Object-space density of runes, grids, stars, cracks, or shadow noise."
+msgstr "Object-space density of runes, grids, stars, cracks, flames, shards, scanlines, or liquid noise."
 
 msgid "__PatternSpeed"
 msgstr "Pattern Speed"
