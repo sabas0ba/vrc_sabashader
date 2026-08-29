@@ -75,6 +75,20 @@ namespace SabaShader.CI
             Assert.That(missing, Is.Zero);
         }
 
+        [Test]
+        public void TextLabelsDisableDynamicBatchingAfterSceneReload()
+        {
+            var scene = EditorSceneManager.OpenScene(TransformationBankDemoBuilder.ScenePath, OpenSceneMode.Single);
+            var textMeshes = scene.GetRootGameObjects()
+                .SelectMany(root => root.GetComponentsInChildren<TextMesh>(true))
+                .ToArray();
+
+            Assert.That(textMeshes, Is.Not.Empty);
+            Assert.That(
+                textMeshes.All(textMesh => textMesh.GetComponent<MeshRenderer>().HasPropertyBlock()),
+                Is.True);
+        }
+
         static MonoBehaviour[] OpenComponents()
         {
             var scene = EditorSceneManager.OpenScene(TransformationBankDemoBuilder.ScenePath, OpenSceneMode.Single);

@@ -22,6 +22,7 @@ namespace SabaShader.Samples
 
         const string ShaderName = "SabaShader/Illust2D";
         const string Bank = "_io_github_sabas0ba_transformationbank_";
+        static readonly int FontColorProperty = Shader.PropertyToID("_Color");
 
         [SerializeField] BankStyle style;
         [SerializeField, Range(0.0f, 1.0f)] float progress = 0.5f;
@@ -86,6 +87,7 @@ namespace SabaShader.Samples
 
         void OnEnable()
         {
+            StabilizeTextRendering();
             Apply();
         }
 
@@ -235,6 +237,23 @@ namespace SabaShader.Samples
             }
 
             return "NEW OUTFIT";
+        }
+
+        void StabilizeTextRendering()
+        {
+            foreach (var textMesh in transform.root.GetComponentsInChildren<TextMesh>(true))
+            {
+                var renderer = textMesh.GetComponent<MeshRenderer>();
+                if (renderer == null)
+                {
+                    continue;
+                }
+
+                var propertyBlock = new MaterialPropertyBlock();
+                renderer.GetPropertyBlock(propertyBlock);
+                propertyBlock.SetColor(FontColorProperty, Color.white);
+                renderer.SetPropertyBlock(propertyBlock);
+            }
         }
 
         static (Color outgoing, Color incoming, Color cover, Color edge, Color pattern) StylePalette(BankStyle value)

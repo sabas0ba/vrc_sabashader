@@ -50,6 +50,8 @@ def test_demo_controller_generates_three_transient_role_materials():
     assert 'CreateRoleMaterial(shader, 0, "Incoming")' in source
     assert 'CreateRoleMaterial(shader, 2, "Safety Cover")' in source
     assert "Mathf.PingPong" in source
+    assert "MaterialPropertyBlock" in source
+    assert "StabilizeTextRendering();" in source
     assert '[AddComponentMenu("")]' in source
     for style in ("Arcane", "Cyber", "Astral", "Gaia", "Umbra"):
         assert style in source
