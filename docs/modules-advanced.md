@@ -188,5 +188,8 @@ Transitionの発光縁とclipを最後に適用します。
 | Spatial Interior | preset別の3D noise、star field、格子 | 計算を省略 |
 | Transition | object-space noise、clip、任意の頂点変位 | `Progress = 1` でclip境界と変位を省略 |
 
+旧衣装、新衣装、露出防止用meshを1本の進行度で切り替える場合は、Transitionを個別に
+組み合わせず、[衣装変身バンク](transformation-bank.md)を使用します。
+
 Mobile、Quest向けでは、対象マテリアルを限定し、Spatial InteriorとSurface Detailを
 同時に広い画面領域へ使わない構成を推奨します。

@@ -13,7 +13,7 @@ VRChat 向けシェーダー集です。**
 mesh とライティング入力を可視化する **Debug shader** と、
 その上に効果を足すモジュール（表面の重ね掛け・ドット絵風・ビデオ入力・
 表示パネル・ブラウン管とグリッチ・Decal・Surface Detail・Spatial Interior・
-Transition）です。
+Transition・衣装変身バンク）です。
 [Shader Core](https://github.com/lilxyzw/Shader-Core) をベースにしています。
 
 シェーディングの数式は
@@ -57,7 +57,7 @@ HLSL が実際にコンパイルできるかは
 | `.ci/UnityProject/` | Unity でのコンパイル検証用プロジェクトの雛形 |
 | `tools/` | `.meta` 生成・VPM リスティング生成・Pages のサイト生成・Unity プロジェクト組み立て |
 | `listing.json` | 配信するリスティングのメタ情報 |
-| `Containerfile` / `flake.nix` | harness と tools を動かす環境（CI もこれを使う） |
+| `Containerfile` / `flake.nix` | dotfiles を基準にした harness/tools 環境（CI もこれを使う） |
 | `.github/workflows/` | テスト・リリース・Pages 配信 |
 
 ## ドキュメント
@@ -68,6 +68,7 @@ HLSL が実際にコンパイルできるかは
 - [Debug shader](docs/shader-debug.md)
 - [モジュールのパラメータ](docs/modules.md)（表面の重ね掛け・ドット絵風・ビデオ入力・表示パネル・ブラウン管とグリッチ）
 - [高度シェーダーモジュール](docs/modules-advanced.md)（Decal・Surface Detail・Spatial Interior・Transition）
+- [衣装変身バンク](docs/transformation-bank.md)（Animation Controller・Safety Cover・NonToon）
 - [アバターに適用して確認する](docs/avatar-demo.md)
 - [テストの仕組みと動かし方](docs/testing.md)
 - [シェーダーを追加する](docs/adding-a-shader.md)
@@ -82,6 +83,9 @@ HLSL が実際にコンパイルできるかは
 harness と tools は**コンテナか nix の中で動かします**。ホスト OS に
 Python やヘッドレス OpenGL を入れる必要はありません。環境差が
 ゴールデン画像の比較に出るため、実行環境を固定しています。
+`flake.nix` は `sabas0ba/dotfiles` の固定リビジョンを基準 toolchain とし、
+プロジェクト固有の Python と Mesa を追加しています。`Containerfile` は同じ
+dev shell を Nix profile として実体化します。
 
 ```bash
 # コンテナ（podman / docker）。Containerfile が基準環境で、CI も同じイメージを使う

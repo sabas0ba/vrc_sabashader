@@ -1,0 +1,123 @@
+msgid ""
+msgstr ""
+"Language: ja-JP\n"
+
+msgid "__TransformationBank"
+msgstr "衣装変身バンク"
+
+msgid "__Progress"
+msgstr "バンク進行度"
+
+msgid "__ProgressDesc"
+msgstr "Animation Controllerから0～1で駆動します。すべてのRoleで同じ値を使用します。"
+
+msgid "__Role"
+msgstr "役割"
+
+msgid "__RoleDesc"
+msgstr "旧衣装はOutgoing、新衣装はIncoming、露出防止meshはSafety Coverにします。"
+
+msgid "__Style"
+msgstr "演出"
+
+msgid "__StyleDesc"
+msgstr "魔法、サイバー、星界、地属性、影の表面演出から選択します。"
+
+msgid "__IncomingOutgoingWindow"
+msgstr "衣装表示区間"
+
+msgid "__IncomingOutgoingWindowDesc"
+msgstr "XYがIncomingの開始・終了、ZWがOutgoingの退場開始・終了です。"
+
+msgid "__CoverWindow"
+msgstr "Safety Cover区間"
+
+msgid "__CoverWindowDesc"
+msgstr "XYが出現開始・終了、ZWが退場開始・終了です。旧衣装が欠ける前に完全表示させます。"
+
+msgid "__Direction"
+msgstr "方向"
+
+msgid "__DirectionDesc"
+msgstr "object-spaceの進行方向です。XYZのみ使用します。"
+
+msgid "__Bounds"
+msgstr "高さ範囲"
+
+msgid "__BoundsDesc"
+msgstr "方向軸上の最小値と最大値です。XYのみ使用します。"
+
+msgid "__NoiseScale"
+msgstr "noise scale"
+
+msgid "__NoiseScaleDesc"
+msgstr "表示境界に使うobject-space noiseの密度です。"
+
+msgid "__Noise"
+msgstr "境界noise"
+
+msgid "__NoiseDesc"
+msgstr "ArcaneとGaiaの表示境界を乱す量です。"
+
+msgid "__EdgeWidth"
+msgstr "edge幅"
+
+msgid "__EdgeWidthDesc"
+msgstr "表示境界へ発光色を加える幅です。"
+
+msgid "__EdgeColor"
+msgstr "edge色"
+
+msgid "__EdgeColorDesc"
+msgstr "表示境界のHDR発光色です。アルファを強度へ掛けます。"
+
+msgid "__EdgeEmission"
+msgstr "edge発光"
+
+msgid "__EdgeEmissionDesc"
+msgstr "ライトに依存しない境界色の明るさです。"
+
+msgid "__Displacement"
+msgstr "頂点変位"
+
+msgid "__DisplacementDesc"
+msgstr "表示境界付近で頂点を動かすobject-space量です。"
+
+msgid "__BlockScale"
+msgstr "block密度"
+
+msgid "__BlockScaleDesc"
+msgstr "CyberとUmbraの表示判定に使うcell密度です。"
+
+msgid "__Surface"
+msgstr "表面演出"
+
+msgid "__CoverColor"
+msgstr "Safety Cover色"
+
+msgid "__CoverColorDesc"
+msgstr "Safety Coverの不透明な基底色です。肌色や透明色は避けてください。"
+
+msgid "__PatternColor"
+msgstr "pattern色"
+
+msgid "__PatternColorDesc"
+msgstr "演出patternへ加えるHDR発光色です。"
+
+msgid "__PatternScale"
+msgstr "pattern密度"
+
+msgid "__PatternScaleDesc"
+msgstr "object-space上の紋様、格子、星、ひび、影の密度です。"
+
+msgid "__PatternSpeed"
+msgstr "pattern速度"
+
+msgid "__PatternSpeedDesc"
+msgstr "表面演出の時間変化速度です。"
+
+msgid "__PatternEmission"
+msgstr "pattern発光"
+
+msgid "__PatternEmissionDesc"
+msgstr "ライトに依存しない表面演出の明るさです。"

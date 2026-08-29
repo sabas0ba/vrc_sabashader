@@ -1,0 +1,6 @@
+**
+!Containerfile
+!flake.nix
+!flake.lock
+!tools/
+!tools/container-entrypoint.sh

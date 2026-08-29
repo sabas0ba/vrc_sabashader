@@ -22,6 +22,9 @@ Python やヘッドレス OpenGL を入れる運用はしません。**環境差
 ### コンテナ（podman / docker）
 
 `Containerfile` が基準環境です。CI もこのイメージを組み立てて、その中でテストを回します。
+構成は `sabas0ba/dotfiles` の固定リビジョンを基準とし、`flake.nix` で
+プロジェクト固有の Python、pytest、Mesa を追加しています。コンテナはこの dev shell を
+ビルド時に Nix profile として実体化するため、実行時の依存取得はありません。
 
 ```bash
 tools/dev.sh                                  # テスト一式
@@ -34,20 +37,20 @@ Windows の Git Bash から使う場合は `MSYS_NO_PATHCONV=1` を付けてく�
 
 ### nix
 
-`flake.nix` の devShell でも同じことができます。`flake.lock` で nixpkgs を固定しています。
+`flake.nix` の devShell でも同じことができます。`flake.lock` で dotfiles と
+その nixpkgs をコミット単位に固定しています。
 
 ```bash
 nix develop --command python -m pytest tests -q
 ```
 
-### 2 つの環境の違い
+### 基準バージョン
 
-Mesa のバージョンが違います。それでも同じゴールデン画像で通ることを確認しています。
+コンテナと `nix develop` は同じ flake を使うため、ツールと Mesa の版も一致します。
 
-| 環境 | Mesa | LLVM |
-| --- | --- | --- |
-| コンテナ（Ubuntu 24.04） | 25.2.8 | 20.1.2 |
-| nix（nixpkgs 24.11） | 24.2.8 | 18.1.8 |
+| Python | pytest | Mesa | LLVM |
+| --- | --- | --- | --- |
+| 3.13.14 | 9.0.3 | 26.1.5 | 21.1.8 |
 
 ゴールデンを更新するときは、CI と同じコンテナ側で作ってください。
 
@@ -191,6 +194,8 @@ Unity 固有のものが必要な処理は `Illust2DLighting.hlsl` や
 エミュレートし、`.scshader` を最終的な ShaderLab まで展開します。
 Shader Core 本体はテスト時に `.cache/Shader-Core` へ shallow clone します
 （コミットをピン留め済み。取得できない環境ではこの層だけ skip されます）。
+衣装変身バンクはNonToonとの組み合わせを常用経路として扱うため、固定したNonToonも
+`.cache/nontoon-0.1.3`へ取得し、同じモジュールを差し込んだ展開結果を検査します。
 
 検出できるもの:
 
@@ -255,7 +260,7 @@ UCL は二次創作物の公開・頒布時に表記を求めており、アセ�
 **HLSL が本当にコンパイルできるか**はここでしか確認できません。
 
 `.ci/UnityProject` に検証専用の Unity プロジェクトの雛形を置いてあります。
-`tools/setup_unity_project.py` がそこへ本パッケージと Shader Core
+`tools/setup_unity_project.py` がそこへ本パッケージ、Shader Core、NonToon 0.1.3
 （テストハーネスと同じコミットに固定）を埋め込みパッケージとして配置し、
 `game-ci/unity-test-runner` が EditMode テストを走らせます。
 
@@ -265,6 +270,8 @@ UCL は二次創作物の公開・頒布時に表記を求めており、アセ�
 - `ShaderUtil.GetShaderMessages` にエラーが 1 件も無いか（警告はログに出すだけ）
 - 4 つのパス（FORWARD / OUTLINE / FORWARD_DELTA / SHADOW_CASTER）が存在するか
 - マテリアルに主要プロパティが生成されるか（`_BaseTexture_ST` など）
+- NonToonのForward / ForwardAdd / Outline / ShadowCasterが存在し、衣装変身バンクの
+  プロパティを持つか
 
 C# 側に書いた期待値（パス名・必須プロパティ）が実際の `.scshader` とズレていないかは
 Python 側の `tests/test_unity_project.py` が突き合わせます。

@@ -56,6 +56,7 @@ PAGES: List[tuple] = [
     ("shader-debug.md", "Debug"),
     ("modules.md", "モジュール"),
     ("modules-advanced.md", "高度モジュール"),
+    ("transformation-bank.md", "衣装変身バンク"),
     ("avatar-demo.md", "アバターで確認"),
     ("testing.md", "テスト"),
     ("adding-a-shader.md", "シェーダーを追加"),

@@ -4,6 +4,19 @@
 
 ## [Unreleased]
 
+### Changed
+
+- 開発コンテナを固定 dotfiles/Nix dev shell を実体化する構成へ変更
+- Unity 検証プロジェクト生成時に旧版 sample を除去し、Podman bind mount 上の固定依存取得に対応
+
+### Added
+
+- 衣装変身バンクモジュール（`io.github.sabas0ba.transformationbank`）
+  - 旧衣装、新衣装、Safety Coverを1本の`Progress`で制御
+  - Arcane、Cyber、Astral、Gaia、Umbraの5 style
+  - Illust2DとNonToon 0.1.3のUnityコンパイル検証
+  - 既定タイミングで衣装またはSafety Coverを常に完全表示
+
 ## [0.5.0] - 2026-08-29
 
 ### Added

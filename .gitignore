@@ -21,6 +21,7 @@ _preview/
 .ci/UnityProject/obj/
 .ci/UnityProject/UserSettings/
 .ci/UnityProject/Packages/io.github.sabas0ba.sabashader/
+.ci/UnityProject/Packages/jp.lilxyzw.nontoon/
 .ci/UnityProject/Packages/jp.lilxyzw.shadercore/
 .ci/UnityProject/Packages/packages-lock.json
 .ci/UnityProject/Assets/Illust2DCheck/

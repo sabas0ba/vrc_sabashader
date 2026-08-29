@@ -84,6 +84,34 @@ def test_shadercore_commit_is_pinned_consistently():
     )
 
 
+def test_nontoon_commit_is_pinned_consistently():
+    """NonToon の構造検査と Unity プロジェクト組み立てで同じコミットを使う。"""
+    from harness.paths import NONTOON_COMMIT
+
+    setup = (REPO_ROOT / "tools" / "setup_unity_project.py").read_text(encoding="utf-8")
+    assert NONTOON_COMMIT in setup
+    assert 'clone_nontoon(packages / "jp.lilxyzw.nontoon")' in setup
+
+
+def test_pinned_package_clone_scopes_safe_directory_to_destination():
+    """Podman の bind mount でも global Git 設定を変更せず取得できる。"""
+    setup = (REPO_ROOT / "tools" / "setup_unity_project.py").read_text(encoding="utf-8")
+
+    assert 'f"safe.directory={destination}"' in setup
+    assert "git config --global" not in setup
+
+
+def test_sample_setup_removes_stale_package_versions():
+    """旧版 sample の C# 型が現行版と重複しない。"""
+    setup = (REPO_ROOT / "tools" / "setup_unity_project.py").read_text(encoding="utf-8")
+
+    copy_samples = setup[setup.index("def copy_samples(") : setup.index("def enable_modules(")]
+    assert "shutil.rmtree(sample_root)" in copy_samples
+    assert copy_samples.index("shutil.rmtree(sample_root)") < copy_samples.index(
+        'for sample in package.get("samples", [])'
+    )
+
+
 def test_demo_setup_enables_package_modules():
     """新規 Demo Project でもレビューシーンが必要なプロパティを持つようにする。"""
     setup = (REPO_ROOT / "tools" / "setup_demo_project.py").read_text(encoding="utf-8")
@@ -163,6 +191,8 @@ def test_checker_targets_the_real_package_path(checker_source):
     debug = REPO_ROOT / "Packages" / "io.github.sabas0ba.sabashader" / "Shaders" / "Debug" / "Debug.scshader"
     relative_debug = debug.relative_to(REPO_ROOT / "Packages" / "io.github.sabas0ba.sabashader").as_posix()
     assert relative_debug in checker_source, f"DebugPath が {relative_debug} を指していません"
+    assert 'NonToonPackagePath = "Packages/jp.lilxyzw.nontoon"' in checker_source
+    assert 'NonToonPath = NonToonPackagePath + "/Shaders/NonToon.scshader"' in checker_source
 
 
 # --- ワークフロー -------------------------------------------------------------
