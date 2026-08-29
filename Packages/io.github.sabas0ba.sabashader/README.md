@@ -51,7 +51,8 @@ Spatial InteriorにはUniverse、Starfield、Cyber、Mudの4presetがありま�
 「Transformation Bank」も同梱しています。Illust2DとNonToonで使用できます。設定、
 Safety Cover、裸体を表示しないためのタイミングは
 [docs/transformation-bank.md](https://github.com/sabas0ba/vrc_sabashader/blob/main/docs/transformation-bank.md)
-を参照してください。
+を参照してください。Package ManagerのSamplesから `Transformation Bank Demo` をImportすると、
+5 Styleの同期再生とSafety Coverの固定timelineを確認できます。
 
 ## ライセンス
 

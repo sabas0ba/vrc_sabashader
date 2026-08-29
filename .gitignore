@@ -30,6 +30,7 @@ _preview/
 .ci/UnityProject/Assets/**/*.meta
 .ci/UnityProject/ProjectSettings/*
 !.ci/UnityProject/ProjectSettings/ProjectVersion.txt
+.ci/DemoBuildProject/
 unity-test-results/
 
 # アバターデモ。第三者のアバターとその派生データ（マテリアル・シーン・

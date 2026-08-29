@@ -97,6 +97,7 @@ def test_pinned_package_clone_scopes_safe_directory_to_destination():
     """Podman の bind mount でも global Git 設定を変更せず取得できる。"""
     setup = (REPO_ROOT / "tools" / "setup_unity_project.py").read_text(encoding="utf-8")
 
+    assert "destination = destination.resolve()" in setup
     assert 'f"safe.directory={destination}"' in setup
     assert "git config --global" not in setup
 

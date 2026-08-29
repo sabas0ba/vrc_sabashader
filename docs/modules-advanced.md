@@ -9,7 +9,8 @@ Decal、Surface Detail、Spatial Interior、Transition の用途、設定手順�
 
 ## 有効化とサンプル
 
-Shader Core の Project Settings で `SabaShader/Illust2D` に次のモジュールを追加します。
+Illust2DマテリアルのInspectorで `Select Modules` を開き、次のモジュールを有効にして
+`Apply` を押します。
 
 - Decal
 - Surface Detail

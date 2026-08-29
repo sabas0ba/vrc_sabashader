@@ -16,6 +16,7 @@
   - Arcane、Cyber、Astral、Gaia、Umbraの5 style
   - Illust2DとNonToon 0.1.3のUnityコンパイル検証
   - 既定タイミングで衣装またはSafety Coverを常に完全表示
+- 5 StyleとSafety Cover timelineを可視化するUPM sample `Transformation Bank Demo`
 
 ## [0.5.0] - 2026-08-29
 

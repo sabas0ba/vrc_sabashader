@@ -34,6 +34,7 @@ TRANSFORMATION_BANK_ID = "io.github.sabas0ba.transformationbank"
 
 
 def clone_pinned_package(destination: Path, url: str, commit: str, display_name: str) -> None:
+    destination = destination.resolve()
     marker = destination / ".saba-source-commit"
     if (destination / "package.json").is_file() and marker.is_file() and marker.read_text(
         encoding="utf-8"

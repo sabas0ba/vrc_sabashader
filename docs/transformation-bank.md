@@ -10,9 +10,10 @@ Animation Controller の進行度でつなぐ Shader Core モジュールです�
 
 ## 構成
 
-Shader Core の Project Settings で、衣装に使うシェーダーへ `Costume Transformation Bank`
-を追加します。既存の `Appearance Transition` と同じマテリアルでは併用しません。双方が
-`clip` と頂点変位を行うためです。
+衣装に使うシェーダーのマテリアルInspectorで `Select Modules` を開き、
+`__TransformationBank (io.github.sabas0ba.transformationbank)` を有効にして `Apply` を押します。
+既存の `Appearance Transition` と同じマテリアルでは併用しません。双方が `clip` と頂点変位を
+行うためです。
 
 次の3種類のマテリアルを用意し、同じ `Progress` を与えます。
 
@@ -68,6 +69,12 @@ Animation Clipでは3つのRendererへ同じ0、1のkeyframeを記録します�
 判定が不定になるため、FX Animatorはバンク終了まで次の入力を受け付けない構成を推奨します。
 
 ## Style
+
+Package ManagerのSamplesから `Transformation Bank Demo` をImportすると、5 Styleの同期再生と
+Safety Cover timelineを1シーンで確認できます。上段はPlay Modeで自動再生し、下段はProgress
+0、0.25、0.5、0.75、1の固定snapshotです。
+
+![5 StyleとSafety Cover timelineを比較したUnityキャプチャ](../tests/golden/transformation_bank_demo.png)
 
 | Style | 表示境界 | 表面演出 | Safety Coverの例 |
 | --- | --- | --- | --- |
