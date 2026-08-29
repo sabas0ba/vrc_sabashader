@@ -21,6 +21,9 @@
   "vpmDependencies": {
     "jp.lilxyzw.shadercore": ">=0.1.9"
   },
+  "dependencies": {
+    "com.unity.modules.particlesystem": "1.0.0"
+  },
   "samples": [
     {
       "displayName": "Debug Shader Demo",
@@ -34,7 +37,7 @@
     },
     {
       "displayName": "Transformation Bank Demo",
-      "description": "衣装の旧・新・Safety Coverを9種類のVFXと異なる形状で切り替える変身バンクを確認します。",
+      "description": "旧衣装と新衣装を12種類のVFX、異なる形状、Particle Systemで切り替える変身バンクを確認します。",
       "path": "Samples~/TransformationBankDemo"
     }
   ],

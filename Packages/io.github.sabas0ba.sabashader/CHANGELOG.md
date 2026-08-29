@@ -12,11 +12,12 @@
 ### Added
 
 - 衣装変身バンクモジュール（`io.github.sabas0ba.transformationbank`）
-  - 旧衣装、新衣装、Safety Coverを1本の`Progress`で制御
-  - Arcane、Cyber、Astral、Gaia、Umbra、Flame、Shatter、Glitch、Meltの9 style
+  - 旧衣装と新衣装を1本の`Progress`で制御
+  - Arcane、Cyber、Astral、Gaia、Umbra、Flame、Shatter、Glitch、Melt、Cosmic Rift、Magical Sparkle、Mana Mistの12 style
+  - 頂点変位と発光を一括調整する`Effect Intensity`
   - Illust2DとNonToon 0.1.3のUnityコンパイル検証
-  - 既定タイミングで衣装またはSafety Coverを常に完全表示
-- 9 StyleとCapsule／Cylinder／SphereのRole形状、Safety Cover timelineを可視化するUPM sample `Transformation Bank Demo`
+  - 既定タイミングでOutgoingとIncomingの表示率の和を維持
+- 12 Style、Capsule／CylinderのRole形状、2系統のParticle補助演出を可視化するUPM sample `Transformation Bank Demo`
 
 ## [0.5.0] - 2026-08-29
 

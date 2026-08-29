@@ -4,10 +4,10 @@
     bankStyle.visibilityProgress = SBSBankRoleProgress(
         _Progress,
         _Role,
-        _IncomingOutgoingWindow,
-        _CoverWindow);
+        _IncomingOutgoingWindow);
     bankStyle.role = _Role;
     bankStyle.style = _Style;
+    bankStyle.effectIntensity = _EffectIntensity;
     bankStyle.direction = _Direction.xyz;
     if (length(bankStyle.direction) < 1.0e-4)
         bankStyle.direction = half3(0.0, 1.0, 0.0);
@@ -19,7 +19,6 @@
     bankStyle.edgeColor = _EdgeColor.rgb * _EdgeColor.a * _EdgeEmission;
     bankStyle.displacement = _Displacement;
     bankStyle.blockScale = _BlockScale;
-    bankStyle.coverColor = _CoverColor;
     bankStyle.patternColor = _PatternColor;
     bankStyle.patternScale = _PatternScale;
     bankStyle.patternSpeed = _PatternSpeed;

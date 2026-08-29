@@ -37,38 +37,35 @@ def _vector_default(property_name: str) -> tuple[float, float, float, float]:
     return values
 
 
-def test_bank_exposes_roles_styles_and_animation_progress():
+def test_bank_exposes_two_roles_styles_and_animation_progress():
     source = (BANK_DIR / "properties.hlsl").read_text(encoding="utf-8")
 
     assert re.search(r"SC_float\(_Progress,\s*1\s*,", source)
-    assert "Incoming,0,Outgoing,1,Safety Cover,2" in source
+    assert "Incoming,0,Outgoing,1" in source
+    assert "Safety Cover" not in source
     assert (
         "Arcane,0,Cyber,1,Astral,2,Gaia,3,Umbra,4,"
-        "Flame,5,Shatter,6,Glitch,7,Melt,8"
+        "Flame,5,Shatter,6,Glitch,7,Melt,8,Cosmic Rift,9,"
+        "Magical Sparkle,10,Mana Mist,11"
     ) in source
     assert "_IncomingOutgoingWindow" in source
-    assert "_CoverWindow" in source
+    assert "_EffectIntensity" in source
+    assert "_CoverWindow" not in source
+    assert "_CoverColor" not in source
 
 
-def test_default_timeline_always_has_one_complete_covering_layer():
-    """既定タイミングでは旧衣装、cover、新衣装のいずれかが完全表示される。"""
+def test_default_timeline_crossfades_without_a_visibility_gap():
+    """既定タイミングでは旧衣装と新衣装の表示率の和が1を下回らない。"""
     incoming_start, incoming_end, outgoing_start, outgoing_end = _vector_default(
         "_IncomingOutgoingWindow"
     )
-    cover_in_start, cover_in_end, cover_out_start, cover_out_end = _vector_default(
-        "_CoverWindow"
-    )
-    assert incoming_start <= incoming_end <= cover_out_start <= cover_out_end
-    assert cover_in_start <= cover_in_end <= outgoing_start <= outgoing_end
+    assert incoming_start <= outgoing_start <= incoming_end <= outgoing_end
 
     for index in range(1001):
         progress = index / 1000.0
         incoming = _smoothstep(incoming_start, incoming_end, progress)
         outgoing = 1.0 - _smoothstep(outgoing_start, outgoing_end, progress)
-        cover = _smoothstep(cover_in_start, cover_in_end, progress) * (
-            1.0 - _smoothstep(cover_out_start, cover_out_end, progress)
-        )
-        assert max(incoming, outgoing, cover) >= 1.0 - 1.0e-6
+        assert incoming + outgoing >= 1.0 - 1.0e-6
 
 
 def test_bank_uses_common_base_and_illust2d_clip_phases():
@@ -91,12 +88,13 @@ def test_nontoon_release_is_pinned_in_unity_project_setup():
     assert "io.github.sabas0ba.transformationbank" in source
 
 
-def test_animation_property_and_safety_constraints_are_documented():
+def test_animation_property_effect_intensity_and_particles_are_documented():
     source = DOCUMENTATION.read_text(encoding="utf-8")
 
     assert "material._io_github_sabas0ba_transformationbank_Progress" in source
-    assert "Opaque" in source
-    assert "Safety Cover" in source
+    assert "Effect Intensity" in source
+    assert "Particle System" in source
+    assert "Safety Cover" not in source
     assert NONTOON_COMMIT in source
     for style in (
         "Arcane",
@@ -108,6 +106,9 @@ def test_animation_property_and_safety_constraints_are_documented():
         "Shatter",
         "Glitch",
         "Melt",
+        "Cosmic Rift",
+        "Magical Sparkle",
+        "Mana Mist",
     ):
         assert style in source
 
@@ -119,10 +120,13 @@ def test_extended_styles_define_distinct_morph_and_surface_paths():
     assert "SBSBankShatterDirection" in source
     assert "SBSBankGlitchAmount" in source
     assert "SBSBankMeltField" in source
+    assert "SBSBankCosmicRiftField" in source
+    assert "SBSBankSparkleField" in source
+    assert "SBSBankManaMistField" in source
     assert "st.style < 5.5" in source
     assert "st.style < 6.5" in source
     assert "st.style < 7.5" in source
-    assert "st.role < 0.5" in source
+    assert "st.effectIntensity" in source
 
 
 def test_nontoon_expansion_includes_bank_clip_and_properties():

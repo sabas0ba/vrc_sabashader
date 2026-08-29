@@ -11,6 +11,9 @@ namespace SabaShader.Samples.Editor
         SerializedProperty progress;
         SerializedProperty animateInPlayMode;
         SerializedProperty animationSpeed;
+        SerializedProperty effectIntensity;
+        SerializedProperty particleIntensity;
+        SerializedProperty particleSize;
 
         void OnEnable()
         {
@@ -18,18 +21,24 @@ namespace SabaShader.Samples.Editor
             progress = serializedObject.FindProperty("progress");
             animateInPlayMode = serializedObject.FindProperty("animateInPlayMode");
             animationSpeed = serializedObject.FindProperty("animationSpeed");
+            effectIntensity = serializedObject.FindProperty("effectIntensity");
+            particleIntensity = serializedObject.FindProperty("particleIntensity");
+            particleSize = serializedObject.FindProperty("particleSize");
         }
 
         public override void OnInspectorGUI()
         {
             EditorGUILayout.HelpBox(
                 "SAMPLE ONLY / サンプル専用\n" +
-                "旧衣装、新衣装、Safety Cover用の一時Materialを生成します。" +
+                "旧衣装、新衣装用の一時MaterialとParticle previewを生成します。" +
                 "アバターやワールドへこのComponentを追加しないでください。",
                 MessageType.Warning);
 
             serializedObject.Update();
             EditorGUILayout.PropertyField(style, new GUIContent("VFX Style"));
+            EditorGUILayout.PropertyField(effectIntensity, new GUIContent("Effect Intensity"));
+            EditorGUILayout.PropertyField(particleIntensity, new GUIContent("Particle Intensity"));
+            EditorGUILayout.PropertyField(particleSize, new GUIContent("Particle Size"));
             EditorGUILayout.PropertyField(animateInPlayMode, new GUIContent("Auto Animate in Play Mode"));
             using (new EditorGUI.DisabledScope(!animateInPlayMode.boolValue))
             {
@@ -53,7 +62,7 @@ namespace SabaShader.Samples.Editor
             }
 
             EditorGUILayout.HelpBox(
-                "Play Modeでは上段の9 Styleが同期して自動再生します。下段は安全なtimingを示す固定snapshotです。\n" +
+                "Play Modeでは12 Styleが同期して自動再生します。下段は旧衣装から新衣装への固定snapshotです。\n" +
                 "実利用では material._io_github_sabas0ba_transformationbank_Progress を" +
                 "Animation Controllerから制御します。",
                 MessageType.Info);

@@ -47,12 +47,11 @@ Package Manager の Samples から `Debug Shader Demo` を Import すると、�
 Importすると、4機能の代表設定を同一シーンで確認できます。
 Spatial InteriorにはUniverse、Starfield、Cyber、Mudの4presetがあります。
 
-旧衣装、新衣装、露出防止用meshを1本のAnimation Controllerでつなぐ
-「Transformation Bank」も同梱しています。Illust2DとNonToonで使用できます。設定、
-Safety Cover、裸体を表示しないためのタイミングは
+旧衣装と新衣装を1本のAnimation Controllerでつなぐ「Transformation Bank」も同梱しています。
+Illust2DとNonToonで使用できます。設定、12 Style、Particle補助演出は
 [docs/transformation-bank.md](https://github.com/sabas0ba/vrc_sabashader/blob/main/docs/transformation-bank.md)
 を参照してください。Package ManagerのSamplesから `Transformation Bank Demo` をImportすると、
-9 Styleの同期再生、Roleごとの異なる形状、Safety Coverの固定timelineを確認できます。
+12 Styleの同期再生、Roleごとの異なる形状、Particle Systemを確認できます。
 
 ## ライセンス
 

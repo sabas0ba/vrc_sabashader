@@ -8,6 +8,7 @@ struct SBSBankStyle
     half visibilityProgress;
     half role;
     half style;
+    half effectIntensity;
     half3 direction;
     half boundsMin;
     half boundsMax;
@@ -17,7 +18,6 @@ struct SBSBankStyle
     half3 edgeColor;
     half displacement;
     half blockScale;
-    half4 coverColor;
     half4 patternColor;
     half patternScale;
     half patternSpeed;
@@ -66,8 +66,7 @@ half SBSBankOrderedSmoothstep(half start, half end, half value)
 half SBSBankRoleProgress(
     half progress,
     half role,
-    half4 incomingOutgoingWindow,
-    half4 coverWindow)
+    half4 incomingOutgoingWindow)
 {
     progress = saturate(progress);
     if (role < 0.5)
@@ -75,15 +74,10 @@ half SBSBankRoleProgress(
             incomingOutgoingWindow.x,
             incomingOutgoingWindow.y,
             progress);
-    if (role < 1.5)
-        return 1.0 - SBSBankOrderedSmoothstep(
-            incomingOutgoingWindow.z,
-            incomingOutgoingWindow.w,
-            progress);
-
-    half appear = SBSBankOrderedSmoothstep(coverWindow.x, coverWindow.y, progress);
-    half disappear = 1.0 - SBSBankOrderedSmoothstep(coverWindow.z, coverWindow.w, progress);
-    return appear * disappear;
+    return 1.0 - SBSBankOrderedSmoothstep(
+        incomingOutgoingWindow.z,
+        incomingOutgoingWindow.w,
+        progress);
 }
 
 half SBSBankHeight(half3 objectPosition, SBSBankStyle st)
@@ -117,7 +111,8 @@ half SBSBankFlameField(half3 objectPosition, SBSBankStyle st)
     half broad = SBSBankNoise3(flow);
     half detail = SBSBankNoise3(flow * 1.91 + half3(7.0, 13.0, 3.0));
     half flame = lerp(broad, detail, 0.38);
-    half turbulence = (flame - 0.46) * st.noiseAmount * (0.7 + SBSBankActivity(st.progress));
+    half turbulence = (flame - 0.46) * st.noiseAmount * st.effectIntensity
+        * (0.7 + SBSBankActivity(st.progress));
     return st.visibilityProgress - SBSBankHeight(objectPosition, st) + turbulence;
 }
 
@@ -139,8 +134,39 @@ half SBSBankMeltField(half3 objectPosition, SBSBankStyle st)
     half3 dripPosition = objectPosition * half3(scale * 0.42, scale * 0.1, scale * 0.42);
     dripPosition.y += st.time * st.patternSpeed * 0.18;
     half drip = SBSBankNoise3(dripPosition);
-    half warp = (drip - 0.44) * st.noiseAmount * (0.6 + SBSBankActivity(st.progress));
+    half warp = (drip - 0.44) * st.noiseAmount * st.effectIntensity
+        * (0.6 + SBSBankActivity(st.progress));
     return st.visibilityProgress - height + warp;
+}
+
+half SBSBankCosmicRiftField(half3 objectPosition, SBSBankStyle st)
+{
+    half scale = max(st.noiseScale, 1.0e-3);
+    half3 warped = objectPosition * scale;
+    warped.z += sin(objectPosition.y * scale * 0.7 + st.time * st.patternSpeed) * 0.45;
+    half riftNoise = SBSBankNoise3(warped + half3(0.0, 0.0, st.time * 0.08));
+    half rift = abs(objectPosition.x) + (riftNoise - 0.5) * st.noiseAmount * st.effectIntensity;
+    half threshold = lerp(0.0, max(abs(st.boundsMin), abs(st.boundsMax)), st.visibilityProgress);
+    return threshold - rift;
+}
+
+half SBSBankSparkleField(half3 objectPosition, SBSBankStyle st)
+{
+    half scale = max(st.noiseScale, 1.0e-3);
+    half sparkleNoise = SBSBankNoise3(objectPosition * scale + st.time * 0.08);
+    half shimmer = (sparkleNoise - 0.5) * st.noiseAmount * SBSBankActivity(st.progress);
+    return st.visibilityProgress - SBSBankHeight(objectPosition, st) + shimmer;
+}
+
+half SBSBankManaMistField(half3 objectPosition, SBSBankStyle st)
+{
+    half scale = max(st.noiseScale, 1.0e-3);
+    half3 drift = half3(st.time * 0.04, -st.time * 0.07, st.time * 0.05) * st.patternSpeed;
+    half broad = SBSBankNoise3(objectPosition * scale * 0.55 + drift);
+    half detail = SBSBankNoise3(objectPosition * scale + drift * 1.7);
+    half mist = lerp(broad, detail, 0.35);
+    return st.visibilityProgress - mist
+        + (SBSBankHeight(objectPosition, st) - 0.5) * 0.08 * st.effectIntensity;
 }
 
 half SBSBankField(half3 objectPosition, SBSBankStyle st)
@@ -187,14 +213,20 @@ half SBSBankField(half3 objectPosition, SBSBankStyle st)
     }
     if (st.style < 7.5)
     {
-        half glitch = SBSBankGlitchAmount(objectPosition, st);
+        half glitch = SBSBankGlitchAmount(objectPosition, st) * st.effectIntensity;
         half3 shifted = objectPosition + half3(glitch * st.noiseAmount, 0.0, 0.0);
         half fine = SBSBankNoise3(shifted * scale);
         half3 block = floor(shifted * max(st.blockScale, 1.0e-3));
         half coarse = SBSBankHash3(block);
         return progress - lerp(fine, coarse, envelope * 0.82);
     }
-    return SBSBankMeltField(objectPosition, st);
+    if (st.style < 8.5)
+        return SBSBankMeltField(objectPosition, st);
+    if (st.style < 9.5)
+        return SBSBankCosmicRiftField(objectPosition, st);
+    if (st.style < 10.5)
+        return SBSBankSparkleField(objectPosition, st);
+    return SBSBankManaMistField(objectPosition, st);
 }
 
 half SBSBankVisibility(half3 objectPosition, SBSBankStyle st)
@@ -211,7 +243,7 @@ half SBSBankEdge(half3 objectPosition, SBSBankStyle st)
     return 1.0 - saturate(abs(SBSBankField(objectPosition, st)) / width);
 }
 
-half3 SBSBankMorphOffset(half3 objectPosition, half3 objectNormal, SBSBankStyle st)
+half3 SBSBankMorphOffsetRaw(half3 objectPosition, half3 objectNormal, SBSBankStyle st)
 {
     half progress = saturate(st.visibilityProgress);
     if (progress <= 0.0 || progress >= 1.0) return half3(0.0, 0.0, 0.0);
@@ -258,10 +290,32 @@ half3 SBSBankMorphOffset(half3 objectPosition, half3 objectNormal, SBSBankStyle 
         return half3(glitch, (seed - 0.5) * 0.15, -glitch * 0.28)
             * st.displacement;
     }
-    if (st.role < 0.5)
-        return half3(0.0, 0.0, 0.0);
-    return (-direction * (0.55 + seed) + objectNormal * (seed - 0.5) * 0.18)
-        * st.displacement * envelope;
+    if (st.style < 8.5)
+    {
+        if (st.role < 0.5)
+            return half3(0.0, 0.0, 0.0);
+        return (-direction * (0.55 + seed) + objectNormal * (seed - 0.5) * 0.18)
+            * st.displacement * envelope;
+    }
+    if (st.style < 9.5)
+    {
+        half side = objectPosition.x >= 0.0 ? 1.0 : -1.0;
+        return half3(side, (seed - 0.5) * 0.3, 0.0) * st.displacement * envelope;
+    }
+    if (st.style < 10.5)
+    {
+        half3 swirl = normalize(half3(-objectPosition.z, 0.25 + seed * 0.25, objectPosition.x)
+            + half3(1.0e-3, 1.0e-3, 1.0e-3));
+        return swirl * st.displacement * envelope;
+    }
+    half3 mistDirection = normalize(objectNormal + direction * (seed - 0.5));
+    half polarity = st.role < 0.5 ? 1.0 : -1.0;
+    return mistDirection * polarity * st.displacement * envelope * (0.5 + seed);
+}
+
+half3 SBSBankMorphOffset(half3 objectPosition, half3 objectNormal, SBSBankStyle st)
+{
+    return SBSBankMorphOffsetRaw(objectPosition, objectNormal, st) * max(st.effectIntensity, 0.0);
 }
 
 half SBSBankPattern(half3 objectPosition, half3 normal, half3 viewDirection, SBSBankStyle st)
@@ -321,12 +375,33 @@ half SBSBankPattern(half3 objectPosition, half3 normal, half3 viewDirection, SBS
         half channel = 1.0 - saturate(abs(frac(objectPosition.x * scale + phase) - 0.5) * 8.0);
         return saturate(scanline * 0.7 + channel + rim * 0.2);
     }
-    if (st.role < 0.5)
-        return 0.0;
-    half3 liquidPosition = objectPosition * half3(scale * 0.55, scale * 0.12, scale * 0.55);
-    liquidPosition.y += phase * 0.25;
-    half liquid = SBSBankNoise3(liquidPosition);
-    return saturate((liquid - 0.35) * 1.8 + rim * 0.15);
+    if (st.style < 8.5)
+    {
+        if (st.role < 0.5)
+            return 0.0;
+        half3 liquidPosition = objectPosition * half3(scale * 0.55, scale * 0.12, scale * 0.55);
+        liquidPosition.y += phase * 0.25;
+        half liquid = SBSBankNoise3(liquidPosition);
+        return saturate((liquid - 0.35) * 1.8 + rim * 0.15);
+    }
+    if (st.style < 9.5)
+    {
+        half3 starCell = floor(objectPosition * scale + half3(phase * 0.04, 0.0, 0.0));
+        half stars = step(0.86, SBSBankHash3(starCell));
+        half riftEdge = 1.0 - saturate(abs(objectPosition.x) * scale * 1.8);
+        return saturate(stars + riftEdge + rim * 0.6);
+    }
+    if (st.style < 10.5)
+    {
+        half2 sparkleCell = abs(frac(objectPosition.xy * scale + phase * 0.12) - 0.5);
+        half cross = 1.0 - saturate(min(sparkleCell.x, sparkleCell.y) * 18.0);
+        half twinkle = step(0.76, SBSBankHash3(floor(objectPosition * scale + phase * 0.2)));
+        return saturate(cross * twinkle + rim * 0.7);
+    }
+    half3 mistPosition = objectPosition * scale * 0.6
+        + half3(phase * 0.05, -phase * 0.08, phase * 0.03);
+    half mist = SBSBankNoise3(mistPosition);
+    return saturate(mist * 0.75 + rim * 0.65);
 }
 
 half3 SBSBankSurfaceColor(
@@ -337,16 +412,15 @@ half3 SBSBankSurfaceColor(
     SBSBankStyle st)
 {
     half activity = SBSBankActivity(st.progress);
-    half pattern = SBSBankPattern(objectPosition, normal, viewDirection, st) * activity;
-    half edge = SBSBankEdge(objectPosition, st);
-    if (st.style >= 7.5 && st.role < 0.5)
+    half intensity = max(st.effectIntensity, 0.0);
+    half pattern = SBSBankPattern(objectPosition, normal, viewDirection, st) * activity * intensity;
+    half edge = SBSBankEdge(objectPosition, st) * intensity;
+    if (st.style >= 7.5 && st.style < 8.5 && st.role < 0.5)
     {
         pattern = 0.0;
         edge = 0.0;
     }
     half3 result = base;
-    if (st.role > 1.5)
-        result = st.coverColor.rgb;
     result += st.patternColor.rgb * st.patternColor.a * st.patternEmission * pattern;
     result += st.edgeColor * edge;
     return result;

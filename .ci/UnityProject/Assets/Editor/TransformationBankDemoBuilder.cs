@@ -9,7 +9,7 @@ using UnityEngine.Rendering;
 
 namespace SabaShader.CI
 {
-    /// <summary>Transformation Bankの9 StyleとSafety Cover timingを表示するUPM sampleを生成する。</summary>
+    /// <summary>Transformation Bankの12 Style、2 Role、Particle補助演出を表示するUPM sampleを生成する。</summary>
     public static class TransformationBankDemoBuilder
     {
         public static string SampleDirectory
@@ -27,14 +27,20 @@ namespace SabaShader.CI
         }
 
         public static string ScenePath => SampleDirectory + "/TransformationBankDemo.unity";
+        public static string ParticleMaterialPath => SampleDirectory + "/TransformationBankParticles.mat";
+        public static string ParticlePrefabPath => SampleDirectory + "/TransformationBankParticlePair.prefab";
 
         static readonly string[] StyleNames =
         {
             "Arcane", "Cyber", "Astral", "Gaia", "Umbra",
             "Flame", "Shatter", "Glitch", "Melt",
+            "Cosmic Rift", "Magical Sparkle", "Mana Mist",
         };
         static readonly float[] TimelineProgress = { 0.0f, 0.25f, 0.5f, 0.75f, 1.0f };
         static int textSortingOrder;
+        static Mesh particleQuad;
+        static Material particleMaterial;
+        static GameObject particlePrefab;
 
         [MenuItem("SabaShader/Demo/Build Transformation Bank Demo")]
         public static void BuildAndOpen()
@@ -81,8 +87,11 @@ namespace SabaShader.CI
 
             var componentType = FindDemoComponentType();
             var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
-            PopulateScene(componentType);
             EnsureDirectory(SampleDirectory);
+            particleQuad = null;
+            particleMaterial = CreateParticleMaterial();
+            particlePrefab = CreateParticlePrefab();
+            PopulateScene(componentType);
             if (!EditorSceneManager.SaveScene(scene, ScenePath))
             {
                 throw new InvalidOperationException("シーンを保存できませんでした: " + ScenePath);
@@ -114,8 +123,39 @@ namespace SabaShader.CI
                 throw new InvalidOperationException("Transformation Bank Demo にCameraがありません。");
             }
 
+            RefreshTextMeshes();
             Directory.CreateDirectory(outputDirectory);
-            CaptureView(camera, Path.Combine(outputDirectory, "transformation_bank_demo.png"), 2560, 1440);
+            var particleRenderers = UnityEngine.Object.FindObjectsOfType<ParticleSystemRenderer>();
+            var particleRendererStates = particleRenderers.Select(renderer => renderer.enabled).ToArray();
+            try
+            {
+                // Unity 2022.3のbatch Camera.RenderはParticle billboard描画でnative crashするため、
+                // golden imageはsurface shaderの比較に限定する。通常のScene/Play Modeでは無効化しない。
+                foreach (var renderer in particleRenderers)
+                {
+                    renderer.enabled = false;
+                }
+
+                CaptureView(camera, Path.Combine(outputDirectory, "transformation_bank_demo.png"), 2560, 1440);
+            }
+            finally
+            {
+                for (var index = 0; index < particleRenderers.Length; index++)
+                {
+                    particleRenderers[index].enabled = particleRendererStates[index];
+                }
+            }
+        }
+
+        static void RefreshTextMeshes()
+        {
+            foreach (var textMesh in UnityEngine.Object.FindObjectsOfType<TextMesh>())
+            {
+                var content = textMesh.text;
+                textMesh.font.RequestCharactersInTexture(content, textMesh.fontSize, textMesh.fontStyle);
+                textMesh.text = string.Empty;
+                textMesh.text = content;
+            }
         }
 
         static Type FindDemoComponentType()
@@ -141,15 +181,16 @@ namespace SabaShader.CI
             var root = new GameObject("Transformation Bank Demo");
             CreateCamera(root.transform);
             CreateLight(root.transform);
-            CreateText(root.transform, "Title", "SabaShader / Transformation Bank", new Vector3(0.0f, 5.35f, -0.8f), 0.15f, 58, Color.white);
-            CreateText(root.transform, "Style Row", "9 VFX STYLES / PLAY MODE", new Vector3(-8.2f, 4.45f, -0.8f), 0.065f, 44, new Color(0.46f, 0.76f, 1.0f, 1.0f), TextAnchor.MiddleLeft);
-            CreateText(root.transform, "Timeline Row", "OLD CAPSULE  >  SAFETY SPHERE  >  NEW CYLINDER", new Vector3(-8.2f, -1.35f, -0.8f), 0.062f, 44, new Color(1.0f, 0.66f, 0.28f, 1.0f), TextAnchor.MiddleLeft);
+            CreateText(root.transform, "Title", "SabaShader / Transformation Bank", new Vector3(0.0f, 6.55f, -0.8f), 0.14f, 58, Color.white);
+            CreateText(root.transform, "Style Row", "12 VFX STYLES + PARTICLES / PLAY MODE", new Vector3(-9.3f, 5.7f, -0.8f), 0.06f, 44, new Color(0.46f, 0.76f, 1.0f, 1.0f), TextAnchor.MiddleLeft);
+            CreateText(root.transform, "Timeline Row", "OLD CAPSULE  >  CROSS TRANSITION  >  NEW CYLINDER", new Vector3(-9.3f, -3.0f, -0.8f), 0.058f, 44, new Color(1.0f, 0.66f, 0.28f, 1.0f), TextAnchor.MiddleLeft);
 
             for (var index = 0; index < StyleNames.Length; index++)
             {
-                var firstRow = index < 5;
-                var x = firstRow ? (index - 2) * 3.0f : (index - 6.5f) * 3.0f;
-                var y = firstRow ? 3.05f : 0.45f;
+                var row = index / 4;
+                var column = index % 4;
+                var x = (column - 1.5f) * 4.0f;
+                var y = 4.25f - row * 2.55f;
                 CreateStation(
                     root.transform,
                     componentType,
@@ -168,7 +209,7 @@ namespace SabaShader.CI
                     root.transform,
                     componentType,
                     $"Timeline {index:00} / {TimelineProgress[index]:0.00}",
-                    new Vector3(x, -3.25f, 0.0f),
+                    new Vector3(x, -4.75f, 0.0f),
                     0,
                     TimelineProgress[index],
                     false);
@@ -189,14 +230,14 @@ namespace SabaShader.CI
             station.transform.SetParent(parent, false);
             station.transform.localPosition = position;
 
-            var outgoing = CreateShell(station.transform, "Outgoing / Old Outfit", PrimitiveType.Capsule, new Vector3(0.55f, 0.78f, 0.55f));
-            var incoming = CreateShell(station.transform, "Incoming / New Outfit", PrimitiveType.Cylinder, new Vector3(0.63f, 0.84f, 0.63f));
-            var cover = CreateShell(station.transform, "Safety Cover", PrimitiveType.Sphere, new Vector3(1.4f, 2.0f, 1.4f));
+            var outgoing = CreateShell(station.transform, "Outgoing / Old Outfit", PrimitiveType.Capsule, new Vector3(0.9f, 0.78f, 0.9f));
+            var incoming = CreateShell(station.transform, "Incoming / New Outfit", PrimitiveType.Cylinder, new Vector3(0.95f, 0.84f, 0.95f));
+            CreateParticlePair(station.transform, style, out var primaryParticles, out var accentParticles);
             var label = CreateText(
                 station.transform,
                 "Progress Label",
                 string.Empty,
-                new Vector3(0.0f, -1.3f, -0.7f),
+                new Vector3(0.0f, -1.25f, -0.7f),
                 0.047f,
                 44,
                 new Color(0.9f, 0.93f, 1.0f, 1.0f));
@@ -207,9 +248,13 @@ namespace SabaShader.CI
             serialized.FindProperty("progress").floatValue = progress;
             serialized.FindProperty("animateInPlayMode").boolValue = animate;
             serialized.FindProperty("animationSpeed").floatValue = 0.2f;
+            serialized.FindProperty("effectIntensity").floatValue = 1.6f;
+            serialized.FindProperty("particleIntensity").floatValue = 1.4f;
+            serialized.FindProperty("particleSize").floatValue = 1.0f;
             serialized.FindProperty("outgoingRenderer").objectReferenceValue = outgoing;
             serialized.FindProperty("incomingRenderer").objectReferenceValue = incoming;
-            serialized.FindProperty("safetyCoverRenderer").objectReferenceValue = cover;
+            serialized.FindProperty("primaryParticles").objectReferenceValue = primaryParticles;
+            serialized.FindProperty("accentParticles").objectReferenceValue = accentParticles;
             serialized.FindProperty("progressLabel").objectReferenceValue = label;
             serialized.ApplyModifiedPropertiesWithoutUndo();
             station.SetActive(true);
@@ -233,6 +278,89 @@ namespace SabaShader.CI
             renderer.shadowCastingMode = ShadowCastingMode.Off;
             renderer.receiveShadows = false;
             return renderer;
+        }
+
+        static void CreateParticlePair(
+            Transform parent,
+            int style,
+            out ParticleSystem primary,
+            out ParticleSystem accent)
+        {
+            var pair = (GameObject)PrefabUtility.InstantiatePrefab(particlePrefab, parent);
+            pair.name = "Particle Effect Pair";
+            pair.transform.localPosition = Vector3.zero;
+            primary = pair.transform.Find("Primary Effect Particles").GetComponent<ParticleSystem>();
+            accent = pair.transform.Find("Accent Particles").GetComponent<ParticleSystem>();
+
+            var depth = style == 9 ? 0.45f : -0.25f;
+            primary.transform.localPosition = new Vector3(0.0f, 0.0f, depth);
+            accent.transform.localPosition = new Vector3(0.0f, 0.0f, depth);
+            primary.GetComponent<ParticleSystemRenderer>().sortingOrder = 1000 + style * 2;
+            accent.GetComponent<ParticleSystemRenderer>().sortingOrder = 1001 + style * 2;
+        }
+
+        static ParticleSystem CreateParticleSystem(Transform parent, string name)
+        {
+            var particleObject = new GameObject(name);
+            particleObject.transform.SetParent(parent, false);
+            var particles = particleObject.AddComponent<ParticleSystem>();
+            particles.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+
+            var particleRenderer = particleObject.GetComponent<ParticleSystemRenderer>();
+            particleRenderer.sharedMaterial = particleMaterial;
+            particleRenderer.renderMode = ParticleSystemRenderMode.Billboard;
+            particleRenderer.mesh = ParticleQuad();
+            return particles;
+        }
+
+        static GameObject CreateParticlePrefab()
+        {
+            var root = new GameObject("Transformation Bank Particle Pair");
+            CreateParticleSystem(root.transform, "Primary Effect Particles");
+            CreateParticleSystem(root.transform, "Accent Particles");
+            var prefab = PrefabUtility.SaveAsPrefabAsset(root, ParticlePrefabPath);
+            UnityEngine.Object.DestroyImmediate(root);
+            if (prefab == null)
+            {
+                throw new InvalidOperationException("Particle effect prefab を保存できませんでした。");
+            }
+
+            return prefab;
+        }
+
+        static Material CreateParticleMaterial()
+        {
+            var material = AssetDatabase.LoadAssetAtPath<Material>(ParticleMaterialPath);
+            if (material != null)
+            {
+                return material;
+            }
+
+            var shader = Shader.Find("Particles/Standard Unlit");
+            if (shader == null)
+            {
+                throw new InvalidOperationException("Particles/Standard Unlit を読み込めませんでした。");
+            }
+
+            material = new Material(shader)
+            {
+                name = "Transformation Bank Particles",
+            };
+            AssetDatabase.CreateAsset(material, ParticleMaterialPath);
+            return material;
+        }
+
+        static Mesh ParticleQuad()
+        {
+            if (particleQuad != null)
+            {
+                return particleQuad;
+            }
+
+            var temporary = GameObject.CreatePrimitive(PrimitiveType.Quad);
+            particleQuad = temporary.GetComponent<MeshFilter>().sharedMesh;
+            UnityEngine.Object.DestroyImmediate(temporary);
+            return particleQuad;
         }
 
         static TextMesh CreateText(
@@ -271,7 +399,7 @@ namespace SabaShader.CI
             cameraObject.transform.localPosition = new Vector3(0.0f, 0.15f, -14.0f);
             var camera = cameraObject.AddComponent<Camera>();
             camera.orthographic = true;
-            camera.orthographicSize = 6.2f;
+            camera.orthographicSize = 7.4f;
             camera.clearFlags = CameraClearFlags.SolidColor;
             camera.backgroundColor = new Color(0.006f, 0.008f, 0.018f, 1.0f);
             camera.nearClipPlane = 0.1f;

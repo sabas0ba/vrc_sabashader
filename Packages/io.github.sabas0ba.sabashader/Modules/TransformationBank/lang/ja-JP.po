@@ -15,25 +15,25 @@ msgid "__Role"
 msgstr "役割"
 
 msgid "__RoleDesc"
-msgstr "旧衣装はOutgoing、新衣装はIncoming、露出防止meshはSafety Coverにします。"
+msgstr "旧衣装はOutgoing、新衣装はIncomingにします。"
 
 msgid "__Style"
 msgstr "演出"
 
 msgid "__StyleDesc"
-msgstr "魔法、サイバー、星界、地属性、影、炎、破片、グリッチ、液体融解から選択します。"
+msgstr "魔法、サイバー、星界、地属性、影、炎、破片、グリッチ、液体融解、宇宙の裂け目、魔法少女風sparkle、魔力霧から選択します。"
+
+msgid "__EffectIntensity"
+msgstr "演出強度"
+
+msgid "__EffectIntensityDesc"
+msgstr "頂点変位、境界、表面patternの共通倍率です。0で装飾を抑え、4で強調します。"
 
 msgid "__IncomingOutgoingWindow"
 msgstr "衣装表示区間"
 
 msgid "__IncomingOutgoingWindowDesc"
 msgstr "XYがIncomingの開始・終了、ZWがOutgoingの退場開始・終了です。"
-
-msgid "__CoverWindow"
-msgstr "Safety Cover区間"
-
-msgid "__CoverWindowDesc"
-msgstr "XYが出現開始・終了、ZWが退場開始・終了です。旧衣装が欠ける前に完全表示させます。"
 
 msgid "__Direction"
 msgstr "方向"
@@ -91,12 +91,6 @@ msgstr "Cyber、Umbra、Shatter、Glitchの表示判定に使うcell密度です
 
 msgid "__Surface"
 msgstr "表面演出"
-
-msgid "__CoverColor"
-msgstr "Safety Cover色"
-
-msgid "__CoverColorDesc"
-msgstr "Safety Coverの不透明な基底色です。肌色や透明色は避けてください。"
 
 msgid "__PatternColor"
 msgstr "pattern色"

@@ -22,11 +22,14 @@ def test_package_declares_transformation_bank_demo():
 
     assert sample["path"] == "Samples~/TransformationBankDemo"
     assert (PACKAGE_DIR / sample["path"]).is_dir()
+    assert package["dependencies"]["com.unity.modules.particlesystem"] == "1.0.0"
 
 
 def test_sample_contains_scene_controller_inspector_and_readme():
     assert {
         "TransformationBankDemo.unity",
+        "TransformationBankParticles.mat",
+        "TransformationBankParticlePair.prefab",
         "TransformationBankDemoController.cs",
         "Editor",
         "README.md",
@@ -36,19 +39,24 @@ def test_sample_contains_scene_controller_inspector_and_readme():
     component_guid = guid_for(
         (SAMPLE_DIR / "TransformationBankDemoController.cs").relative_to(PACKAGE_DIR).as_posix()
     )
-    assert scene.count(f"guid: {component_guid}") == 14
-    assert scene.count("  animateInPlayMode: 1") == 9
+    assert scene.count(f"guid: {component_guid}") == 17
+    assert scene.count("  animateInPlayMode: 1") == 12
     assert scene.count("  animateInPlayMode: 0") == 5
 
 
-def test_demo_controller_generates_three_transient_role_materials():
+def test_demo_controller_generates_two_role_materials_and_particle_controls():
     source = (SAMPLE_DIR / "TransformationBankDemoController.cs").read_text(encoding="utf-8")
 
     assert 'ShaderName = "SabaShader/Illust2D"' in source
     assert "HideFlags.HideAndDontSave" in source
     assert 'CreateRoleMaterial(shader, 1, "Outgoing")' in source
     assert 'CreateRoleMaterial(shader, 0, "Incoming")' in source
-    assert 'CreateRoleMaterial(shader, 2, "Safety Cover")' in source
+    assert 'CreateRoleMaterial(shader, 2, "Safety Cover")' not in source
+    assert "safetyCoverRenderer" not in source
+    assert "particleIntensity" in source
+    assert "particleSize" in source
+    assert "primaryParticles" in source
+    assert "accentParticles" in source
     assert "Mathf.PingPong" in source
     assert "MaterialPropertyBlock" in source
     assert "StabilizeTextRendering();" in source
@@ -63,6 +71,9 @@ def test_demo_controller_generates_three_transient_role_materials():
         "Shatter",
         "Glitch",
         "Melt",
+        "CosmicRift",
+        "MagicalSparkle",
+        "ManaMist",
     ):
         assert style in source
 
@@ -78,14 +89,19 @@ def test_demo_inspector_is_sample_only_and_supports_manual_scrub():
     assert "material._io_github_sabas0ba_transformationbank_Progress" in source
 
 
-def test_builder_has_nine_styles_distinct_roles_five_timeline_snapshots_and_capture():
+def test_builder_has_twelve_styles_distinct_roles_particles_and_timeline():
     source = BUILDER.read_text(encoding="utf-8")
 
-    assert '"Flame", "Shatter", "Glitch", "Melt"' in source
+    assert '"Cosmic Rift", "Magical Sparkle", "Mana Mist"' in source
     assert "TimelineProgress = { 0.0f, 0.25f, 0.5f, 0.75f, 1.0f }" in source
     assert 'CreateShell(station.transform, "Outgoing / Old Outfit", PrimitiveType.Capsule' in source
     assert 'CreateShell(station.transform, "Incoming / New Outfit", PrimitiveType.Cylinder' in source
-    assert 'CreateShell(station.transform, "Safety Cover", PrimitiveType.Sphere' in source
+    assert '"Safety Cover", PrimitiveType.Sphere' not in source
+    assert "CreateParticlePair" in source
+    assert "PrefabUtility.InstantiatePrefab" in source
+    assert "particleRenderer.mesh = ParticleQuad()" in source
+    assert 'Shader.Find("Particles/Standard Unlit")' in source
+    assert "particleRenderer.sharedMaterial = particleMaterial" in source
     assert '"transformation_bank_demo.png"' in source
     assert ", 2560, 1440);" in source
 
