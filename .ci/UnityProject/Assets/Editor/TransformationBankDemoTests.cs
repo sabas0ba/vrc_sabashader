@@ -87,6 +87,44 @@ namespace SabaShader.CI
         }
 
         [Test]
+        public void EveryStyleUsesTailoredParticleMeshes()
+        {
+            var components = OpenComponents().Where(item => item.name.StartsWith("Style ")).ToArray();
+            var primaryMeshNames = components
+                .Select(component => new SerializedObject(component))
+                .Select(serialized => (ParticleSystem)serialized.FindProperty("primaryParticles").objectReferenceValue)
+                .Select(particles => particles.GetComponent<ParticleSystemRenderer>())
+                .Select(renderer =>
+                {
+                    Assert.That(renderer.renderMode, Is.EqualTo(ParticleSystemRenderMode.Mesh));
+                    Assert.That(renderer.mesh, Is.Not.Null);
+                    Assert.That(renderer.mesh.name, Does.StartWith("Transformation Bank Particle / "));
+                    Assert.That(renderer.mesh.name, Does.Not.Contain("Quad"));
+                    Assert.That(AssetDatabase.Contains(renderer.mesh), Is.True);
+                    Assert.That(
+                        AssetDatabase.GetAssetPath(renderer.mesh),
+                        Is.EqualTo(TransformationBankDemoBuilder.ParticleMeshAssetPath));
+                    return renderer.mesh.name;
+                })
+                .Distinct()
+                .ToArray();
+
+            Assert.That(primaryMeshNames, Has.Length.GreaterThanOrEqualTo(10));
+        }
+
+        [Test]
+        public void MeltUsesDropletAndBeadParticles()
+        {
+            var component = OpenComponents().First(item => item.name.Contains("Melt"));
+            var serialized = new SerializedObject(component);
+            var primary = (ParticleSystem)serialized.FindProperty("primaryParticles").objectReferenceValue;
+            var accent = (ParticleSystem)serialized.FindProperty("accentParticles").objectReferenceValue;
+
+            Assert.That(primary.GetComponent<ParticleSystemRenderer>().mesh.name, Does.EndWith("Droplet"));
+            Assert.That(accent.GetComponent<ParticleSystemRenderer>().mesh.name, Does.EndWith("Bead"));
+        }
+
+        [Test]
         public void ManualProgressUpdateReusesGeneratedMaterials()
         {
             var component = OpenComponents().First(item => item.name.StartsWith("Style 00"));

@@ -120,6 +120,9 @@ def test_extended_styles_define_distinct_morph_and_surface_paths():
     assert "SBSBankShatterDirection" in source
     assert "SBSBankGlitchAmount" in source
     assert "SBSBankMeltField" in source
+    assert "liquidFront" in source
+    assert "liquidWave" in source
+    assert "melt * melt * 1.4" in source
     assert "SBSBankCosmicRiftField" in source
     assert "SBSBankSparkleField" in source
     assert "SBSBankManaMistField" in source

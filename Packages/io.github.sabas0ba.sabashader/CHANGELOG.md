@@ -17,7 +17,9 @@
   - 頂点変位と発光を一括調整する`Effect Intensity`
   - Illust2DとNonToon 0.1.3のUnityコンパイル検証
   - 既定タイミングでOutgoingとIncomingの表示率の和を維持
-- 12 Style、Capsule／CylinderのRole形状、2系統のParticle補助演出を可視化するUPM sample `Transformation Bank Demo`
+- 12 Style、Capsule／CylinderのRole形状、Progressへ同期する2系統の専用mesh Particleを可視化するUPM sample `Transformation Bank Demo`
+  - MeltのOutgoingを液体状に波打たせ、液滴と水玉へ分離して消去
+  - 炎舌、火の粉、Triangle／Quad破片、pixel片、星片、液滴、霧のStyle別Particle silhouette
 
 ## [0.5.0] - 2026-08-29
 

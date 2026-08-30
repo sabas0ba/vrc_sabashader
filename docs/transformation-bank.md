@@ -77,24 +77,28 @@ material._io_github_sabas0ba_transformationbank_Progress
 | Magical Sparkle | 下から上へ展開 | cross状sparkle | キラキラした魔法粒子 |
 | Mana Mist | 霧noiseから収束 | 柔らかいrim | 周囲から集まる魔力霧 |
 
-Shatterはgeometry shaderでtriangleを分離する方式ではなく、object-space cellとQuad mesh particleを
-組み合わせます。そのためNonToonと同じShader Core経路を維持できます。MeltはIncomingの頂点変位と
-表面patternを無効にし、新衣装の形状を変えずに出現させます。
+Shatterはgeometry shaderでtriangleを分離する方式ではなく、object-space cellとTriangle／Quadの
+mesh particleを組み合わせます。そのためNonToonと同じShader Core経路を維持できます。Meltは
+Outgoingだけを横方向へ波打たせながら下へ垂らし、液滴と水玉が落ちる区間で消去します。Incomingの
+頂点変位と表面patternは無効にし、新衣装の形状を変えずに出現させます。
 
 ## Particle System
 
 Package ManagerのSamplesから `Transformation Bank Demo` をImportすると、12 Styleの表面shaderと
 Particle Systemを同期再生できます。
 
-![12 Styleのsurface shaderを比較したUnityキャプチャ](../tests/golden/transformation_bank_demo.png)
-
-この画像はUnity 2022.3のbatch `Camera.Render` を安定させるためParticle rendererを除外した
-surface shader比較です。Particle補助演出はsample SceneをPlay Modeで再生して確認します。
+![12 Styleのsurface shaderと専用Particle silhouetteを比較したUnityキャプチャ](../tests/golden/transformation_bank_demo.png)
 
 DemoのParticleは2系統です。
 
 - Primary: 炎片、破片、pixel、液滴、裂け目、霧など主要形状
 - Accent: 火の粉、細かな破片、星、sparkleなど装飾
+
+各Particleは汎用Quadではなく、Styleごとの手続き生成meshを使用します。Flameは炎舌と火の粉、Shatterは
+TriangleとQuad片、Glitchは横長pixel片、Meltは液滴と水玉、Cosmic RiftとMagical Sparkleは星片を使います。
+PrimaryとAccentのEmissionはStyleごとに異なるProgress区間へ同期し、変身前後の端点では停止・消去します。
+生成済み形状は `TransformationBankParticleMeshes.asset` に永続化されているため、Sample Controllerを外しても
+Particle SystemのMesh参照は維持されます。
 
 Inspectorの `Particle Intensity` と `Particle Size` で調整できます。実AvatarではAnimation Clipから
 Particle SystemのEmissionまたはGameObject有効状態を制御します。Particleは衣装の描画状態を置き換える

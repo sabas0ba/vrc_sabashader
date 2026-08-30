@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace SabaShader.Samples
@@ -27,16 +28,37 @@ namespace SabaShader.Samples
             ManaMist,
         }
 
+        enum ParticleSilhouette
+        {
+            ArcaneRune,
+            CyberPixel,
+            AstralStar,
+            GaiaLeaf,
+            UmbraWisp,
+            FlameTongue,
+            Ember,
+            ShardTriangle,
+            ShardQuad,
+            GlitchBar,
+            Droplet,
+            Bead,
+            RiftShard,
+            Sparkle,
+            MistOrb,
+        }
+
         const string ShaderName = "SabaShader/Illust2D";
         const string Bank = "_io_github_sabas0ba_transformationbank_";
         static readonly int FontColorProperty = Shader.PropertyToID("_Color");
+        static readonly Dictionary<ParticleSilhouette, Mesh> ParticleMeshes =
+            new Dictionary<ParticleSilhouette, Mesh>();
 
         [SerializeField] BankStyle style;
         [SerializeField, Range(0.0f, 1.0f)] float progress = 0.5f;
         [SerializeField] bool animateInPlayMode = true;
         [SerializeField, Min(0.01f)] float animationSpeed = 0.2f;
         [SerializeField, Range(0.0f, 4.0f)] float effectIntensity = 1.6f;
-        [SerializeField, Range(0.0f, 4.0f)] float particleIntensity = 1.4f;
+        [SerializeField, Range(0.0f, 4.0f)] float particleIntensity = 0.75f;
         [SerializeField, Range(0.1f, 3.0f)] float particleSize = 1.0f;
         [SerializeField, HideInInspector] Renderer outgoingRenderer;
         [SerializeField, HideInInspector] Renderer incomingRenderer;
@@ -63,7 +85,7 @@ namespace SabaShader.Samples
             public readonly float Radius;
             public readonly float Noise;
             public readonly ParticleSystemShapeType Shape;
-            public readonly ParticleSystemRenderMode RenderMode;
+            public readonly ParticleSilhouette Silhouette;
 
             public ParticleProfile(
                 float rate,
@@ -76,7 +98,7 @@ namespace SabaShader.Samples
                 float radius,
                 float noise,
                 ParticleSystemShapeType shape,
-                ParticleSystemRenderMode renderMode)
+                ParticleSilhouette silhouette)
             {
                 Rate = rate;
                 Size = size;
@@ -88,7 +110,7 @@ namespace SabaShader.Samples
                 Radius = radius;
                 Noise = noise;
                 Shape = shape;
-                RenderMode = renderMode;
+                Silhouette = silhouette;
             }
         }
 
@@ -366,10 +388,23 @@ namespace SabaShader.Samples
             main.maxParticles = accent ? 768 : 512;
             main.startLifetime = profile.Lifetime;
             main.startSpeed = profile.Speed;
-            main.startSize = profile.Size * particleSize;
-            main.startColor = new ParticleSystem.MinMaxGradient(
-                accent ? palette.pattern : palette.edge,
-                accent ? palette.edge : palette.pattern);
+            main.startSize = new ParticleSystem.MinMaxCurve(
+                profile.Size * particleSize * 0.7f,
+                profile.Size * particleSize * 1.15f);
+            main.startRotation = new ParticleSystem.MinMaxCurve(-0.45f, 0.45f);
+            var colorA = accent ? palette.pattern : palette.edge;
+            var colorB = accent ? palette.edge : palette.pattern;
+            if (style == BankStyle.ManaMist)
+            {
+                colorA.a = accent ? 0.08f : 0.025f;
+                colorB.a = accent ? 0.05f : 0.018f;
+            }
+            else
+            {
+                colorA.a = accent ? 0.72f : 0.62f;
+                colorB.a = accent ? 0.62f : 0.52f;
+            }
+            main.startColor = new ParticleSystem.MinMaxGradient(colorA, colorB);
             main.gravityModifier = profile.Gravity;
 
             var emission = particles.emission;
@@ -380,7 +415,8 @@ namespace SabaShader.Samples
             shape.enabled = true;
             shape.shapeType = profile.Shape;
             shape.radius = profile.Radius;
-            shape.radiusThickness = style == BankStyle.CosmicRift ? 0.08f : 1.0f;
+            shape.radiusThickness = style == BankStyle.ManaMist ? 0.35f : 0.05f;
+            shape.angle = style == BankStyle.Flame ? 18.0f : 25.0f;
 
             var velocity = particles.velocityOverLifetime;
             velocity.enabled = Mathf.Abs(profile.Vertical) > 0.001f || Mathf.Abs(profile.Radial) > 0.001f;
@@ -411,17 +447,40 @@ namespace SabaShader.Samples
                 });
             colorOverLifetime.color = gradient;
 
+            var sizeOverLifetime = particles.sizeOverLifetime;
+            sizeOverLifetime.enabled = true;
+            sizeOverLifetime.size = new ParticleSystem.MinMaxCurve(
+                1.0f,
+                new AnimationCurve(
+                    new Keyframe(0.0f, 0.12f),
+                    new Keyframe(0.16f, 1.0f),
+                    new Keyframe(0.72f, 0.82f),
+                    new Keyframe(1.0f, 0.05f)));
+
+            var rotation = particles.rotationOverLifetime;
+            rotation.enabled = style == BankStyle.Shatter || style == BankStyle.Glitch ||
+                style == BankStyle.CosmicRift || style == BankStyle.MagicalSparkle;
+            rotation.z = new ParticleSystem.MinMaxCurve(-2.4f, 2.4f);
+
             var particleRenderer = particles.GetComponent<ParticleSystemRenderer>();
-            particleRenderer.renderMode = profile.RenderMode;
-            particleRenderer.lengthScale = style == BankStyle.Flame || style == BankStyle.Melt ? 3.5f : 1.0f;
-            particleRenderer.velocityScale = 0.25f;
+            particleRenderer.renderMode = ParticleSystemRenderMode.Mesh;
+            var expectedMeshName = "Transformation Bank Particle / " + profile.Silhouette;
+            if (particleRenderer.mesh != null && particleRenderer.mesh.name == expectedMeshName)
+            {
+                ParticleMeshes[profile.Silhouette] = particleRenderer.mesh;
+            }
+            else
+            {
+                particleRenderer.mesh = ParticleMesh(profile.Silhouette);
+            }
+            particleRenderer.lengthScale = 1.0f;
+            particleRenderer.velocityScale = 0.0f;
         }
 
         void ApplyParticleProgress()
         {
-            var activity = 4.0f * progress * (1.0f - progress);
-            UpdateParticleSystem(primaryParticles, false, activity);
-            UpdateParticleSystem(accentParticles, true, activity);
+            UpdateParticleSystem(primaryParticles, false, ParticleActivity(style, false, progress));
+            UpdateParticleSystem(accentParticles, true, ParticleActivity(style, true, progress));
         }
 
         void UpdateParticleSystem(ParticleSystem particles, bool accent, float activity)
@@ -433,14 +492,21 @@ namespace SabaShader.Samples
 
             var profile = ParticleProfileFor(style, accent);
             var main = particles.main;
-            main.startSize = profile.Size * particleSize;
+            main.startSize = new ParticleSystem.MinMaxCurve(
+                profile.Size * particleSize * 0.7f,
+                profile.Size * particleSize * 1.15f);
             var noise = particles.noise;
             noise.strength = profile.Noise * effectIntensity;
             var emission = particles.emission;
-            emission.rateOverTime = profile.Rate * particleIntensity * activity;
+            emission.rateOverTime = profile.Rate * particleIntensity * activity * 0.45f;
 
             if (Application.isPlaying)
             {
+                if (activity <= 0.001f && (progress <= 0.01f || progress >= 0.99f))
+                {
+                    particles.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+                    return;
+                }
                 if (!particles.isPlaying)
                 {
                     particles.Play(true);
@@ -448,8 +514,48 @@ namespace SabaShader.Samples
                 return;
             }
 
-            particles.Simulate(0.35f + progress * 1.8f, true, true, true);
+            particles.Simulate(0.22f + progress * 0.9f, true, true, true);
             particles.Pause(true);
+        }
+
+        static float ParticleActivity(BankStyle value, bool accent, float value01)
+        {
+            switch (value)
+            {
+                case BankStyle.Arcane:
+                    return ParticleBand(value01, accent ? 0.32f : 0.2f, accent ? 0.62f : 0.48f, accent ? 0.88f : 0.74f);
+                case BankStyle.Cyber:
+                    return ParticleBand(value01, accent ? 0.18f : 0.28f, accent ? 0.58f : 0.5f, accent ? 0.84f : 0.72f);
+                case BankStyle.Astral:
+                    return ParticleBand(value01, accent ? 0.08f : 0.18f, accent ? 0.58f : 0.5f, accent ? 0.94f : 0.86f);
+                case BankStyle.Gaia:
+                    return ParticleBand(value01, accent ? 0.34f : 0.22f, accent ? 0.68f : 0.55f, accent ? 0.92f : 0.85f);
+                case BankStyle.Umbra:
+                    return ParticleBand(value01, accent ? 0.12f : 0.2f, accent ? 0.55f : 0.48f, accent ? 0.86f : 0.78f);
+                case BankStyle.Flame:
+                    return ParticleBand(value01, accent ? 0.12f : 0.2f, accent ? 0.55f : 0.5f, accent ? 0.9f : 0.78f);
+                case BankStyle.Shatter:
+                    return ParticleBand(value01, accent ? 0.46f : 0.28f, accent ? 0.69f : 0.48f, accent ? 0.9f : 0.64f);
+                case BankStyle.Glitch:
+                    return ParticleBand(value01, accent ? 0.18f : 0.25f, accent ? 0.6f : 0.5f, accent ? 0.84f : 0.72f);
+                case BankStyle.Melt:
+                    return ParticleBand(value01, accent ? 0.44f : 0.35f, accent ? 0.66f : 0.56f, accent ? 0.84f : 0.76f);
+                case BankStyle.CosmicRift:
+                    return ParticleBand(value01, accent ? 0.08f : 0.18f, accent ? 0.58f : 0.5f, accent ? 0.94f : 0.82f);
+                case BankStyle.MagicalSparkle:
+                    return ParticleBand(value01, accent ? 0.08f : 0.18f, accent ? 0.64f : 0.56f, accent ? 0.96f : 0.88f);
+                case BankStyle.ManaMist:
+                    return ParticleBand(value01, accent ? 0.3f : 0.06f, accent ? 0.72f : 0.48f, accent ? 0.98f : 0.8f);
+                default:
+                    return ParticleBand(value01, 0.2f, 0.5f, 0.82f);
+            }
+        }
+
+        static float ParticleBand(float value, float start, float peak, float end)
+        {
+            var rise = Mathf.SmoothStep(0.0f, 1.0f, Mathf.InverseLerp(start, peak, value));
+            var fall = 1.0f - Mathf.SmoothStep(0.0f, 1.0f, Mathf.InverseLerp(peak, end, value));
+            return rise * fall;
         }
 
         static void StopParticles(ParticleSystem particles)
@@ -464,39 +570,250 @@ namespace SabaShader.Samples
         {
             switch (value)
             {
+                case BankStyle.Arcane:
+                    return accent
+                        ? new ParticleProfile(76.0f, 0.055f, 1.0f, 0.08f, 0.0f, 0.22f, 0.12f, 0.82f, 0.18f, ParticleSystemShapeType.Sphere, ParticleSilhouette.Sparkle)
+                        : new ParticleProfile(34.0f, 0.16f, 1.5f, 0.04f, 0.0f, 0.12f, 0.08f, 0.76f, 0.16f, ParticleSystemShapeType.Circle, ParticleSilhouette.ArcaneRune);
+                case BankStyle.Cyber:
+                    return accent
+                        ? new ParticleProfile(120.0f, 0.045f, 0.42f, 0.0f, 0.0f, 0.0f, 0.12f, 0.78f, 0.36f, ParticleSystemShapeType.Box, ParticleSilhouette.GlitchBar)
+                        : new ParticleProfile(54.0f, 0.14f, 0.78f, 0.02f, 0.0f, 0.08f, 0.16f, 0.72f, 0.24f, ParticleSystemShapeType.Box, ParticleSilhouette.CyberPixel);
+                case BankStyle.Astral:
+                    return accent
+                        ? new ParticleProfile(105.0f, 0.045f, 1.2f, 0.05f, -0.02f, 0.16f, 0.18f, 0.92f, 0.14f, ParticleSystemShapeType.Sphere, ParticleSilhouette.Sparkle)
+                        : new ParticleProfile(42.0f, 0.17f, 1.75f, 0.04f, 0.0f, 0.1f, 0.1f, 0.86f, 0.12f, ParticleSystemShapeType.Sphere, ParticleSilhouette.AstralStar);
+                case BankStyle.Gaia:
+                    return accent
+                        ? new ParticleProfile(58.0f, 0.07f, 1.15f, 0.05f, 0.08f, -0.18f, 0.12f, 0.78f, 0.2f, ParticleSystemShapeType.Sphere, ParticleSilhouette.Bead)
+                        : new ParticleProfile(38.0f, 0.19f, 1.65f, 0.04f, 0.06f, -0.08f, 0.16f, 0.82f, 0.22f, ParticleSystemShapeType.Sphere, ParticleSilhouette.GaiaLeaf);
+                case BankStyle.Umbra:
+                    return accent
+                        ? new ParticleProfile(68.0f, 0.06f, 1.2f, 0.02f, 0.0f, 0.12f, -0.14f, 0.94f, 0.42f, ParticleSystemShapeType.Sphere, ParticleSilhouette.RiftShard)
+                        : new ParticleProfile(32.0f, 0.2f, 1.8f, -0.04f, 0.0f, 0.04f, -0.22f, 1.0f, 0.52f, ParticleSystemShapeType.Sphere, ParticleSilhouette.UmbraWisp);
                 case BankStyle.Flame:
                     return accent
-                        ? new ParticleProfile(120.0f, 0.045f, 1.1f, 0.4f, -0.15f, 1.1f, 0.2f, 0.72f, 0.22f, ParticleSystemShapeType.Cone, ParticleSystemRenderMode.Billboard)
-                        : new ParticleProfile(52.0f, 0.24f, 0.9f, 0.2f, -0.1f, 0.75f, 0.05f, 0.66f, 0.35f, ParticleSystemShapeType.Cone, ParticleSystemRenderMode.Stretch);
+                        ? new ParticleProfile(72.0f, 0.04f, 0.72f, 0.28f, -0.1f, 0.7f, 0.18f, 0.72f, 0.24f, ParticleSystemShapeType.Cone, ParticleSilhouette.Ember)
+                        : new ParticleProfile(30.0f, 0.17f, 0.72f, 0.12f, -0.05f, 0.52f, 0.05f, 0.66f, 0.32f, ParticleSystemShapeType.Cone, ParticleSilhouette.FlameTongue);
                 case BankStyle.Shatter:
                     return accent
-                        ? new ParticleProfile(45.0f, 0.09f, 1.2f, 0.4f, 0.05f, 0.0f, 1.3f, 0.68f, 0.08f, ParticleSystemShapeType.Sphere, ParticleSystemRenderMode.Mesh)
-                        : new ParticleProfile(72.0f, 0.17f, 1.5f, 0.25f, 0.08f, 0.0f, 1.05f, 0.62f, 0.12f, ParticleSystemShapeType.Sphere, ParticleSystemRenderMode.Mesh);
+                        ? new ParticleProfile(22.0f, 0.065f, 0.72f, -0.05f, 0.02f, 0.0f, -0.72f, 0.94f, 0.08f, ParticleSystemShapeType.Sphere, ParticleSilhouette.ShardQuad)
+                        : new ParticleProfile(28.0f, 0.11f, 0.82f, 0.14f, 0.05f, 0.0f, 0.72f, 0.62f, 0.1f, ParticleSystemShapeType.Sphere, ParticleSilhouette.ShardTriangle);
                 case BankStyle.Glitch:
                     return accent
-                        ? new ParticleProfile(150.0f, 0.035f, 0.28f, 0.0f, 0.0f, 0.0f, 0.1f, 0.8f, 0.65f, ParticleSystemShapeType.Box, ParticleSystemRenderMode.Mesh)
-                        : new ParticleProfile(95.0f, 0.11f, 0.42f, 0.0f, 0.0f, 0.0f, 0.28f, 0.75f, 0.8f, ParticleSystemShapeType.Box, ParticleSystemRenderMode.Mesh);
+                        ? new ParticleProfile(155.0f, 0.045f, 0.3f, 0.0f, 0.0f, 0.0f, 0.14f, 0.82f, 0.7f, ParticleSystemShapeType.Box, ParticleSilhouette.CyberPixel)
+                        : new ParticleProfile(102.0f, 0.13f, 0.46f, 0.0f, 0.0f, 0.0f, 0.32f, 0.78f, 0.82f, ParticleSystemShapeType.Box, ParticleSilhouette.GlitchBar);
                 case BankStyle.Melt:
                     return accent
-                        ? new ParticleProfile(88.0f, 0.045f, 0.8f, 0.0f, 0.35f, -0.9f, 0.12f, 0.64f, 0.18f, ParticleSystemShapeType.Sphere, ParticleSystemRenderMode.Stretch)
-                        : new ParticleProfile(48.0f, 0.14f, 1.15f, 0.0f, 0.45f, -0.7f, 0.05f, 0.62f, 0.22f, ParticleSystemShapeType.Sphere, ParticleSystemRenderMode.Stretch);
+                        ? new ParticleProfile(34.0f, 0.04f, 0.58f, 0.0f, 0.32f, -0.62f, 0.07f, 0.64f, 0.12f, ParticleSystemShapeType.Sphere, ParticleSilhouette.Bead)
+                        : new ParticleProfile(28.0f, 0.14f, 0.76f, 0.0f, 0.42f, -0.5f, 0.04f, 0.62f, 0.18f, ParticleSystemShapeType.Sphere, ParticleSilhouette.Droplet);
                 case BankStyle.CosmicRift:
                     return accent
-                        ? new ParticleProfile(110.0f, 0.04f, 1.8f, 0.05f, 0.0f, 0.0f, 0.08f, 1.15f, 0.12f, ParticleSystemShapeType.Circle, ParticleSystemRenderMode.Billboard)
-                        : new ParticleProfile(44.0f, 0.16f, 2.1f, 0.03f, 0.0f, 0.0f, 0.04f, 1.0f, 0.18f, ParticleSystemShapeType.Circle, ParticleSystemRenderMode.Billboard);
+                        ? new ParticleProfile(84.0f, 0.045f, 1.5f, 0.04f, 0.0f, 0.0f, 0.08f, 1.1f, 0.1f, ParticleSystemShapeType.Circle, ParticleSilhouette.AstralStar)
+                        : new ParticleProfile(36.0f, 0.15f, 1.65f, 0.02f, 0.0f, 0.0f, 0.04f, 1.0f, 0.16f, ParticleSystemShapeType.Circle, ParticleSilhouette.RiftShard);
                 case BankStyle.MagicalSparkle:
                     return accent
-                        ? new ParticleProfile(150.0f, 0.04f, 1.0f, 0.1f, -0.05f, 0.28f, 0.18f, 0.95f, 0.16f, ParticleSystemShapeType.Sphere, ParticleSystemRenderMode.Billboard)
-                        : new ParticleProfile(64.0f, 0.14f, 1.35f, 0.08f, -0.08f, 0.2f, 0.12f, 0.82f, 0.14f, ParticleSystemShapeType.Sphere, ParticleSystemRenderMode.Billboard);
+                        ? new ParticleProfile(112.0f, 0.04f, 0.9f, 0.06f, -0.03f, 0.22f, 0.16f, 0.94f, 0.14f, ParticleSystemShapeType.Sphere, ParticleSilhouette.AstralStar)
+                        : new ParticleProfile(54.0f, 0.14f, 1.12f, 0.05f, -0.04f, 0.16f, 0.11f, 0.84f, 0.14f, ParticleSystemShapeType.Sphere, ParticleSilhouette.Sparkle);
                 case BankStyle.ManaMist:
                     return accent
-                        ? new ParticleProfile(90.0f, 0.08f, 1.8f, -0.08f, -0.02f, 0.08f, -0.35f, 1.45f, 0.55f, ParticleSystemShapeType.Sphere, ParticleSystemRenderMode.Billboard)
-                        : new ParticleProfile(36.0f, 0.32f, 2.4f, -0.12f, -0.03f, 0.05f, -0.45f, 1.35f, 0.7f, ParticleSystemShapeType.Sphere, ParticleSystemRenderMode.Billboard);
+                        ? new ParticleProfile(20.0f, 0.025f, 0.7f, -0.03f, -0.01f, 0.04f, -0.12f, 1.0f, 0.28f, ParticleSystemShapeType.Sphere, ParticleSilhouette.Sparkle)
+                        : new ParticleProfile(12.0f, 0.045f, 0.82f, -0.035f, -0.01f, 0.02f, -0.14f, 0.96f, 0.3f, ParticleSystemShapeType.Sphere, ParticleSilhouette.MistOrb);
                 default:
                     return accent
-                        ? new ParticleProfile(72.0f, 0.045f, 1.1f, 0.08f, 0.0f, 0.18f, 0.18f, 0.8f, 0.2f, ParticleSystemShapeType.Sphere, ParticleSystemRenderMode.Billboard)
-                        : new ParticleProfile(32.0f, 0.12f, 1.5f, 0.05f, 0.0f, 0.1f, 0.1f, 0.72f, 0.22f, ParticleSystemShapeType.Sphere, ParticleSystemRenderMode.Billboard);
+                        ? new ParticleProfile(72.0f, 0.05f, 1.1f, 0.08f, 0.0f, 0.18f, 0.18f, 0.8f, 0.2f, ParticleSystemShapeType.Sphere, ParticleSilhouette.Sparkle)
+                        : new ParticleProfile(32.0f, 0.14f, 1.5f, 0.05f, 0.0f, 0.1f, 0.1f, 0.72f, 0.22f, ParticleSystemShapeType.Sphere, ParticleSilhouette.ArcaneRune);
             }
+        }
+
+        public static Mesh CreateParticleSilhouetteMesh(string silhouetteName)
+        {
+            if (!System.Enum.TryParse(silhouetteName, out ParticleSilhouette silhouette))
+            {
+                throw new System.ArgumentException("Unknown particle silhouette: " + silhouetteName, nameof(silhouetteName));
+            }
+
+            ParticleMeshes.Remove(silhouette);
+            return ParticleMesh(silhouette);
+        }
+
+        static Mesh ParticleMesh(ParticleSilhouette silhouette)
+        {
+            if (ParticleMeshes.TryGetValue(silhouette, out var cached) && cached != null)
+            {
+                return cached;
+            }
+
+            Vector2[] outline;
+            switch (silhouette)
+            {
+                case ParticleSilhouette.ArcaneRune:
+                    outline = new[]
+                    {
+                        new Vector2(0.0f, -1.0f), new Vector2(0.28f, -0.38f),
+                        new Vector2(0.56f, 0.0f), new Vector2(0.28f, 0.38f),
+                        new Vector2(0.0f, 1.0f), new Vector2(-0.28f, 0.38f),
+                        new Vector2(-0.56f, 0.0f), new Vector2(-0.28f, -0.38f),
+                    };
+                    break;
+                case ParticleSilhouette.CyberPixel:
+                    outline = new[]
+                    {
+                        new Vector2(-0.72f, -0.42f), new Vector2(0.52f, -0.42f),
+                        new Vector2(0.72f, -0.2f), new Vector2(0.72f, 0.42f),
+                        new Vector2(-0.52f, 0.42f), new Vector2(-0.72f, 0.2f),
+                    };
+                    break;
+                case ParticleSilhouette.AstralStar:
+                    outline = RadialOutline(5, 1.0f, 0.38f, -Mathf.PI * 0.5f);
+                    break;
+                case ParticleSilhouette.GaiaLeaf:
+                    outline = new[]
+                    {
+                        new Vector2(0.0f, -1.0f), new Vector2(0.38f, -0.58f),
+                        new Vector2(0.54f, 0.0f), new Vector2(0.32f, 0.58f),
+                        new Vector2(0.0f, 1.0f), new Vector2(-0.32f, 0.58f),
+                        new Vector2(-0.54f, 0.0f), new Vector2(-0.38f, -0.58f),
+                    };
+                    break;
+                case ParticleSilhouette.UmbraWisp:
+                    outline = new[]
+                    {
+                        new Vector2(0.0f, -1.05f), new Vector2(0.24f, -0.48f),
+                        new Vector2(0.48f, -0.08f), new Vector2(0.3f, 0.38f),
+                        new Vector2(0.06f, 1.0f), new Vector2(-0.12f, 0.4f),
+                        new Vector2(-0.5f, 0.12f), new Vector2(-0.34f, -0.48f),
+                    };
+                    break;
+                case ParticleSilhouette.FlameTongue:
+                    outline = new[]
+                    {
+                        new Vector2(0.0f, -1.0f), new Vector2(0.42f, -0.58f),
+                        new Vector2(0.48f, -0.12f), new Vector2(0.28f, 0.36f),
+                        new Vector2(0.16f, 1.18f), new Vector2(-0.04f, 0.68f),
+                        new Vector2(-0.28f, 0.98f), new Vector2(-0.22f, 0.34f),
+                        new Vector2(-0.48f, -0.12f), new Vector2(-0.4f, -0.62f),
+                    };
+                    break;
+                case ParticleSilhouette.Ember:
+                    outline = RadialOutline(4, 1.0f, 0.48f, Mathf.PI * 0.25f);
+                    break;
+                case ParticleSilhouette.ShardTriangle:
+                    outline = new[]
+                    {
+                        new Vector2(-0.68f, -0.72f), new Vector2(0.82f, -0.38f),
+                        new Vector2(-0.12f, 1.0f),
+                    };
+                    break;
+                case ParticleSilhouette.ShardQuad:
+                    outline = new[]
+                    {
+                        new Vector2(-0.72f, -0.56f), new Vector2(0.48f, -0.82f),
+                        new Vector2(0.82f, 0.48f), new Vector2(-0.36f, 0.94f),
+                    };
+                    break;
+                case ParticleSilhouette.GlitchBar:
+                    outline = new[]
+                    {
+                        new Vector2(-1.0f, -0.3f), new Vector2(-0.18f, -0.3f),
+                        new Vector2(-0.18f, -0.52f), new Vector2(0.36f, -0.52f),
+                        new Vector2(0.36f, -0.18f), new Vector2(1.0f, -0.18f),
+                        new Vector2(1.0f, 0.3f), new Vector2(0.14f, 0.3f),
+                        new Vector2(0.14f, 0.52f), new Vector2(-0.42f, 0.52f),
+                        new Vector2(-0.42f, 0.18f), new Vector2(-1.0f, 0.18f),
+                    };
+                    break;
+                case ParticleSilhouette.Droplet:
+                    outline = new[]
+                    {
+                        new Vector2(0.0f, -0.95f), new Vector2(0.38f, -0.66f),
+                        new Vector2(0.52f, -0.18f), new Vector2(0.42f, 0.28f),
+                        new Vector2(0.18f, 0.7f), new Vector2(0.0f, 1.22f),
+                        new Vector2(-0.18f, 0.7f), new Vector2(-0.42f, 0.28f),
+                        new Vector2(-0.52f, -0.18f), new Vector2(-0.38f, -0.66f),
+                    };
+                    break;
+                case ParticleSilhouette.Bead:
+                    outline = CircleOutline(10, 0.08f);
+                    break;
+                case ParticleSilhouette.RiftShard:
+                    outline = new[]
+                    {
+                        new Vector2(0.0f, -1.25f), new Vector2(0.28f, -0.18f),
+                        new Vector2(0.16f, 1.25f), new Vector2(-0.3f, 0.18f),
+                    };
+                    break;
+                case ParticleSilhouette.Sparkle:
+                    outline = RadialOutline(4, 1.0f, 0.13f, 0.0f);
+                    break;
+                case ParticleSilhouette.MistOrb:
+                    outline = CircleOutline(20, 0.05f);
+                    break;
+                default:
+                    outline = CircleOutline(8, 0.0f);
+                    break;
+            }
+
+            var mesh = CreateParticleMesh(silhouette.ToString(), outline);
+            ParticleMeshes[silhouette] = mesh;
+            return mesh;
+        }
+
+        static Vector2[] RadialOutline(int points, float outerRadius, float innerRadius, float rotation)
+        {
+            var outline = new Vector2[points * 2];
+            for (var index = 0; index < outline.Length; index++)
+            {
+                var radius = index % 2 == 0 ? outerRadius : innerRadius;
+                var angle = rotation + Mathf.PI * 2.0f * index / outline.Length;
+                outline[index] = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * radius;
+            }
+            return outline;
+        }
+
+        static Vector2[] CircleOutline(int points, float irregularity)
+        {
+            var outline = new Vector2[points];
+            for (var index = 0; index < points; index++)
+            {
+                var angle = -Mathf.PI * 0.5f + Mathf.PI * 2.0f * index / points;
+                var radius = 1.0f + Mathf.Sin(index * 2.37f) * irregularity;
+                outline[index] = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * radius;
+            }
+            return outline;
+        }
+
+        static Mesh CreateParticleMesh(string name, Vector2[] outline)
+        {
+            var vertices = new Vector3[outline.Length + 1];
+            var uv = new Vector2[vertices.Length];
+            vertices[0] = Vector3.zero;
+            uv[0] = new Vector2(0.5f, 0.5f);
+            for (var index = 0; index < outline.Length; index++)
+            {
+                vertices[index + 1] = new Vector3(outline[index].x, outline[index].y, 0.0f);
+                uv[index + 1] = outline[index] * 0.4f + new Vector2(0.5f, 0.5f);
+            }
+
+            var triangles = new int[outline.Length * 3];
+            for (var index = 0; index < outline.Length; index++)
+            {
+                var triangle = index * 3;
+                triangles[triangle] = 0;
+                triangles[triangle + 1] = (index + 1) % outline.Length + 1;
+                triangles[triangle + 2] = index + 1;
+            }
+
+            var mesh = new Mesh
+            {
+                name = "Transformation Bank Particle / " + name,
+                hideFlags = HideFlags.HideAndDontSave,
+                vertices = vertices,
+                uv = uv,
+                triangles = triangles,
+            };
+            mesh.RecalculateNormals();
+            mesh.RecalculateBounds();
+            return mesh;
         }
 
         void ClearRenderers()

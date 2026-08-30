@@ -131,12 +131,20 @@ half SBSBankMeltField(half3 objectPosition, SBSBankStyle st)
         return st.visibilityProgress - height;
 
     half scale = max(st.noiseScale, 1.0e-3);
-    half3 dripPosition = objectPosition * half3(scale * 0.42, scale * 0.1, scale * 0.42);
-    dripPosition.y += st.time * st.patternSpeed * 0.18;
-    half drip = SBSBankNoise3(dripPosition);
-    half warp = (drip - 0.44) * st.noiseAmount * st.effectIntensity
-        * (0.6 + SBSBankActivity(st.progress));
-    return st.visibilityProgress - height + warp;
+    half melt = 1.0 - saturate(st.visibilityProgress);
+    half3 columnPosition = objectPosition * half3(scale * 0.48, scale * 0.08, scale * 0.48);
+    half column = SBSBankNoise3(columnPosition + half3(3.0, st.time * 0.04, 7.0));
+    half3 detailPosition = objectPosition * half3(scale * 1.15, scale * 0.24, scale * 1.15);
+    detailPosition.y += st.time * st.patternSpeed * 0.22;
+    half detail = SBSBankNoise3(detailPosition);
+    half stream = pow(saturate((column - 0.34) * 1.7), 2.0);
+    half wobble = sin((objectPosition.x + objectPosition.z) * scale * 0.7
+        + objectPosition.y * scale * 0.42 + st.time * st.patternSpeed * 1.8);
+    half liquidFront = (column - 0.5) * st.noiseAmount * (0.4 + melt * 1.4)
+        + (detail - 0.5) * st.noiseAmount * 0.38
+        + stream * melt * 0.32
+        + wobble * st.noiseAmount * melt * 0.08;
+    return st.visibilityProgress - height + liquidFront * st.effectIntensity;
 }
 
 half SBSBankCosmicRiftField(half3 objectPosition, SBSBankStyle st)
@@ -294,8 +302,16 @@ half3 SBSBankMorphOffsetRaw(half3 objectPosition, half3 objectNormal, SBSBankSty
     {
         if (st.role < 0.5)
             return half3(0.0, 0.0, 0.0);
-        return (-direction * (0.55 + seed) + objectNormal * (seed - 0.5) * 0.18)
-            * st.displacement * envelope;
+        half melt = 1.0 - progress;
+        half wavePhase = objectPosition.y * scale * 0.65
+            + st.time * st.patternSpeed * 2.2 + seed * 6.28318;
+        half3 liquidWave = half3(sin(wavePhase), 0.0, cos(wavePhase * 0.83 + seed * 3.1));
+        half3 sidewaysBulge = liquidWave * st.displacement * envelope * (0.28 + seed * 0.34);
+        half3 surfaceWobble = objectNormal * sin(wavePhase * 1.37) * st.displacement
+            * envelope * (0.08 + melt * 0.2);
+        half3 sag = -direction * st.displacement * envelope
+            * (0.32 + seed * 0.75 + melt * melt * 1.4);
+        return sidewaysBulge + surfaceWobble + sag;
     }
     if (st.style < 9.5)
     {

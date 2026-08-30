@@ -29,6 +29,7 @@ namespace SabaShader.CI
         public static string ScenePath => SampleDirectory + "/TransformationBankDemo.unity";
         public static string ParticleMaterialPath => SampleDirectory + "/TransformationBankParticles.mat";
         public static string ParticlePrefabPath => SampleDirectory + "/TransformationBankParticlePair.prefab";
+        public static string ParticleMeshAssetPath => SampleDirectory + "/TransformationBankParticleMeshes.asset";
 
         static readonly string[] StyleNames =
         {
@@ -37,6 +38,12 @@ namespace SabaShader.CI
             "Cosmic Rift", "Magical Sparkle", "Mana Mist",
         };
         static readonly float[] TimelineProgress = { 0.0f, 0.25f, 0.5f, 0.75f, 1.0f };
+        static readonly string[] ParticleSilhouetteNames =
+        {
+            "ArcaneRune", "CyberPixel", "AstralStar", "GaiaLeaf", "UmbraWisp",
+            "FlameTongue", "Ember", "ShardTriangle", "ShardQuad", "GlitchBar",
+            "Droplet", "Bead", "RiftShard", "Sparkle", "MistOrb",
+        };
         static int textSortingOrder;
         static Mesh particleQuad;
         static Material particleMaterial;
@@ -89,6 +96,7 @@ namespace SabaShader.CI
             var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
             EnsureDirectory(SampleDirectory);
             particleQuad = null;
+            CreateParticleMeshLibrary(componentType);
             particleMaterial = CreateParticleMaterial();
             particlePrefab = CreateParticlePrefab();
             PopulateScene(componentType);
@@ -125,26 +133,7 @@ namespace SabaShader.CI
 
             RefreshTextMeshes();
             Directory.CreateDirectory(outputDirectory);
-            var particleRenderers = UnityEngine.Object.FindObjectsOfType<ParticleSystemRenderer>();
-            var particleRendererStates = particleRenderers.Select(renderer => renderer.enabled).ToArray();
-            try
-            {
-                // Unity 2022.3のbatch Camera.RenderはParticle billboard描画でnative crashするため、
-                // golden imageはsurface shaderの比較に限定する。通常のScene/Play Modeでは無効化しない。
-                foreach (var renderer in particleRenderers)
-                {
-                    renderer.enabled = false;
-                }
-
-                CaptureView(camera, Path.Combine(outputDirectory, "transformation_bank_demo.png"), 2560, 1440);
-            }
-            finally
-            {
-                for (var index = 0; index < particleRenderers.Length; index++)
-                {
-                    particleRenderers[index].enabled = particleRendererStates[index];
-                }
-            }
+            CaptureView(camera, Path.Combine(outputDirectory, "transformation_bank_demo.png"), 2560, 1440);
         }
 
         static void RefreshTextMeshes()
@@ -170,6 +159,41 @@ namespace SabaShader.CI
             }
 
             return type;
+        }
+
+        static void CreateParticleMeshLibrary(Type componentType)
+        {
+            var factory = componentType.GetMethod(
+                "CreateParticleSilhouetteMesh",
+                BindingFlags.Public | BindingFlags.Static);
+            if (factory == null || factory.ReturnType != typeof(Mesh))
+            {
+                throw new InvalidOperationException(
+                    componentType.FullName + ".CreateParticleSilhouetteMesh(string) が見つかりません。");
+            }
+
+            AssetDatabase.DeleteAsset(ParticleMeshAssetPath);
+            Mesh firstMesh = null;
+            foreach (var silhouetteName in ParticleSilhouetteNames)
+            {
+                var mesh = (Mesh)factory.Invoke(null, new object[] { silhouetteName });
+                var meshName = mesh.name;
+                mesh.hideFlags = HideFlags.None;
+                if (firstMesh == null)
+                {
+                    AssetDatabase.CreateAsset(mesh, ParticleMeshAssetPath);
+                    firstMesh = mesh;
+                }
+                else
+                {
+                    AssetDatabase.AddObjectToAsset(mesh, ParticleMeshAssetPath);
+                }
+                mesh.name = meshName;
+                EditorUtility.SetDirty(mesh);
+            }
+
+            AssetDatabase.SaveAssets();
+            AssetDatabase.ImportAsset(ParticleMeshAssetPath, ImportAssetOptions.ForceSynchronousImport);
         }
 
         static void PopulateScene(Type componentType)
@@ -249,7 +273,7 @@ namespace SabaShader.CI
             serialized.FindProperty("animateInPlayMode").boolValue = animate;
             serialized.FindProperty("animationSpeed").floatValue = 0.2f;
             serialized.FindProperty("effectIntensity").floatValue = 1.6f;
-            serialized.FindProperty("particleIntensity").floatValue = 1.4f;
+            serialized.FindProperty("particleIntensity").floatValue = 0.75f;
             serialized.FindProperty("particleSize").floatValue = 1.0f;
             serialized.FindProperty("outgoingRenderer").objectReferenceValue = outgoing;
             serialized.FindProperty("incomingRenderer").objectReferenceValue = incoming;
@@ -308,7 +332,7 @@ namespace SabaShader.CI
 
             var particleRenderer = particleObject.GetComponent<ParticleSystemRenderer>();
             particleRenderer.sharedMaterial = particleMaterial;
-            particleRenderer.renderMode = ParticleSystemRenderMode.Billboard;
+            particleRenderer.renderMode = ParticleSystemRenderMode.Mesh;
             particleRenderer.mesh = ParticleQuad();
             return particles;
         }
@@ -331,22 +355,30 @@ namespace SabaShader.CI
         static Material CreateParticleMaterial()
         {
             var material = AssetDatabase.LoadAssetAtPath<Material>(ParticleMaterialPath);
-            if (material != null)
+            if (material == null)
             {
-                return material;
+                var shader = Shader.Find("Particles/Standard Unlit");
+                if (shader == null)
+                {
+                    throw new InvalidOperationException("Particles/Standard Unlit を読み込めませんでした。");
+                }
+
+                material = new Material(shader)
+                {
+                    name = "Transformation Bank Particles",
+                };
+                AssetDatabase.CreateAsset(material, ParticleMaterialPath);
             }
 
-            var shader = Shader.Find("Particles/Standard Unlit");
-            if (shader == null)
-            {
-                throw new InvalidOperationException("Particles/Standard Unlit を読み込めませんでした。");
-            }
-
-            material = new Material(shader)
-            {
-                name = "Transformation Bank Particles",
-            };
-            AssetDatabase.CreateAsset(material, ParticleMaterialPath);
+            material.SetOverrideTag("RenderType", "Transparent");
+            material.SetInt("_SrcBlend", (int)BlendMode.SrcAlpha);
+            material.SetInt("_DstBlend", (int)BlendMode.One);
+            material.SetInt("_ZWrite", 0);
+            material.SetInt("_Cull", (int)CullMode.Off);
+            material.DisableKeyword("_ALPHATEST_ON");
+            material.EnableKeyword("_ALPHABLEND_ON");
+            material.renderQueue = (int)RenderQueue.Transparent;
+            EditorUtility.SetDirty(material);
             return material;
         }
 

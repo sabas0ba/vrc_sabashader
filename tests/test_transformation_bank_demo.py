@@ -29,6 +29,7 @@ def test_sample_contains_scene_controller_inspector_and_readme():
     assert {
         "TransformationBankDemo.unity",
         "TransformationBankParticles.mat",
+        "TransformationBankParticleMeshes.asset",
         "TransformationBankParticlePair.prefab",
         "TransformationBankDemoController.cs",
         "Editor",
@@ -60,6 +61,16 @@ def test_demo_controller_generates_two_role_materials_and_particle_controls():
     assert "Mathf.PingPong" in source
     assert "MaterialPropertyBlock" in source
     assert "StabilizeTextRendering();" in source
+    assert "ParticleMesh(profile.Silhouette)" in source
+    assert "CreateParticleSilhouetteMesh" in source
+    assert "particleRenderer.mesh.name == expectedMeshName" in source
+    assert "ParticleActivity(style, false, progress)" in source
+    assert "4.0f * progress * (1.0f - progress)" not in source
+    assert "ParticleSilhouette.FlameTongue" in source
+    assert "ParticleSilhouette.Droplet" in source
+    assert "ParticleSilhouette.ShardTriangle" in source
+    assert "ParticleSilhouette.Sparkle" in source
+    assert "ParticleSilhouette.MistOrb" in source
     assert '[AddComponentMenu("")]' in source
     for style in (
         "Arcane",
@@ -100,6 +111,8 @@ def test_builder_has_twelve_styles_distinct_roles_particles_and_timeline():
     assert "CreateParticlePair" in source
     assert "PrefabUtility.InstantiatePrefab" in source
     assert "particleRenderer.mesh = ParticleQuad()" in source
+    assert "CreateParticleMeshLibrary(componentType)" in source
+    assert "AssetDatabase.AddObjectToAsset" in source
     assert 'Shader.Find("Particles/Standard Unlit")' in source
     assert "particleRenderer.sharedMaterial = particleMaterial" in source
     assert '"transformation_bank_demo.png"' in source

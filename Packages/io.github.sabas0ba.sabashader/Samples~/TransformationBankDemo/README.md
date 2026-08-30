@@ -35,4 +35,7 @@ material._io_github_sabas0ba_transformationbank_Progress
 
 Particle Systemは表面shaderを補助するsample設定です。Avatarへ組み込む場合はStyleに対応する
 Particle Systemを衣装rootへ移し、同じAnimation ClipでEmissionやGameObjectの有効状態を制御します。
-ShatterとGlitchはQuad mesh particle、Flameは炎片と火の粉、Meltは液滴として設定しています。
+Sample ControllerはStyleごとのProgress区間へEmissionを同期し、端点ではParticleを消去します。汎用Quadは
+使わず、Flameは炎舌と火の粉、ShatterはTriangle／Quad片、Glitchはpixel片、Meltは液滴と水玉のmeshを
+生成します。各形状は `TransformationBankParticleMeshes.asset` に保存され、Particle SystemだけをAvatarへ
+移した場合もMesh参照を維持します。
