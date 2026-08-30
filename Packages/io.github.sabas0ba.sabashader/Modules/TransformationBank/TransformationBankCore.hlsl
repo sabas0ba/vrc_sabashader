@@ -80,6 +80,16 @@ half SBSBankRoleProgress(
         progress);
 }
 
+half SBSBankRoleThreshold(half threshold, SBSBankStyle st)
+{
+    return st.role < 0.5 ? threshold : 1.0 - threshold;
+}
+
+half SBSBankThresholdField(half threshold, SBSBankStyle st)
+{
+    return st.visibilityProgress - SBSBankRoleThreshold(threshold, st);
+}
+
 half SBSBankHeight(half3 objectPosition, SBSBankStyle st)
 {
     half range = max(st.boundsMax - st.boundsMin, 1.0e-4);
@@ -115,7 +125,8 @@ half SBSBankFlameField(half3 objectPosition, SBSBankStyle st)
     half roleActivity = SBSBankActivity(st.visibilityProgress);
     half turbulence = (flame - 0.46) * st.noiseAmount * st.effectIntensity
         * roleActivity * (0.7 + SBSBankActivity(st.progress));
-    return st.visibilityProgress - SBSBankHeight(objectPosition, st) + turbulence;
+    half threshold = SBSBankHeight(objectPosition, st) - turbulence;
+    return SBSBankThresholdField(threshold, st);
 }
 
 half SBSBankGlitchAmount(half3 objectPosition, SBSBankStyle st)
@@ -143,8 +154,9 @@ half SBSBankMeltField(half3 objectPosition, SBSBankStyle st)
         + (detail - 0.5) * st.noiseAmount * 0.38
         + stream * melt * 0.32
         + wobble * st.noiseAmount * melt * 0.08;
-    return st.visibilityProgress - height
-        + liquidFront * st.effectIntensity * SBSBankActivity(st.visibilityProgress);
+    half threshold = height
+        - liquidFront * st.effectIntensity * SBSBankActivity(st.visibilityProgress);
+    return SBSBankThresholdField(threshold, st);
 }
 
 half SBSBankCosmicRiftField(half3 objectPosition, SBSBankStyle st)
@@ -155,8 +167,8 @@ half SBSBankCosmicRiftField(half3 objectPosition, SBSBankStyle st)
     half riftNoise = SBSBankNoise3(warped + half3(0.0, 0.0, st.time * 0.08));
     half rift = abs(objectPosition.x) + (riftNoise - 0.5) * st.noiseAmount
         * st.effectIntensity * SBSBankActivity(st.visibilityProgress);
-    half threshold = lerp(0.0, max(abs(st.boundsMin), abs(st.boundsMax)), st.visibilityProgress);
-    return threshold - rift;
+    half extent = max(max(abs(st.boundsMin), abs(st.boundsMax)), 1.0e-4);
+    return extent * SBSBankThresholdField(rift / extent, st);
 }
 
 half SBSBankSparkleField(half3 objectPosition, SBSBankStyle st)
@@ -165,7 +177,8 @@ half SBSBankSparkleField(half3 objectPosition, SBSBankStyle st)
     half sparkleNoise = SBSBankNoise3(objectPosition * scale + st.time * 0.08);
     half shimmer = (sparkleNoise - 0.5) * st.noiseAmount
         * SBSBankActivity(st.progress) * SBSBankActivity(st.visibilityProgress);
-    return st.visibilityProgress - SBSBankHeight(objectPosition, st) + shimmer;
+    half threshold = SBSBankHeight(objectPosition, st) - shimmer;
+    return SBSBankThresholdField(threshold, st);
 }
 
 half SBSBankManaMistField(half3 objectPosition, SBSBankStyle st)
@@ -175,9 +188,9 @@ half SBSBankManaMistField(half3 objectPosition, SBSBankStyle st)
     half broad = SBSBankNoise3(objectPosition * scale * 0.55 + drift);
     half detail = SBSBankNoise3(objectPosition * scale + drift * 1.7);
     half mist = lerp(broad, detail, 0.35);
-    return st.visibilityProgress - mist
-        + (SBSBankHeight(objectPosition, st) - 0.5) * 0.08 * st.effectIntensity
-            * SBSBankActivity(st.visibilityProgress);
+    half heightOffset = (SBSBankHeight(objectPosition, st) - 0.5) * 0.08
+        * st.effectIntensity * SBSBankActivity(st.visibilityProgress);
+    return SBSBankThresholdField(mist - heightOffset, st);
 }
 
 half SBSBankField(half3 objectPosition, SBSBankStyle st)
@@ -189,38 +202,40 @@ half SBSBankField(half3 objectPosition, SBSBankStyle st)
 
     if (st.style < 0.5)
     {
-        return progress - SBSBankHeight(objectPosition, st)
-            + (noise - 0.5) * st.noiseAmount * envelope;
+        half threshold = SBSBankHeight(objectPosition, st)
+            - (noise - 0.5) * st.noiseAmount * envelope;
+        return SBSBankThresholdField(threshold, st);
     }
     if (st.style < 1.5)
     {
         half3 block = floor(objectPosition * max(st.blockScale, 1.0e-3));
-        return progress - SBSBankHash3(block);
+        return SBSBankThresholdField(SBSBankHash3(block), st);
     }
     if (st.style < 2.5)
     {
         half drift = st.time * st.patternSpeed * 0.08;
-        return progress - SBSBankNoise3(
-            objectPosition * scale + st.direction * drift);
+        half threshold = SBSBankNoise3(objectPosition * scale + st.direction * drift);
+        return SBSBankThresholdField(threshold, st);
     }
     if (st.style < 3.5)
     {
-        return progress - SBSBankHeight(objectPosition, st)
-            + (noise - 0.5) * st.noiseAmount * 1.4 * envelope;
+        half threshold = SBSBankHeight(objectPosition, st)
+            - (noise - 0.5) * st.noiseAmount * 1.4 * envelope;
+        return SBSBankThresholdField(threshold, st);
     }
 
     if (st.style < 4.5)
     {
         half3 shadowCell = floor(objectPosition * max(st.blockScale * 0.5, 1.0e-3));
         half shadow = lerp(noise, SBSBankHash3(shadowCell), 0.3);
-        return progress - shadow;
+        return SBSBankThresholdField(shadow, st);
     }
     if (st.style < 5.5)
         return SBSBankFlameField(objectPosition, st);
     if (st.style < 6.5)
     {
         half3 shardCell = floor(objectPosition * max(st.blockScale, 1.0e-3));
-        return progress - SBSBankHash3(shardCell);
+        return SBSBankThresholdField(SBSBankHash3(shardCell), st);
     }
     if (st.style < 7.5)
     {
@@ -229,7 +244,7 @@ half SBSBankField(half3 objectPosition, SBSBankStyle st)
         half fine = SBSBankNoise3(shifted * scale);
         half3 block = floor(shifted * max(st.blockScale, 1.0e-3));
         half coarse = SBSBankHash3(block);
-        return progress - lerp(fine, coarse, envelope * 0.82);
+        return SBSBankThresholdField(lerp(fine, coarse, envelope * 0.82), st);
     }
     if (st.style < 8.5)
         return SBSBankMeltField(objectPosition, st);

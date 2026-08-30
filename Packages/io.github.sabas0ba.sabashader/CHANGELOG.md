@@ -10,6 +10,7 @@
 - Unity 検証プロジェクト生成時に旧版 sample を除去し、Podman bind mount 上の固定依存取得に対応
 - 共通Effect envelopeを端点で値と勾配が0になるbell curveへ変更し、変身開始・完了時の急な収束を抑制
 - Style固有のnoise・turbulence・頂点変位をRole別bell curveで減衰し、衣装表示区間の境界で生じる非連続を解消
+- Incoming／Outgoingの表示閾値を相補化し、Gaia・Flameの方向遷移とUmbra等のnoise遷移で空白領域を抑制
 
 ### Added
 

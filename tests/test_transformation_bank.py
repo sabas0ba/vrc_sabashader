@@ -66,6 +66,11 @@ def test_default_timeline_crossfades_without_a_visibility_gap():
         incoming = _smoothstep(incoming_start, incoming_end, progress)
         outgoing = 1.0 - _smoothstep(outgoing_start, outgoing_end, progress)
         assert incoming + outgoing >= 1.0 - 1.0e-6
+        for threshold_index in range(21):
+            threshold = threshold_index / 20.0
+            incoming_visible = threshold <= incoming + 1.0e-6
+            outgoing_visible = 1.0 - threshold <= outgoing + 1.0e-6
+            assert incoming_visible or outgoing_visible
 
 
 def test_activity_envelope_eases_into_both_endpoints():
@@ -102,6 +107,21 @@ def test_style_perturbations_ease_at_role_window_boundaries():
     for role_progress in (incoming_near_end, outgoing_near_start):
         bell = 4.0 * role_progress * (1.0 - role_progress)
         assert bell * bell < 1.0e-3
+
+
+def test_outgoing_uses_the_complement_of_the_incoming_threshold():
+    source = (BANK_DIR / "TransformationBankCore.hlsl").read_text(encoding="utf-8")
+    assert "half SBSBankRoleThreshold" in source
+    assert "return st.role < 0.5 ? threshold : 1.0 - threshold;" in source
+    assert source.count("SBSBankThresholdField(") >= 13
+
+    incoming_visibility = 0.4
+    outgoing_visibility = 0.7
+    for threshold_index in range(101):
+        threshold = threshold_index / 100.0
+        incoming_visible = threshold <= incoming_visibility
+        outgoing_visible = 1.0 - threshold <= outgoing_visibility
+        assert incoming_visible or outgoing_visible
 
 
 def test_bank_uses_common_base_and_illust2d_clip_phases():

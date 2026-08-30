@@ -48,6 +48,10 @@ linear keyframeにした場合も、変身開始直後と完了直前の発光�
 表示率です。windowを変更する場合は `Incoming開始 <= Outgoing開始 <= Incoming終了 <= Outgoing終了`
 の順序を維持します。
 
+IncomingとOutgoingは相補的な表示閾値を使用します。Gaia・FlameなどでIncomingが下から上へ出現する場合、
+Outgoingも下から上へ消失します。Umbra・Cyberなどのnoise／block型では、Incomingが現れる領域から
+Outgoingが消えるため、両Roleが同じ領域へ重なって別領域が空白になる状態を抑制します。
+
 変身中に別の衣装変更を受け付けると現在衣装の判定が不定になるため、FX Animatorはバンク終了まで
 次の入力を受け付けない構成を推奨します。
 
