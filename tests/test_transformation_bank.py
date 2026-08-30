@@ -68,6 +68,23 @@ def test_default_timeline_crossfades_without_a_visibility_gap():
         assert incoming + outgoing >= 1.0 - 1.0e-6
 
 
+def test_activity_envelope_eases_into_both_endpoints():
+    source = (BANK_DIR / "TransformationBankCore.hlsl").read_text(encoding="utf-8")
+    assert "half bell = 4.0 * progress * (1.0 - progress);" in source
+    assert "return bell * bell;" in source
+
+    def activity(progress: float) -> float:
+        bell = 4.0 * progress * (1.0 - progress)
+        return bell * bell
+
+    epsilon = 1.0e-3
+    assert activity(0.5) == pytest.approx(1.0)
+    assert activity(0.2) < 0.5
+    assert activity(0.8) < 0.5
+    assert activity(epsilon) / epsilon < 0.02
+    assert activity(1.0 - epsilon) / epsilon < 0.02
+
+
 def test_bank_uses_common_base_and_illust2d_clip_phases():
     module = load_module(BANK_MODULE)
     phases = {phase.phase for phase in module.phases}

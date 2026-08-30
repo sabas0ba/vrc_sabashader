@@ -33,6 +33,9 @@
 material._io_github_sabas0ba_transformationbank_Progress
 ```
 
+共通EffectはProgress中央で最大になり、0と1で値と勾配が0になるため、linear keyframeでも端点へ滑らかに
+収束します。衣装の表示区間はMaterial Inspectorの `Costume Windows` で調整できます。
+
 Particle Systemは表面shaderを補助するsample設定です。Avatarへ組み込む場合はStyleに対応する
 Particle Systemを衣装rootへ移し、同じAnimation ClipでEmissionやGameObjectの有効状態を制御します。
 Sample ControllerはStyleごとのProgress区間へEmissionを同期し、端点ではParticleを消去します。Astralと

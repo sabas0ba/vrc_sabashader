@@ -90,7 +90,8 @@ half SBSBankHeight(half3 objectPosition, SBSBankStyle st)
 half SBSBankActivity(half progress)
 {
     progress = saturate(progress);
-    return 4.0 * progress * (1.0 - progress);
+    half bell = 4.0 * progress * (1.0 - progress);
+    return bell * bell;
 }
 
 half3 SBSBankShatterDirection(half3 objectPosition, SBSBankStyle st)
