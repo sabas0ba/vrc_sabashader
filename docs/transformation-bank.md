@@ -66,21 +66,21 @@ material._io_github_sabas0ba_transformationbank_Progress
 | --- | --- | --- | --- |
 | Arcane | 方向軸とnoise | 魔術紋様 | 魔力spark |
 | Cyber | object-space block | 格子とrim | digital片 |
-| Astral | 3D noise | 星とrim | 星粒 |
-| Gaia | 下から上へのnoise | 岩のひび | 砂塵・小片 |
-| Umbra | noiseとblock | 流れる影 | 影のmote |
-| Flame | 上昇turbulence | 大きな炎色noise | 炎片と火の粉 |
+| Astral | 3D noise | 星とrim | なし |
+| Gaia | 下から上へのnoise | 岩のひび | なし |
+| Umbra | noiseとblock | 流れる影 | 低密度の影霧 |
+| Flame | 上昇turbulence | 大きな炎色noise | 多数の小さな火の粉 |
 | Shatter | cell単位clip | 破片境界と散開 | Triangle／Quad相当のmesh particle |
 | Glitch | noiseから粗いblockへ変化 | scanlineと横ずれ | pixel片と断続ノイズ |
-| Melt | Outgoingだけ下方向へ融解 | 液体noise | 液滴と飛沫 |
+| Melt | Outgoingの融解とIncomingの時間反転復元 | 液体noise | 液滴と水玉 |
 | Cosmic Rift | 中央の裂け目から展開 | 星空と裂け目rim | 背後の星片・ring |
 | Magical Sparkle | 下から上へ展開 | cross状sparkle | キラキラした魔法粒子 |
 | Mana Mist | 霧noiseから収束 | 柔らかいrim | 周囲から集まる魔力霧 |
 
 Shatterはgeometry shaderでtriangleを分離する方式ではなく、object-space cellとTriangle／Quadの
 mesh particleを組み合わせます。そのためNonToonと同じShader Core経路を維持できます。Meltは
-Outgoingだけを横方向へ波打たせながら下へ垂らし、液滴と水玉が落ちる区間で消去します。Incomingの
-頂点変位と表面patternは無効にし、新衣装の形状を変えずに出現させます。
+Outgoingを横方向へ波打たせながら下へ垂らし、液滴と水玉が落ちる区間で消去します。Incomingには
+同じ液体境界・表面pattern・頂点変位を時間反転して適用し、下方の液体片から新衣装へ復元します。
 
 ## Particle System
 
@@ -94,8 +94,10 @@ DemoのParticleは2系統です。
 - Primary: 炎片、破片、pixel、液滴、裂け目、霧など主要形状
 - Accent: 火の粉、細かな破片、星、sparkleなど装飾
 
-各Particleは汎用Quadではなく、Styleごとの手続き生成meshを使用します。Flameは炎舌と火の粉、Shatterは
-TriangleとQuad片、Glitchは横長pixel片、Meltは液滴と水玉、Cosmic RiftとMagical Sparkleは星片を使います。
+各Particleは汎用Quadではなく、Styleごとの手続き生成meshを使用します。Flameは小さな火の粉、Umbraは
+霧粒、ShatterはTriangleとQuad片、Glitchは横長pixel片、Meltは液滴と水玉を使います。AstralとGaiaは
+表面shaderだけで構成し、Particleを停止します。UmbraとMana Mistはsoft radial textureとalpha blendを
+使用し、輪郭のある破片ではなく半透明の霧として合成します。
 PrimaryとAccentのEmissionはStyleごとに異なるProgress区間へ同期し、変身前後の端点では停止・消去します。
 生成済み形状は `TransformationBankParticleMeshes.asset` に永続化されているため、Sample Controllerを外しても
 Particle SystemのMesh参照は維持されます。

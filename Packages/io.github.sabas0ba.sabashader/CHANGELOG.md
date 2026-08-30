@@ -19,7 +19,9 @@
   - 既定タイミングでOutgoingとIncomingの表示率の和を維持
 - 12 Style、Capsule／CylinderのRole形状、Progressへ同期する2系統の専用mesh Particleを可視化するUPM sample `Transformation Bank Demo`
   - MeltのOutgoingを液体状に波打たせ、液滴と水玉へ分離して消去
-  - 炎舌、火の粉、Triangle／Quad破片、pixel片、星片、液滴、霧のStyle別Particle silhouette
+  - 火の粉、Triangle／Quad破片、pixel片、星片、液滴、霧のStyle別Particle silhouette
+  - MeltのIncomingへOutgoingの融解を時間反転した液体復元を適用
+  - Astral／GaiaのParticle停止、Umbraの霧粒化、Flameの火の粉主体への調整
 
 ## [0.5.0] - 2026-08-29
 

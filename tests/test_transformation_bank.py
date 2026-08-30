@@ -123,6 +123,9 @@ def test_extended_styles_define_distinct_morph_and_surface_paths():
     assert "liquidFront" in source
     assert "liquidWave" in source
     assert "melt * melt * 1.4" in source
+    assert "if (st.role < 0.5)\n        return st.visibilityProgress - height;" not in source
+    assert "if (st.role < 0.5)\n            return half3(0.0, 0.0, 0.0);" not in source
+    assert "SBSBankActivity(st.visibilityProgress)" in source
     assert "SBSBankCosmicRiftField" in source
     assert "SBSBankSparkleField" in source
     assert "SBSBankManaMistField" in source

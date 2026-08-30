@@ -127,9 +127,6 @@ half SBSBankGlitchAmount(half3 objectPosition, SBSBankStyle st)
 half SBSBankMeltField(half3 objectPosition, SBSBankStyle st)
 {
     half height = SBSBankHeight(objectPosition, st);
-    if (st.role < 0.5)
-        return st.visibilityProgress - height;
-
     half scale = max(st.noiseScale, 1.0e-3);
     half melt = 1.0 - saturate(st.visibilityProgress);
     half3 columnPosition = objectPosition * half3(scale * 0.48, scale * 0.08, scale * 0.48);
@@ -300,8 +297,6 @@ half3 SBSBankMorphOffsetRaw(half3 objectPosition, half3 objectNormal, SBSBankSty
     }
     if (st.style < 8.5)
     {
-        if (st.role < 0.5)
-            return half3(0.0, 0.0, 0.0);
         half melt = 1.0 - progress;
         half wavePhase = objectPosition.y * scale * 0.65
             + st.time * st.patternSpeed * 2.2 + seed * 6.28318;
@@ -393,12 +388,11 @@ half SBSBankPattern(half3 objectPosition, half3 normal, half3 viewDirection, SBS
     }
     if (st.style < 8.5)
     {
-        if (st.role < 0.5)
-            return 0.0;
         half3 liquidPosition = objectPosition * half3(scale * 0.55, scale * 0.12, scale * 0.55);
         liquidPosition.y += phase * 0.25;
         half liquid = SBSBankNoise3(liquidPosition);
-        return saturate((liquid - 0.35) * 1.8 + rim * 0.15);
+        return saturate((liquid - 0.35) * 1.8 + rim * 0.15)
+            * SBSBankActivity(st.visibilityProgress);
     }
     if (st.style < 9.5)
     {

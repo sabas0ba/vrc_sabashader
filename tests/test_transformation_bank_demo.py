@@ -29,6 +29,8 @@ def test_sample_contains_scene_controller_inspector_and_readme():
     assert {
         "TransformationBankDemo.unity",
         "TransformationBankParticles.mat",
+        "TransformationBankMistParticles.mat",
+        "TransformationBankMistTexture.asset",
         "TransformationBankParticleMeshes.asset",
         "TransformationBankParticlePair.prefab",
         "TransformationBankDemoController.cs",
@@ -63,14 +65,19 @@ def test_demo_controller_generates_two_role_materials_and_particle_controls():
     assert "StabilizeTextRendering();" in source
     assert "ParticleMesh(profile.Silhouette)" in source
     assert "CreateParticleSilhouetteMesh" in source
+    assert "RegisterParticleSilhouetteMesh" in source
     assert "particleRenderer.mesh.name == expectedMeshName" in source
     assert "ParticleActivity(style, false, progress)" in source
     assert "4.0f * progress * (1.0f - progress)" not in source
+    assert "StyleUsesParticles" in source
+    assert "value != BankStyle.Astral && value != BankStyle.Gaia" in source
+    assert "ParticleSilhouette.Ember" in source
     assert "ParticleSilhouette.FlameTongue" in source
     assert "ParticleSilhouette.Droplet" in source
     assert "ParticleSilhouette.ShardTriangle" in source
     assert "ParticleSilhouette.Sparkle" in source
     assert "ParticleSilhouette.MistOrb" in source
+    assert source.count("ParticleSilhouette.MistOrb)") >= 3
     assert '[AddComponentMenu("")]' in source
     for style in (
         "Arcane",
@@ -113,6 +120,10 @@ def test_builder_has_twelve_styles_distinct_roles_particles_and_timeline():
     assert "particleRenderer.mesh = ParticleQuad()" in source
     assert "CreateParticleMeshLibrary(componentType)" in source
     assert "AssetDatabase.AddObjectToAsset" in source
+    assert "AssetDatabase.LoadAllAssetsAtPath(ParticleMeshAssetPath)" in source
+    assert "CreateMistParticleTexture" in source
+    assert "CreateMistParticleMaterial" in source
+    assert "BlendMode.OneMinusSrcAlpha" in source
     assert 'Shader.Find("Particles/Standard Unlit")' in source
     assert "particleRenderer.sharedMaterial = particleMaterial" in source
     assert '"transformation_bank_demo.png"' in source

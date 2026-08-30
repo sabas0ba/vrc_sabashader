@@ -1,8 +1,8 @@
 # Transformation Bank Demo
 
 旧衣装と新衣装を1本のProgressで切り替えるTransformation Bankのサンプルです。第三者のAvatarや
-衣装assetを使用せず、OutgoingをCapsule、IncomingをCylinderで表示します。各Styleにはmesh表面の
-演出を補助する2系統のParticle Systemが含まれます。
+衣装assetを使用せず、OutgoingをCapsule、IncomingをCylinderで表示します。必要なStyleにはmesh表面の
+演出を補助するPrimary／AccentのParticle Systemが含まれます。
 
 ## 導入
 
@@ -35,7 +35,9 @@ material._io_github_sabas0ba_transformationbank_Progress
 
 Particle Systemは表面shaderを補助するsample設定です。Avatarへ組み込む場合はStyleに対応する
 Particle Systemを衣装rootへ移し、同じAnimation ClipでEmissionやGameObjectの有効状態を制御します。
-Sample ControllerはStyleごとのProgress区間へEmissionを同期し、端点ではParticleを消去します。汎用Quadは
-使わず、Flameは炎舌と火の粉、ShatterはTriangle／Quad片、Glitchはpixel片、Meltは液滴と水玉のmeshを
-生成します。各形状は `TransformationBankParticleMeshes.asset` に保存され、Particle SystemだけをAvatarへ
-移した場合もMesh参照を維持します。
+Sample ControllerはStyleごとのProgress区間へEmissionを同期し、端点ではParticleを消去します。Astralと
+GaiaではParticleを停止します。汎用Quadは使わず、Flameは小さな火の粉、Umbraは霧粒、Shatterは
+Triangle／Quad片、Glitchはpixel片、Meltは液滴と水玉のmeshを使用します。各形状は
+`TransformationBankParticleMeshes.asset` に保存され、Particle SystemだけをAvatarへ移した場合もMesh参照を
+維持します。UmbraとMana Mistは `TransformationBankMistTexture.asset` と
+`TransformationBankMistParticles.mat` によるsoft particleを使用します。

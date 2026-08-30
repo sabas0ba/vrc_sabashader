@@ -94,6 +94,7 @@ namespace SabaShader.CI
                 .Select(component => new SerializedObject(component))
                 .Select(serialized => (ParticleSystem)serialized.FindProperty("primaryParticles").objectReferenceValue)
                 .Select(particles => particles.GetComponent<ParticleSystemRenderer>())
+                .Where(renderer => renderer.enabled)
                 .Select(renderer =>
                 {
                     Assert.That(renderer.renderMode, Is.EqualTo(ParticleSystemRenderMode.Mesh));
@@ -109,7 +110,40 @@ namespace SabaShader.CI
                 .Distinct()
                 .ToArray();
 
-            Assert.That(primaryMeshNames, Has.Length.GreaterThanOrEqualTo(10));
+            Assert.That(primaryMeshNames, Has.Length.GreaterThanOrEqualTo(8));
+        }
+
+        [Test]
+        public void AstralAndGaiaDisableParticles()
+        {
+            foreach (var component in OpenComponents().Where(item => item.name.Contains("Astral") || item.name.Contains("Gaia")))
+            {
+                var serialized = new SerializedObject(component);
+                foreach (var property in new[] { "primaryParticles", "accentParticles" })
+                {
+                    var particles = (ParticleSystem)serialized.FindProperty(property).objectReferenceValue;
+                    Assert.That(particles.GetComponent<ParticleSystemRenderer>().enabled, Is.False);
+                    Assert.That(particles.emission.enabled, Is.False);
+                }
+            }
+        }
+
+        [Test]
+        public void UmbraUsesMistMeshesAndFlameUsesEmbers()
+        {
+            var components = OpenComponents();
+            var umbra = new SerializedObject(components.First(item => item.name.Contains("Umbra")));
+            var flame = new SerializedObject(components.First(item => item.name.Contains("Flame")));
+            foreach (var property in new[] { "primaryParticles", "accentParticles" })
+            {
+                var umbraParticles = (ParticleSystem)umbra.FindProperty(property).objectReferenceValue;
+                var flameParticles = (ParticleSystem)flame.FindProperty(property).objectReferenceValue;
+                Assert.That(umbraParticles.GetComponent<ParticleSystemRenderer>().mesh.name, Does.EndWith("MistOrb"));
+                Assert.That(
+                    AssetDatabase.GetAssetPath(umbraParticles.GetComponent<ParticleSystemRenderer>().sharedMaterial),
+                    Is.EqualTo(TransformationBankDemoBuilder.MistParticleMaterialPath));
+                Assert.That(flameParticles.GetComponent<ParticleSystemRenderer>().mesh.name, Does.EndWith("Ember"));
+            }
         }
 
         [Test]

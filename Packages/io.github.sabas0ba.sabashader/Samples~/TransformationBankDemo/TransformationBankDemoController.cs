@@ -379,6 +379,18 @@ namespace SabaShader.Samples
                 return;
             }
 
+            var particleRenderer = particles.GetComponent<ParticleSystemRenderer>();
+            if (!StyleUsesParticles(style))
+            {
+                var disabledEmission = particles.emission;
+                disabledEmission.enabled = false;
+                disabledEmission.rateOverTime = 0.0f;
+                particleRenderer.enabled = false;
+                StopParticles(particles);
+                return;
+            }
+
+            particleRenderer.enabled = true;
             var profile = ParticleProfileFor(style, accent);
             var palette = StylePalette(style);
             var main = particles.main;
@@ -399,6 +411,11 @@ namespace SabaShader.Samples
                 colorA.a = accent ? 0.08f : 0.025f;
                 colorB.a = accent ? 0.05f : 0.018f;
             }
+            else if (style == BankStyle.Umbra)
+            {
+                colorA.a = accent ? 0.4f : 0.28f;
+                colorB.a = accent ? 0.25f : 0.18f;
+            }
             else
             {
                 colorA.a = accent ? 0.72f : 0.62f;
@@ -415,7 +432,9 @@ namespace SabaShader.Samples
             shape.enabled = true;
             shape.shapeType = profile.Shape;
             shape.radius = profile.Radius;
-            shape.radiusThickness = style == BankStyle.ManaMist ? 0.35f : 0.05f;
+            shape.radiusThickness = style == BankStyle.ManaMist
+                ? 0.35f
+                : style == BankStyle.Umbra ? 0.5f : 0.05f;
             shape.angle = style == BankStyle.Flame ? 18.0f : 25.0f;
 
             var velocity = particles.velocityOverLifetime;
@@ -462,7 +481,6 @@ namespace SabaShader.Samples
                 style == BankStyle.CosmicRift || style == BankStyle.MagicalSparkle;
             rotation.z = new ParticleSystem.MinMaxCurve(-2.4f, 2.4f);
 
-            var particleRenderer = particles.GetComponent<ParticleSystemRenderer>();
             particleRenderer.renderMode = ParticleSystemRenderMode.Mesh;
             var expectedMeshName = "Transformation Bank Particle / " + profile.Silhouette;
             if (particleRenderer.mesh != null && particleRenderer.mesh.name == expectedMeshName)
@@ -487,6 +505,15 @@ namespace SabaShader.Samples
         {
             if (particles == null)
             {
+                return;
+            }
+
+            if (!StyleUsesParticles(style))
+            {
+                var disabledEmission = particles.emission;
+                disabledEmission.enabled = false;
+                disabledEmission.rateOverTime = 0.0f;
+                StopParticles(particles);
                 return;
             }
 
@@ -527,9 +554,9 @@ namespace SabaShader.Samples
                 case BankStyle.Cyber:
                     return ParticleBand(value01, accent ? 0.18f : 0.28f, accent ? 0.58f : 0.5f, accent ? 0.84f : 0.72f);
                 case BankStyle.Astral:
-                    return ParticleBand(value01, accent ? 0.08f : 0.18f, accent ? 0.58f : 0.5f, accent ? 0.94f : 0.86f);
+                    return 0.0f;
                 case BankStyle.Gaia:
-                    return ParticleBand(value01, accent ? 0.34f : 0.22f, accent ? 0.68f : 0.55f, accent ? 0.92f : 0.85f);
+                    return 0.0f;
                 case BankStyle.Umbra:
                     return ParticleBand(value01, accent ? 0.12f : 0.2f, accent ? 0.55f : 0.48f, accent ? 0.86f : 0.78f);
                 case BankStyle.Flame:
@@ -556,6 +583,11 @@ namespace SabaShader.Samples
             var rise = Mathf.SmoothStep(0.0f, 1.0f, Mathf.InverseLerp(start, peak, value));
             var fall = 1.0f - Mathf.SmoothStep(0.0f, 1.0f, Mathf.InverseLerp(peak, end, value));
             return rise * fall;
+        }
+
+        static bool StyleUsesParticles(BankStyle value)
+        {
+            return value != BankStyle.Astral && value != BankStyle.Gaia;
         }
 
         static void StopParticles(ParticleSystem particles)
@@ -588,12 +620,12 @@ namespace SabaShader.Samples
                         : new ParticleProfile(38.0f, 0.19f, 1.65f, 0.04f, 0.06f, -0.08f, 0.16f, 0.82f, 0.22f, ParticleSystemShapeType.Sphere, ParticleSilhouette.GaiaLeaf);
                 case BankStyle.Umbra:
                     return accent
-                        ? new ParticleProfile(68.0f, 0.06f, 1.2f, 0.02f, 0.0f, 0.12f, -0.14f, 0.94f, 0.42f, ParticleSystemShapeType.Sphere, ParticleSilhouette.RiftShard)
-                        : new ParticleProfile(32.0f, 0.2f, 1.8f, -0.04f, 0.0f, 0.04f, -0.22f, 1.0f, 0.52f, ParticleSystemShapeType.Sphere, ParticleSilhouette.UmbraWisp);
+                        ? new ParticleProfile(60.0f, 0.075f, 1.0f, -0.02f, -0.01f, 0.025f, -0.08f, 1.02f, 0.48f, ParticleSystemShapeType.Sphere, ParticleSilhouette.MistOrb)
+                        : new ParticleProfile(32.0f, 0.2f, 1.5f, -0.025f, -0.012f, 0.018f, -0.1f, 1.1f, 0.58f, ParticleSystemShapeType.Sphere, ParticleSilhouette.MistOrb);
                 case BankStyle.Flame:
                     return accent
-                        ? new ParticleProfile(72.0f, 0.04f, 0.72f, 0.28f, -0.1f, 0.7f, 0.18f, 0.72f, 0.24f, ParticleSystemShapeType.Cone, ParticleSilhouette.Ember)
-                        : new ParticleProfile(30.0f, 0.17f, 0.72f, 0.12f, -0.05f, 0.52f, 0.05f, 0.66f, 0.32f, ParticleSystemShapeType.Cone, ParticleSilhouette.FlameTongue);
+                        ? new ParticleProfile(190.0f, 0.022f, 0.52f, 0.46f, -0.12f, 1.2f, 0.14f, 0.7f, 0.2f, ParticleSystemShapeType.Cone, ParticleSilhouette.Ember)
+                        : new ParticleProfile(112.0f, 0.048f, 0.82f, 0.32f, -0.08f, 0.88f, 0.09f, 0.68f, 0.28f, ParticleSystemShapeType.Cone, ParticleSilhouette.Ember);
                 case BankStyle.Shatter:
                     return accent
                         ? new ParticleProfile(22.0f, 0.065f, 0.72f, -0.05f, 0.02f, 0.0f, -0.72f, 0.94f, 0.08f, ParticleSystemShapeType.Sphere, ParticleSilhouette.ShardQuad)
@@ -634,6 +666,22 @@ namespace SabaShader.Samples
 
             ParticleMeshes.Remove(silhouette);
             return ParticleMesh(silhouette);
+        }
+
+        public static void RegisterParticleSilhouetteMesh(Mesh mesh)
+        {
+            const string prefix = "Transformation Bank Particle / ";
+            if (mesh == null || !mesh.name.StartsWith(prefix))
+            {
+                throw new System.ArgumentException("Invalid particle silhouette mesh.", nameof(mesh));
+            }
+
+            var silhouetteName = mesh.name.Substring(prefix.Length);
+            if (!System.Enum.TryParse(silhouetteName, out ParticleSilhouette silhouette))
+            {
+                throw new System.ArgumentException("Unknown particle silhouette: " + silhouetteName, nameof(mesh));
+            }
+            ParticleMeshes[silhouette] = mesh;
         }
 
         static Mesh ParticleMesh(ParticleSilhouette silhouette)

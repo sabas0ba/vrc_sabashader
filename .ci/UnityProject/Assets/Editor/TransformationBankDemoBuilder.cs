@@ -28,6 +28,8 @@ namespace SabaShader.CI
 
         public static string ScenePath => SampleDirectory + "/TransformationBankDemo.unity";
         public static string ParticleMaterialPath => SampleDirectory + "/TransformationBankParticles.mat";
+        public static string MistParticleMaterialPath => SampleDirectory + "/TransformationBankMistParticles.mat";
+        public static string MistParticleTexturePath => SampleDirectory + "/TransformationBankMistTexture.asset";
         public static string ParticlePrefabPath => SampleDirectory + "/TransformationBankParticlePair.prefab";
         public static string ParticleMeshAssetPath => SampleDirectory + "/TransformationBankParticleMeshes.asset";
 
@@ -47,6 +49,7 @@ namespace SabaShader.CI
         static int textSortingOrder;
         static Mesh particleQuad;
         static Material particleMaterial;
+        static Material mistParticleMaterial;
         static GameObject particlePrefab;
 
         [MenuItem("SabaShader/Demo/Build Transformation Bank Demo")]
@@ -98,6 +101,7 @@ namespace SabaShader.CI
             particleQuad = null;
             CreateParticleMeshLibrary(componentType);
             particleMaterial = CreateParticleMaterial();
+            mistParticleMaterial = CreateMistParticleMaterial(CreateMistParticleTexture());
             particlePrefab = CreateParticlePrefab();
             PopulateScene(componentType);
             if (!EditorSceneManager.SaveScene(scene, ScenePath))
@@ -166,10 +170,35 @@ namespace SabaShader.CI
             var factory = componentType.GetMethod(
                 "CreateParticleSilhouetteMesh",
                 BindingFlags.Public | BindingFlags.Static);
+            var register = componentType.GetMethod(
+                "RegisterParticleSilhouetteMesh",
+                BindingFlags.Public | BindingFlags.Static);
             if (factory == null || factory.ReturnType != typeof(Mesh))
             {
                 throw new InvalidOperationException(
                     componentType.FullName + ".CreateParticleSilhouetteMesh(string) が見つかりません。");
+            }
+            if (register == null)
+            {
+                throw new InvalidOperationException(
+                    componentType.FullName + ".RegisterParticleSilhouetteMesh(Mesh) が見つかりません。");
+            }
+
+            var expectedNames = ParticleSilhouetteNames
+                .Select(name => "Transformation Bank Particle / " + name)
+                .OrderBy(name => name)
+                .ToArray();
+            var existingMeshes = AssetDatabase.LoadAllAssetsAtPath(ParticleMeshAssetPath)
+                .OfType<Mesh>()
+                .OrderBy(mesh => mesh.name)
+                .ToArray();
+            if (existingMeshes.Select(mesh => mesh.name).SequenceEqual(expectedNames))
+            {
+                foreach (var mesh in existingMeshes)
+                {
+                    register.Invoke(null, new object[] { mesh });
+                }
+                return;
             }
 
             AssetDatabase.DeleteAsset(ParticleMeshAssetPath);
@@ -321,6 +350,11 @@ namespace SabaShader.CI
             accent.transform.localPosition = new Vector3(0.0f, 0.0f, depth);
             primary.GetComponent<ParticleSystemRenderer>().sortingOrder = 1000 + style * 2;
             accent.GetComponent<ParticleSystemRenderer>().sortingOrder = 1001 + style * 2;
+            if (style == 4 || style == 11)
+            {
+                primary.GetComponent<ParticleSystemRenderer>().sharedMaterial = mistParticleMaterial;
+                accent.GetComponent<ParticleSystemRenderer>().sharedMaterial = mistParticleMaterial;
+            }
         }
 
         static ParticleSystem CreateParticleSystem(Transform parent, string name)
@@ -371,6 +405,7 @@ namespace SabaShader.CI
             }
 
             material.SetOverrideTag("RenderType", "Transparent");
+            material.SetFloat("_Mode", 4.0f);
             material.SetInt("_SrcBlend", (int)BlendMode.SrcAlpha);
             material.SetInt("_DstBlend", (int)BlendMode.One);
             material.SetInt("_ZWrite", 0);
@@ -379,6 +414,80 @@ namespace SabaShader.CI
             material.EnableKeyword("_ALPHABLEND_ON");
             material.renderQueue = (int)RenderQueue.Transparent;
             EditorUtility.SetDirty(material);
+            AssetDatabase.SaveAssets();
+            return material;
+        }
+
+        static Texture2D CreateMistParticleTexture()
+        {
+            const int size = 32;
+            var texture = AssetDatabase.LoadAssetAtPath<Texture2D>(MistParticleTexturePath);
+            if (texture == null)
+            {
+                texture = new Texture2D(size, size, TextureFormat.RGBA32, false, true);
+                AssetDatabase.CreateAsset(texture, MistParticleTexturePath);
+            }
+            else if (texture.width != size || texture.height != size)
+            {
+                if (!texture.Reinitialize(size, size, TextureFormat.RGBA32, false))
+                {
+                    throw new InvalidOperationException("Mist particle texture を再初期化できませんでした。");
+                }
+            }
+
+            texture.name = "TransformationBankMistTexture";
+            texture.filterMode = FilterMode.Bilinear;
+            texture.wrapMode = TextureWrapMode.Clamp;
+            var pixels = new Color[size * size];
+            for (var y = 0; y < size; y++)
+            {
+                for (var x = 0; x < size; x++)
+                {
+                    var point = new Vector2(
+                        (x + 0.5f) / size * 2.0f - 1.0f,
+                        (y + 0.5f) / size * 2.0f - 1.0f);
+                    var radius = point.magnitude;
+                    var irregularity = Mathf.Sin(point.x * 8.0f + point.y * 5.0f) * 0.035f;
+                    var alpha = 1.0f - Mathf.SmoothStep(0.08f, 1.0f, radius + irregularity);
+                    pixels[y * size + x] = new Color(1.0f, 1.0f, 1.0f, alpha * alpha * 0.72f);
+                }
+            }
+            texture.SetPixels(pixels);
+            texture.Apply(false, false);
+            EditorUtility.SetDirty(texture);
+            AssetDatabase.SaveAssets();
+            return texture;
+        }
+
+        static Material CreateMistParticleMaterial(Texture2D texture)
+        {
+            var material = AssetDatabase.LoadAssetAtPath<Material>(MistParticleMaterialPath);
+            if (material == null)
+            {
+                var shader = Shader.Find("Particles/Standard Unlit");
+                if (shader == null)
+                {
+                    throw new InvalidOperationException("Particles/Standard Unlit を読み込めませんでした。");
+                }
+                material = new Material(shader)
+                {
+                    name = "Transformation Bank Mist Particles",
+                };
+                AssetDatabase.CreateAsset(material, MistParticleMaterialPath);
+            }
+
+            material.SetOverrideTag("RenderType", "Transparent");
+            material.SetFloat("_Mode", 2.0f);
+            material.SetTexture("_MainTex", texture);
+            material.SetInt("_SrcBlend", (int)BlendMode.SrcAlpha);
+            material.SetInt("_DstBlend", (int)BlendMode.OneMinusSrcAlpha);
+            material.SetInt("_ZWrite", 0);
+            material.SetInt("_Cull", (int)CullMode.Off);
+            material.DisableKeyword("_ALPHATEST_ON");
+            material.EnableKeyword("_ALPHABLEND_ON");
+            material.renderQueue = (int)RenderQueue.Transparent;
+            EditorUtility.SetDirty(material);
+            AssetDatabase.SaveAssets();
             return material;
         }
 
