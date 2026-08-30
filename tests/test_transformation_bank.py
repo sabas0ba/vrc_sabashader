@@ -85,6 +85,25 @@ def test_activity_envelope_eases_into_both_endpoints():
     assert activity(1.0 - epsilon) / epsilon < 0.02
 
 
+def test_style_perturbations_ease_at_role_window_boundaries():
+    source = (BANK_DIR / "TransformationBankCore.hlsl").read_text(encoding="utf-8")
+    flame = source[source.index("half SBSBankFlameField"):source.index("half SBSBankGlitchAmount")]
+    glitch = source[source.index("half SBSBankGlitchAmount"):source.index("half SBSBankMeltField")]
+    melt = source[source.index("half SBSBankMeltField"):source.index("half SBSBankCosmicRiftField")]
+    cosmic = source[source.index("half SBSBankCosmicRiftField"):source.index("half SBSBankSparkleField")]
+    sparkle = source[source.index("half SBSBankSparkleField"):source.index("half SBSBankManaMistField")]
+    mana = source[source.index("half SBSBankManaMistField"):source.index("half SBSBankField")]
+
+    for field in (flame, glitch, melt, cosmic, sparkle, mana):
+        assert "SBSBankActivity(st.visibilityProgress)" in field
+
+    incoming_near_end = _smoothstep(0.25, 0.65, 0.64)
+    outgoing_near_start = 1.0 - _smoothstep(0.35, 0.75, 0.36)
+    for role_progress in (incoming_near_end, outgoing_near_start):
+        bell = 4.0 * role_progress * (1.0 - role_progress)
+        assert bell * bell < 1.0e-3
+
+
 def test_bank_uses_common_base_and_illust2d_clip_phases():
     module = load_module(BANK_MODULE)
     phases = {phase.phase for phase in module.phases}

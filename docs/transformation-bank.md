@@ -41,6 +41,8 @@ material._io_github_sabas0ba_transformationbank_Progress
 
 共通Effect envelopeはProgress中央で最大になり、0と1で値と勾配が0になるbell curveです。Animation Clipを
 linear keyframeにした場合も、変身開始直後と完了直前の発光・変位が急に確定しないよう収束します。
+各Styleのnoise・turbulence・頂点変位にもRole別の表示率から求めたbell curveを適用し、`Costume Windows` の
+開始・終了値をまたいだときに完全表示判定へ不連続に切り替わらないようにしています。
 
 既定値ではOutgoingとIncomingの表示率の和が1を下回りません。これはbody被覆率ではなくshader上の
 表示率です。windowを変更する場合は `Incoming開始 <= Outgoing開始 <= Incoming終了 <= Outgoing終了`

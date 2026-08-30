@@ -112,8 +112,9 @@ half SBSBankFlameField(half3 objectPosition, SBSBankStyle st)
     half broad = SBSBankNoise3(flow);
     half detail = SBSBankNoise3(flow * 1.91 + half3(7.0, 13.0, 3.0));
     half flame = lerp(broad, detail, 0.38);
+    half roleActivity = SBSBankActivity(st.visibilityProgress);
     half turbulence = (flame - 0.46) * st.noiseAmount * st.effectIntensity
-        * (0.7 + SBSBankActivity(st.progress));
+        * roleActivity * (0.7 + SBSBankActivity(st.progress));
     return st.visibilityProgress - SBSBankHeight(objectPosition, st) + turbulence;
 }
 
@@ -122,7 +123,7 @@ half SBSBankGlitchAmount(half3 objectPosition, SBSBankStyle st)
     half bandScale = max(st.blockScale, 1.0e-3);
     half band = floor(objectPosition.y * bandScale + st.time * st.patternSpeed * 4.0);
     half offset = SBSBankHash3(half3(band, band * 0.37, band * 1.71)) * 2.0 - 1.0;
-    return offset * SBSBankActivity(st.progress);
+    return offset * SBSBankActivity(st.progress) * SBSBankActivity(st.visibilityProgress);
 }
 
 half SBSBankMeltField(half3 objectPosition, SBSBankStyle st)
@@ -142,7 +143,8 @@ half SBSBankMeltField(half3 objectPosition, SBSBankStyle st)
         + (detail - 0.5) * st.noiseAmount * 0.38
         + stream * melt * 0.32
         + wobble * st.noiseAmount * melt * 0.08;
-    return st.visibilityProgress - height + liquidFront * st.effectIntensity;
+    return st.visibilityProgress - height
+        + liquidFront * st.effectIntensity * SBSBankActivity(st.visibilityProgress);
 }
 
 half SBSBankCosmicRiftField(half3 objectPosition, SBSBankStyle st)
@@ -151,7 +153,8 @@ half SBSBankCosmicRiftField(half3 objectPosition, SBSBankStyle st)
     half3 warped = objectPosition * scale;
     warped.z += sin(objectPosition.y * scale * 0.7 + st.time * st.patternSpeed) * 0.45;
     half riftNoise = SBSBankNoise3(warped + half3(0.0, 0.0, st.time * 0.08));
-    half rift = abs(objectPosition.x) + (riftNoise - 0.5) * st.noiseAmount * st.effectIntensity;
+    half rift = abs(objectPosition.x) + (riftNoise - 0.5) * st.noiseAmount
+        * st.effectIntensity * SBSBankActivity(st.visibilityProgress);
     half threshold = lerp(0.0, max(abs(st.boundsMin), abs(st.boundsMax)), st.visibilityProgress);
     return threshold - rift;
 }
@@ -160,7 +163,8 @@ half SBSBankSparkleField(half3 objectPosition, SBSBankStyle st)
 {
     half scale = max(st.noiseScale, 1.0e-3);
     half sparkleNoise = SBSBankNoise3(objectPosition * scale + st.time * 0.08);
-    half shimmer = (sparkleNoise - 0.5) * st.noiseAmount * SBSBankActivity(st.progress);
+    half shimmer = (sparkleNoise - 0.5) * st.noiseAmount
+        * SBSBankActivity(st.progress) * SBSBankActivity(st.visibilityProgress);
     return st.visibilityProgress - SBSBankHeight(objectPosition, st) + shimmer;
 }
 
@@ -172,7 +176,8 @@ half SBSBankManaMistField(half3 objectPosition, SBSBankStyle st)
     half detail = SBSBankNoise3(objectPosition * scale + drift * 1.7);
     half mist = lerp(broad, detail, 0.35);
     return st.visibilityProgress - mist
-        + (SBSBankHeight(objectPosition, st) - 0.5) * 0.08 * st.effectIntensity;
+        + (SBSBankHeight(objectPosition, st) - 0.5) * 0.08 * st.effectIntensity
+            * SBSBankActivity(st.visibilityProgress);
 }
 
 half SBSBankField(half3 objectPosition, SBSBankStyle st)
