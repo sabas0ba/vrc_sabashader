@@ -1,0 +1,60 @@
+msgid ""
+msgstr ""
+"Language: en-US\n"
+
+msgid "__MochiSkin"
+msgstr "Mochi Skin"
+
+msgid "__Amount"
+msgstr "Amount"
+
+msgid "__AmountDesc"
+msgstr "0 disables deformation; 1 applies the configured depth and normal response."
+
+msgid "__UVChannel"
+msgstr "UV Channel"
+
+msgid "__UVChannelDesc"
+msgstr "The UV channel used to place all four contact points."
+
+msgid "__Depth"
+msgstr "Depth"
+
+msgid "__DepthDesc"
+msgstr "Maximum inward vertex displacement in world units at pressure 1."
+
+msgid "__Bulge"
+msgstr "Outer Bulge"
+
+msgid "__BulgeDesc"
+msgstr "Height of the soft raised ring around each depression relative to Depth."
+
+msgid "__NormalStrength"
+msgstr "Normal Strength"
+
+msgid "__NormalStrengthDesc"
+msgstr "Scales the tangent-space normal response without changing the silhouette."
+
+msgid "__Point0"
+msgstr "Contact Point 0"
+
+msgid "__Point1"
+msgstr "Contact Point 1"
+
+msgid "__Point2"
+msgstr "Contact Point 2"
+
+msgid "__Point3"
+msgstr "Contact Point 3"
+
+msgid "__Point"
+msgstr "Center XY / Radius ZW"
+
+msgid "__PointDesc"
+msgstr "UV center in XY and elliptical UV radius in ZW."
+
+msgid "__Pressure"
+msgstr "Pressure"
+
+msgid "__PressureDesc"
+msgstr "Contact pressure from 0 to 1. Animate this material property from a Contact Receiver."

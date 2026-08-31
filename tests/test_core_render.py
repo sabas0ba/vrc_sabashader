@@ -11,7 +11,7 @@ import os
 
 import pytest
 
-from cases import CASES
+from cases import CASES, MODE_MOCHI_SKIN, Case
 from harness import compare as cmp
 from harness.glsl import build_scene_source, module_cores, parse_struct_fields, read_core
 from harness.paths import ARTIFACT_DIR, GOLDEN_DIR
@@ -94,6 +94,21 @@ def test_display_panel_struct_matches_cases():
             f"コアのみ={sorted(fields - set(DEFAULT_DISPLAY_PANEL))} "
             f"ケースのみ={sorted(set(DEFAULT_DISPLAY_PANEL) - fields)}"
         )
+
+
+def test_mochi_skin_profile_renders_visible_variation():
+    """4点の高さと勾配を実際のfragment shaderで評価する。"""
+    image = _render(
+        Case(
+            name="mochi_skin_contact",
+            mode=MODE_MOCHI_SKIN,
+            description="Mochi Skinの高さ場と法線勾配",
+            resolution=(160, 80),
+        )
+    )
+
+    assert image[:, :, :3].std() > 3.0
+    assert (image[:, :, 3] == 255).all()
 
 
 @pytest.mark.parametrize("case", CASES, ids=lambda c: c.name)

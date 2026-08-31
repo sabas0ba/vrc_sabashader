@@ -4,6 +4,13 @@
 
 ## [Unreleased]
 
+### Added
+
+- Mochi Skinモジュール（`io.github.sabas0ba.mochiskin`）
+  - 4つの独立したUV接触点をAnimatorから0–1で制御
+  - 中央の凹みと外周の盛り上がりを一致させた頂点変位とtangent-space法線
+  - VRChat Contact ReceiverとFX Animatorの設定手順
+
 ## [0.5.0] - 2026-08-29
 
 ### Added

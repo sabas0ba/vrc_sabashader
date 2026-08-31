@@ -367,6 +367,33 @@ vec4 sceneDisplayPanelSwatch(vec2 uv)
     return vec4(SBSDisplayPanelApply(card, screen, 0.72, pst), 1.0);
 }
 
+// mode 14: 4つの接触点による高さ場と法線変化
+//
+// 頂点変形そのものはfragment harnessでは描けないため、出荷する高さと勾配の
+// 関数を平面の色と法線へ適用する。楕円半径、異なるPressure、重なりも通す。
+vec4 sceneMochiSkinSwatch(vec2 uv)
+{
+    vec4 point0 = vec4(0.22, 0.62, 0.15, 0.25);
+    vec4 point1 = vec4(0.45, 0.58, 0.18, 0.18);
+    vec4 point2 = vec4(0.68, 0.38, 0.14, 0.22);
+    vec4 point3 = vec4(0.84, 0.68, 0.12, 0.16);
+    vec4 pressure = vec4(1.0, 0.65, 0.85, 0.4);
+    float depth = 0.018;
+    float bulge = 0.3;
+
+    float height = SBSMochiHeight4(
+        uv, point0, point1, point2, point3, pressure, depth, bulge);
+    vec2 gradient = SBSMochiGradient4(
+        uv, point0, point1, point2, point3, pressure, depth, bulge);
+    vec3 tangentNormal = SBSMochiApplyNormal(vec3(0.0, 0.0, 1.0), gradient, 2.5);
+
+    SBSSurface s = sceneDefaultSurface();
+    float heightShade = clamp(1.0 + height / depth * 0.12, 0.75, 1.15);
+    s.albedo = vec3(0.92, 0.64, 0.58) * heightShade;
+    s.N = normalize(vec3(tangentNormal.xy, -tangentNormal.z));
+    return vec4(SBSComposeIllust(s, sceneStyle()), 1.0);
+}
+
 // mode 11: 立体（カプセル）にブラウン管とグリッチをかける
 //
 // 平らなテストカードには無いシルエットが入る。ずらしの 1 次近似は縁で
@@ -396,7 +423,8 @@ void main()
     vec2 ndc = uv * 2.0 - 1.0;
 
     vec4 col;
-    if (SCENE_MODE == 13) col = sceneDisplayPanelSwatch(uv);
+    if (SCENE_MODE == 14) col = sceneMochiSkinSwatch(uv);
+    else if (SCENE_MODE == 13) col = sceneDisplayPanelSwatch(uv);
     else if (SCENE_MODE == 12) col = sceneVideoInputSwatch(uv);
     else if (SCENE_MODE == 11) col = sceneCrtSolid(ndc);
     else if (SCENE_MODE == 10) col = sceneCrtSwatch(uv);

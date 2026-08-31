@@ -397,6 +397,34 @@ def test_display_panel_keeps_screen_coordinates_at_full_precision():
         assert declaration in core
 
 
+def test_mochi_skin_exposes_four_independent_pressures():
+    module = next(
+        module
+        for module in _package_modules()
+        if module.unique_id == "io.github.sabas0ba.mochiskin"
+    )
+    declared = {property.original_name for property in module.properties}
+
+    assert {f"_Point{i}" for i in range(4)} <= declared
+    assert {f"_Pressure{i}" for i in range(4)} <= declared
+    assert {phase.phase for phase in module.phases} == {"morph", "base"}
+
+
+def test_mochi_skin_uses_one_height_field_for_geometry_and_normals():
+    module_dir = MODULES_DIR / "MochiSkin"
+    core = (module_dir / "MochiSkinCore.hlsl").read_text(encoding="utf-8")
+    morph = (module_dir / "mochi_skin_morph.hlsl").read_text(encoding="utf-8")
+    base = (module_dir / "mochi_skin_base.hlsl").read_text(encoding="utf-8")
+
+    assert "SBSMochiProfile" in core
+    assert "SBSMochiHeight4" in morph
+    assert "SBSMochiGradient4" in base
+    assert "sd.N = SBSMochiApplyNormal" in base
+    assert "sd.N_detail = SBSMochiApplyNormal" in base
+    for source in (morph, base):
+        assert "if (_Amount > 0.0 && _Depth > 0.0" in source
+
+
 @pytest.mark.parametrize(
     ("relative_path", "guard", "operation"),
     [
