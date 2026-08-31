@@ -21,6 +21,7 @@ namespace SabaShader.CI
         [SetUp]
         public void SetUp()
         {
+            Undo.ClearAll();
             AssetDatabase.DeleteAsset(TestRoot);
             AssetDatabase.CreateFolder("Assets", "__TransformationBankClipGeneratorTests");
 
@@ -40,6 +41,7 @@ namespace SabaShader.CI
         [TearDown]
         public void TearDown()
         {
+            Undo.ClearAll();
             if (avatar != null)
             {
                 Object.DestroyImmediate(avatar);
@@ -168,6 +170,93 @@ namespace SabaShader.CI
                 () => TransformationBankClipGenerator.Generate(options),
                 Throws.TypeOf<System.InvalidOperationException>());
             Assert.That(AssetDatabase.IsValidFolder(TestRoot + "/Generated"), Is.False);
+        }
+
+        [Test]
+        public void CompatibilityCatalogFindsIllust2DAndCompatibleProjectMaterials()
+        {
+            var shaders = TransformationBankMaterialCompatibility.FindCompatibleShaders();
+            var materials = TransformationBankMaterialCompatibility.FindCompatibleMaterials();
+
+            Assert.That(shaders.Select(shader => shader.name), Has.Member("SabaShader/Illust2D"));
+            Assert.That(
+                materials.Select(AssetDatabase.GetAssetPath),
+                Has.Member(TestRoot + "/OutfitA.mat"));
+            Assert.That(
+                materials.Select(AssetDatabase.GetAssetPath),
+                Has.Member(TestRoot + "/OutfitB.mat"));
+        }
+
+        [Test]
+        public void CreateAndAssignPreservesSourceAndRepairsUnsupportedSlot()
+        {
+            var unsupported = new Material(Shader.Find("Standard")) { name = "Unsupported Source" };
+            AssetDatabase.CreateAsset(unsupported, TestRoot + "/Unsupported.mat");
+            rendererA.sharedMaterial = unsupported;
+            var issue = TransformationBankMaterialCompatibility.FindIssues(CreateOptions()).Single();
+            var compatibleShader = Shader.Find("SabaShader/Illust2D");
+
+            var generated = TransformationBankMaterialCompatibility.CreateAndAssign(
+                issue,
+                compatibleShader,
+                TransformationBankStyle.Flame,
+                2.25f,
+                TestRoot + "/Prepared");
+
+            Assert.That(TransformationBankMaterialCompatibility.IsCompatible(generated), Is.True);
+            Assert.That(
+                AssetDatabase.GetAssetPath(rendererA.sharedMaterial),
+                Is.EqualTo(AssetDatabase.GetAssetPath(generated)));
+            Assert.That(unsupported.shader.name, Is.EqualTo("Standard"));
+            Assert.That(generated.shader.name, Is.EqualTo(compatibleShader.name));
+            Assert.That(
+                generated.GetInteger(TransformationBankClipGenerator.RoleProperty),
+                Is.EqualTo((int)TransformationBankRole.Incoming));
+            Assert.That(
+                generated.GetInteger(TransformationBankClipGenerator.StyleProperty),
+                Is.EqualTo((int)TransformationBankStyle.Flame));
+            Assert.That(
+                generated.GetFloat(TransformationBankClipGenerator.ProgressProperty),
+                Is.EqualTo(1.0f));
+            Assert.That(
+                generated.GetFloat(TransformationBankClipGenerator.EffectIntensityProperty),
+                Is.EqualTo(2.25f));
+            Assert.That(AssetDatabase.GetAssetPath(generated), Does.StartWith(TestRoot + "/Prepared/"));
+        }
+
+        [Test]
+        public void AssignUsesExistingCompatibleMaterialAndSupportsEmptySlot()
+        {
+            rendererA.sharedMaterials = System.Array.Empty<Material>();
+            var issue = TransformationBankMaterialCompatibility.FindIssues(CreateOptions()).Single();
+
+            TransformationBankMaterialCompatibility.Assign(issue, materialB);
+
+            Assert.That(rendererA.sharedMaterials, Has.Length.EqualTo(1));
+            Assert.That(
+                AssetDatabase.GetAssetPath(rendererA.sharedMaterial),
+                Is.EqualTo(AssetDatabase.GetAssetPath(materialB)));
+        }
+
+        [Test]
+        public void CompatibilityIssueIdentifiesRendererPathSlotAndMissingProperties()
+        {
+            var unsupported = new Material(Shader.Find("Standard")) { name = "Unsupported Slot" };
+            AssetDatabase.CreateAsset(unsupported, TestRoot + "/UnsupportedSlot.mat");
+            rendererA.sharedMaterials = new[] { materialA, unsupported };
+
+            var issue = TransformationBankMaterialCompatibility.FindIssues(CreateOptions()).Single();
+
+            Assert.That(issue.OutfitLabel, Is.EqualTo("衣装A"));
+            Assert.That(issue.RendererPath, Is.EqualTo("Outfit A/Body"));
+            Assert.That(issue.MaterialSlot, Is.EqualTo(1));
+            Assert.That(
+                AssetDatabase.GetAssetPath(issue.Material),
+                Is.EqualTo(AssetDatabase.GetAssetPath(unsupported)));
+            Assert.That(
+                issue.MissingProperties,
+                Is.EquivalentTo(TransformationBankMaterialCompatibility.RequiredProperties));
+            Assert.That(issue.ValidationMessage, Does.Contain("Transformation Bankが有効ではありません"));
         }
 
         [Test]

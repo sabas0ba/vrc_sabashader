@@ -64,14 +64,6 @@ namespace SabaShader.EditorTools
         const float FrameRate = 60.0f;
         const string MaterialArrayPrefix = "m_Materials.Array.data[";
 
-        static readonly string[] RequiredProperties =
-        {
-            ProgressProperty,
-            RoleProperty,
-            StyleProperty,
-            EffectIntensityProperty,
-        };
-
         public static IReadOnlyList<string> Validate(TransformationBankClipGenerationOptions options)
         {
             var errors = new List<string>();
@@ -173,8 +165,10 @@ namespace SabaShader.EditorTools
                     " / " + duplicate.First().GetType().Name);
             }
 
-            ValidateMaterials(renderersA, options.AvatarRoot.transform, "衣装A", errors);
-            ValidateMaterials(renderersB, options.AvatarRoot.transform, "衣装B", errors);
+            foreach (var issue in TransformationBankMaterialCompatibility.FindIssues(options))
+            {
+                errors.Add(issue.ValidationMessage);
+            }
             return errors;
         }
 
@@ -301,48 +295,6 @@ namespace SabaShader.EditorTools
                     StringComparer.Ordinal)
                 .ThenBy(renderer => renderer.GetType().Name, StringComparer.Ordinal)
                 .ToArray();
-        }
-
-        static void ValidateMaterials(
-            IEnumerable<Renderer> renderers,
-            Transform avatarRoot,
-            string outfitLabel,
-            ICollection<string> errors)
-        {
-            foreach (var renderer in renderers)
-            {
-                var path = AnimationUtility.CalculateTransformPath(renderer.transform, avatarRoot);
-                var materials = renderer.sharedMaterials;
-                if (materials.Length == 0)
-                {
-                    errors.Add(outfitLabel + "のRendererにMaterialがありません: " + path);
-                    continue;
-                }
-
-                for (var slot = 0; slot < materials.Length; slot++)
-                {
-                    var material = materials[slot];
-                    if (material == null)
-                    {
-                        errors.Add(outfitLabel + "のMaterial Slotが空です: " + path + " [" + slot + "]");
-                        continue;
-                    }
-                    if (material.shader == null)
-                    {
-                        errors.Add(outfitLabel + "のMaterialにShaderがありません: " + path + " [" + slot + "]");
-                        continue;
-                    }
-
-                    var missing = RequiredProperties.Where(property => !material.HasProperty(property)).ToArray();
-                    if (missing.Length > 0)
-                    {
-                        errors.Add(
-                            outfitLabel + "のMaterialでTransformation Bankが有効ではありません: " +
-                            path + " [" + slot + "] / " + material.name + " / missing: " +
-                            string.Join(", ", missing));
-                    }
-                }
-            }
         }
 
         static Material CreateRoleMaterial(
@@ -497,7 +449,7 @@ namespace SabaShader.EditorTools
             return candidate != root && candidate.IsChildOf(root);
         }
 
-        static bool TryNormalizeAssetFolder(string path, out string normalized)
+        internal static bool TryNormalizeAssetFolder(string path, out string normalized)
         {
             normalized = string.IsNullOrWhiteSpace(path)
                 ? string.Empty
@@ -509,7 +461,7 @@ namespace SabaShader.EditorTools
             return normalized.Split('/').All(segment => segment != "." && segment != "..");
         }
 
-        static void EnsureAssetFolder(string path)
+        internal static void EnsureAssetFolder(string path)
         {
             if (AssetDatabase.IsValidFolder(path))
             {
@@ -562,7 +514,7 @@ namespace SabaShader.EditorTools
             return parent + "/" + name;
         }
 
-        static string SanitizeAssetName(string value)
+        internal static string SanitizeAssetName(string value)
         {
             var invalid = new HashSet<char>(System.IO.Path.GetInvalidFileNameChars());
             var sanitized = new string(value.Select(character => invalid.Contains(character) ? '_' : character).ToArray());

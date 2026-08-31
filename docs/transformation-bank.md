@@ -65,13 +65,26 @@ Unity Editorの `Tools > SabaShader > Transformation Bank Clip Generator` から
 有効になっていることを確認します。対応していないMaterial SlotやAvatar Root外の衣装がある場合は、生成せず
 対象のRendererとSlotを表示します。
 
+`Material互換性` には、選択した衣装で対応していないRenderer、Slot、不足Propertyと、現在Projectで利用可能な
+Transformation Bank対応Shader／Materialが表示されます。対応Shaderがない場合は `Tools > SabaShader > Select Modules`
+で `__TransformationBank` を有効にし、ApplyとShaderコンパイルの完了後に再スキャンします。
+
+各Slotは次のいずれかで修復できます。
+
+- `互換Materialを生成して割当`: 現Materialの互換Propertyを引き継いだ新規Materialアセットを
+  `PreparedMaterials` に生成し、選択した対応Shaderへ切り替えてSlotへ割り当てます。
+- `選択Materialを割当`: Project内の既存対応MaterialをSlotへ割り当てます。
+
+どちらも元MaterialアセットのShaderやPropertyを変更しません。明示的な割当操作だけがSceneまたはPrefab instanceの
+Renderer Slotを変更し、UnityのUndoに対応します。Material配列が空のRendererにはSlot 0を追加します。
+
 生成物は次の通りです。
 
 - 衣装Aから衣装B、衣装Bから衣装Aへの2本のAnimation Clip
 - 元Materialを複製したIncoming／Outgoing Material
 - 入力条件と生成Assetを記録する `TransformationBankGenerationReport.asset`
 
-元Material、Scene上のRenderer、GameObjectの有効状態は変更しません。Animation Clip内のMaterial reference curveで
+Clip生成自体は元Material、Scene上のRenderer、GameObjectの有効状態を変更しません。Animation Clip内のMaterial reference curveで
 複製Materialへ切り替え、両衣装を遷移中に有効化します。Outgoing衣装はProgressが1になり完全に非表示となる
 最終frameで無効化されるため、衣装間に空白frameを作りません。既存Folderを上書きせず、再生成時は一意なFolderへ
 出力します。

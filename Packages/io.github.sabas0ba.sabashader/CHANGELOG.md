@@ -29,6 +29,8 @@
   - 遷移中は両衣装を有効にし、Outgoingを完全にclipした最終frameで無効化
   - 元Material、Scene、Animator Controllerを変更せず、一意なFolderへ生成
   - 生成条件とAsset参照を保持する `TransformationBankGenerationReport.asset`
+  - 非対応Slot、不足Property、利用可能な対応Shader／Project MaterialをEditor上に表示
+  - 元Materialを維持した互換Material生成と、Undo対応のRenderer Slot割当
 
 ## [0.5.0] - 2026-08-29
 

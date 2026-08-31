@@ -11,6 +11,7 @@ GENERATOR = EDITOR_DIR / "TransformationBankClipGenerator.cs"
 WINDOW = EDITOR_DIR / "TransformationBankClipGeneratorWindow.cs"
 REPORT = EDITOR_DIR / "TransformationBankGenerationReport.cs"
 PRESET = EDITOR_DIR / "TransformationBankMaterialPreset.cs"
+COMPATIBILITY = EDITOR_DIR / "TransformationBankMaterialCompatibility.cs"
 UNITY_TEST = (
     REPO_ROOT
     / ".ci"
@@ -23,7 +24,7 @@ DOCUMENTATION = REPO_ROOT / "docs" / "transformation-bank.md"
 
 
 def test_package_contains_editor_only_clip_generator():
-    assert {GENERATOR, WINDOW, REPORT, PRESET} <= set(EDITOR_DIR.iterdir())
+    assert {GENERATOR, WINDOW, REPORT, PRESET, COMPATIBILITY} <= set(EDITOR_DIR.iterdir())
     window = WINDOW.read_text(encoding="utf-8")
 
     assert 'MenuItem("Tools/SabaShader/Transformation Bank Clip Generator")' in window
@@ -51,14 +52,33 @@ def test_generator_is_non_destructive_and_creates_both_direction_clips():
 
 def test_generator_requires_transformation_bank_materials_and_keeps_overlap():
     source = GENERATOR.read_text(encoding="utf-8")
+    compatibility = COMPATIBILITY.read_text(encoding="utf-8")
 
     for property_name in ("Progress", "Role", "Style", "EffectIntensity"):
         assert f'BankPrefix + "{property_name}"' in source
-    assert "material.HasProperty(property)" in source
+    assert "material.HasProperty(property)" in compatibility
     assert "duration - 1.0f / FrameRate" in source
     assert "new Keyframe(duration, 0.0f)" in source
     assert "new Keyframe(duration, 1.0f)" in source
     assert "TransformationBankGenerationReport" in source
+
+
+def test_window_can_repair_or_replace_incompatible_material_slots():
+    window = WINDOW.read_text(encoding="utf-8")
+    compatibility = COMPATIBILITY.read_text(encoding="utf-8")
+
+    assert "Material互換性" in window
+    assert "利用可能なShader" in window
+    assert "利用可能なProject Material" in window
+    assert "互換Materialを生成して割当" in window
+    assert "選択Materialを割当" in window
+    assert "Select Modules" in window
+    assert "FindCompatibleShaders" in compatibility
+    assert "FindCompatibleMaterials" in compatibility
+    assert "CopyPropertiesFromMaterial(issue.Material)" in compatibility
+    assert "Undo.RecordObject" in compatibility
+    assert "PrefabUtility.RecordPrefabInstancePropertyModifications" in compatibility
+    assert "issue.Material.shader =" not in compatibility
 
 
 def test_unity_editmode_tests_cover_generation_and_invalid_materials():
@@ -69,6 +89,10 @@ def test_unity_editmode_tests_cover_generation_and_invalid_materials():
     assert "GenerateCreatesMaterialReferenceCurveForEveryMaterialSlot" in source
     assert "GeneratedClipSamplesRoleMaterialsAndRestoresSceneAfterPreview" in source
     assert "ValidateRejectsMaterialWithoutTransformationBankProperties" in source
+    assert "CompatibilityCatalogFindsIllust2DAndCompatibleProjectMaterials" in source
+    assert "CreateAndAssignPreservesSourceAndRepairsUnsupportedSlot" in source
+    assert "AssignUsesExistingCompatibleMaterialAndSupportsEmptySlot" in source
+    assert "CompatibilityIssueIdentifiesRendererPathSlotAndMissingProperties" in source
     assert "ValidateRejectsDuplicateRendererBindingPaths" in source
     assert "t:AnimatorController" in source
 

@@ -44,6 +44,10 @@ A→B／B→AのAnimation ClipとIncoming／Outgoing Material複製を生成で�
 Outgoing衣装はProgressが1になった最終frameで無効化します。Animator ControllerとParticle Systemへの組み込みは
 別工程です。
 
+衣装のMaterialが非対応の場合、Generatorの `Material互換性` に対象Slotと利用可能な対応Shader／Materialが
+表示されます。元Materialを変更せずに互換Materialを生成して割り当てるか、既存の対応Materialを割り当てられます。
+明示的な割当操作は対象Renderer Slotだけを変更し、Undoに対応します。
+
 Particle Systemは表面shaderを補助するsample設定です。Avatarへ組み込む場合はStyleに対応する
 Particle Systemを衣装rootへ移し、同じAnimation ClipでEmissionやGameObjectの有効状態を制御します。
 Sample ControllerはStyleごとのProgress区間へEmissionを同期し、端点ではParticleを消去します。Astralと
