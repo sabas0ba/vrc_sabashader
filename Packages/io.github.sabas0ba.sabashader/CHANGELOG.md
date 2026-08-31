@@ -25,6 +25,10 @@
   - 火の粉、Triangle／Quad破片、pixel片、星片、液滴、霧のStyle別Particle silhouette
   - MeltのIncomingへOutgoingの融解を時間反転した液体復元を適用
   - Astral／GaiaのParticle停止、Umbraの霧粒化、Flameの火の粉主体への調整
+- 衣装A／B、VFX Style、遷移時間から双方向Animation Clipと非破壊Material複製を生成する `Transformation Bank Clip Generator`
+  - 遷移中は両衣装を有効にし、Outgoingを完全にclipした最終frameで無効化
+  - 元Material、Scene、Animator Controllerを変更せず、一意なFolderへ生成
+  - 生成条件とAsset参照を保持する `TransformationBankGenerationReport.asset`
 
 ## [0.5.0] - 2026-08-29
 

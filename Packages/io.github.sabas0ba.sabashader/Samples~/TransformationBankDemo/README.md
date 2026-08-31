@@ -39,6 +39,11 @@ material._io_github_sabas0ba_transformationbank_Progress
 IncomingとOutgoingは相補マスクを使用します。Gaia・FlameなどでNewが下から出現する場合はOldも下から
 消失し、Umbraなどのnoise型ではNewが現れる領域からOldが消失します。
 
+`Tools > SabaShader > Transformation Bank Clip Generator` では、Avatar Root、衣装A、衣装B、VFX Styleから
+A→B／B→AのAnimation ClipとIncoming／Outgoing Material複製を生成できます。元MaterialとSceneは変更せず、
+Outgoing衣装はProgressが1になった最終frameで無効化します。Animator ControllerとParticle Systemへの組み込みは
+別工程です。
+
 Particle Systemは表面shaderを補助するsample設定です。Avatarへ組み込む場合はStyleに対応する
 Particle Systemを衣装rootへ移し、同じAnimation ClipでEmissionやGameObjectの有効状態を制御します。
 Sample ControllerはStyleごとのProgress区間へEmissionを同期し、端点ではParticleを消去します。Astralと

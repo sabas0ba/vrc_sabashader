@@ -51,7 +51,8 @@ Spatial InteriorにはUniverse、Starfield、Cyber、Mudの4presetがありま�
 Illust2DとNonToonで使用できます。設定、12 Style、Particle補助演出は
 [docs/transformation-bank.md](https://github.com/sabas0ba/vrc_sabashader/blob/main/docs/transformation-bank.md)
 を参照してください。Package ManagerのSamplesから `Transformation Bank Demo` をImportすると、
-12 Styleの同期再生、Roleごとの異なる形状、Particle Systemを確認できます。
+12 Styleの同期再生、Roleごとの異なる形状、Particle Systemを確認できます。Unity Editorの
+`Transformation Bank Clip Generator` から、衣装A／BとStyleに対応する双方向Animation Clipを生成できます。
 
 ## ライセンス
 

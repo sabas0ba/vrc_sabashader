@@ -55,6 +55,30 @@ Outgoingが消えるため、両Roleが同じ領域へ重なって別領域が�
 変身中に別の衣装変更を受け付けると現在衣装の判定が不定になるため、FX Animatorはバンク終了まで
 次の入力を受け付けない構成を推奨します。
 
+## Animation Clip Generator
+
+Unity Editorの `Tools > SabaShader > Transformation Bank Clip Generator` から、衣装A、衣装B、VFX Styleを
+指定して双方向のAnimation Clipを生成できます。Avatar RootはAnimation bindingの相対パスを計算するために
+使用します。
+
+生成前に、両衣装の `SkinnedMeshRenderer` と `MeshRenderer` が使用する全MaterialでTransformation Bankが
+有効になっていることを確認します。対応していないMaterial SlotやAvatar Root外の衣装がある場合は、生成せず
+対象のRendererとSlotを表示します。
+
+生成物は次の通りです。
+
+- 衣装Aから衣装B、衣装Bから衣装Aへの2本のAnimation Clip
+- 元Materialを複製したIncoming／Outgoing Material
+- 入力条件と生成Assetを記録する `TransformationBankGenerationReport.asset`
+
+元Material、Scene上のRenderer、GameObjectの有効状態は変更しません。Animation Clip内のMaterial reference curveで
+複製Materialへ切り替え、両衣装を遷移中に有効化します。Outgoing衣装はProgressが1になり完全に非表示となる
+最終frameで無効化されるため、衣装間に空白frameを作りません。既存Folderを上書きせず、再生成時は一意なFolderへ
+出力します。
+
+初期版はAnimation Clip生成のみを対象とします。Animator Controller、FX Layer、Parameter、Particle Systemの
+Avatarへの組み込みは別工程です。
+
 ## 共通パラメータ
 
 | Property | 用途 |
