@@ -4,6 +4,8 @@
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-09-02
+
 ### Changed
 
 - 開発コンテナを固定 dotfiles/Nix dev shell を実体化する構成へ変更
