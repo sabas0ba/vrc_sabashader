@@ -36,6 +36,29 @@ namespace SabaShader.CI
         }
 
         [Test]
+        public void NonToonImportsWithTransformationBank()
+        {
+            var shader = ShaderCompileChecker.ImportAndLoad(ShaderCompileChecker.NonToonPath);
+            Assert.That(shader, Is.Not.Null,
+                "NonToonをShaderとして読み込めません。固定した検証依存の配置を確認してください");
+            Assert.That(shader.name, Is.EqualTo("NonToon"));
+
+            var material = new Material(shader);
+            try
+            {
+                var missing = ShaderCompileChecker.NonToonRequiredProperties
+                    .Where(property => !material.HasProperty(property))
+                    .ToList();
+                Assert.That(missing, Is.Empty,
+                    "Transformation Bankの生成されていないプロパティ: " + string.Join(", ", missing));
+            }
+            finally
+            {
+                Object.DestroyImmediate(material);
+            }
+        }
+
+        [Test]
         public void AllShadersCompileWithoutErrors()
         {
             var failures = ShaderCompileChecker.CollectFailures();
@@ -100,6 +123,16 @@ namespace SabaShader.CI
             {
                 Object.DestroyImmediate(material);
             }
+        }
+
+        [Test]
+        public void NonToonDeclaresExpectedPasses()
+        {
+            var shader = ShaderCompileChecker.ImportAndLoad(ShaderCompileChecker.NonToonPath);
+            Assert.That(shader, Is.Not.Null);
+
+            var passes = ShaderCompileChecker.PassNames(shader);
+            CollectionAssert.IsSubsetOf(ShaderCompileChecker.NonToonExpectedPasses, passes);
         }
     }
 }

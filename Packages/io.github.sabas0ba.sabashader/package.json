@@ -1,7 +1,7 @@
 {
   "name": "io.github.sabas0ba.sabashader",
   "displayName": "SabaShader",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "unity": "2022.3",
   "description": "Shader Core をベースにした VRChat 向けシェーダー集。第一弾は 2D イラスト風トゥーンシェーダー Illust2D。",
   "author": {
@@ -21,6 +21,9 @@
   "vpmDependencies": {
     "jp.lilxyzw.shadercore": ">=0.1.9"
   },
+  "dependencies": {
+    "com.unity.modules.particlesystem": "1.0.0"
+  },
   "samples": [
     {
       "displayName": "Debug Shader Demo",
@@ -31,6 +34,11 @@
       "displayName": "Advanced Shader Suite Demo",
       "description": "Decal、Surface Detail、Spatial Interior、Transition の代表設定を確認します。",
       "path": "Samples~/AdvancedShaderSuiteDemo"
+    },
+    {
+      "displayName": "Transformation Bank Demo",
+      "description": "旧衣装と新衣装を12種類のVFX、異なる形状、Particle Systemで切り替える変身バンクを確認します。",
+      "path": "Samples~/TransformationBankDemo"
     }
   ],
   "legacyFolders": {}

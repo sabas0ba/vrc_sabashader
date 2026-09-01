@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="760" viewBox="0 0 1440 760" role="img" aria-labelledby="title desc">
+  <title id="title">ProgressとIncoming、Outgoing、Effectの関係</title>
+  <desc id="desc">Progress 0から1に対する旧衣装と新衣装の表示率、および中央で最大になるEffect envelopeを示す。</desc>
+  <defs>
+    <linearGradient id="overlap" x1="0" x2="1">
+      <stop offset="0" stop-color="#4fb6e9" stop-opacity="0.08"/>
+      <stop offset="0.35" stop-color="#a478e8" stop-opacity="0.22"/>
+      <stop offset="0.65" stop-color="#a478e8" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#6fcf97" stop-opacity="0.08"/>
+    </linearGradient>
+    <style>
+      text { font-family: "Segoe UI", "Noto Sans JP", sans-serif; fill: #edf2f8; }
+      .title { font-size: 28px; font-weight: 700; }
+      .label { font-size: 17px; fill: #c8d3df; }
+      .small { font-size: 14px; fill: #aab7c6; }
+      .legend { font-size: 17px; font-weight: 650; }
+      .grid { stroke: #36414d; stroke-width: 1; }
+      .marker { stroke: #657487; stroke-width: 1.5; stroke-dasharray: 6 7; }
+    </style>
+  </defs>
+
+  <rect width="1440" height="760" fill="#11161d"/>
+  <text x="60" y="58" class="title">Progress 0 → 1：衣装の表示とVFX強度</text>
+  <text x="60" y="88" class="small">既定のCostume Windows。曲線は役割を説明する概略で、Style固有noiseは相補的な領域へ適用されます。</text>
+
+  <rect x="105" y="135" width="1070" height="455" rx="8" fill="#171e26" stroke="#3f4b58"/>
+  <rect x="372.5" y="135" width="428" height="455" fill="url(#overlap)"/>
+  <text x="515" y="164" class="small" fill="#cdb8f2">両衣装の表示が重なる遷移域</text>
+
+  <line x1="150" y1="520" x2="1130" y2="520" class="grid"/>
+  <line x1="150" y1="360" x2="1130" y2="360" class="grid"/>
+  <line x1="150" y1="200" x2="1130" y2="200" class="grid"/>
+  <line x1="150" y1="200" x2="150" y2="520" stroke="#8492a2" stroke-width="2"/>
+  <line x1="150" y1="520" x2="1130" y2="520" stroke="#8492a2" stroke-width="2"/>
+
+  <line x1="395" y1="180" x2="395" y2="540" class="marker"/>
+  <line x1="493" y1="180" x2="493" y2="540" class="marker"/>
+  <line x1="787" y1="180" x2="787" y2="540" class="marker"/>
+  <line x1="885" y1="180" x2="885" y2="540" class="marker"/>
+
+  <text x="122" y="526" class="label">0</text>
+  <text x="122" y="366" class="label">0.5</text>
+  <text x="122" y="206" class="label">1</text>
+  <text x="143" y="553" class="label">0.00</text>
+  <text x="380" y="553" class="label">0.25</text>
+  <text x="478" y="553" class="label">0.35</text>
+  <text x="772" y="553" class="label">0.65</text>
+  <text x="870" y="553" class="label">0.75</text>
+  <text x="1112" y="553" class="label">1.00</text>
+  <text x="604" y="580" class="label">Progress</text>
+
+  <path d="M150 200 L493 200 C610 200 768 456 885 520 L1130 520" fill="none" stroke="#4fb6e9" stroke-width="7" stroke-linecap="round"/>
+  <path d="M150 520 L395 520 C512 520 670 264 787 200 L1130 200" fill="none" stroke="#6fcf97" stroke-width="7" stroke-linecap="round"/>
+  <path d="M150 520 C315 520 420 484 530 320 C585 238 615 220 640 220 C665 220 695 238 750 320 C860 484 965 520 1130 520" fill="none" stroke="#efb04f" stroke-width="5" stroke-linecap="round" stroke-dasharray="12 8"/>
+
+  <circle cx="1215" cy="206" r="7" fill="#4fb6e9"/>
+  <text x="1234" y="212" class="legend">Outgoing表示率</text>
+  <text x="1234" y="236" class="small">旧衣装。0.35から退場、</text>
+  <text x="1234" y="256" class="small">0.75で非表示。</text>
+  <circle cx="1215" cy="300" r="7" fill="#6fcf97"/>
+  <text x="1234" y="306" class="legend">Incoming表示率</text>
+  <text x="1234" y="330" class="small">新衣装。0.25から出現、</text>
+  <text x="1234" y="350" class="small">0.65で完全表示。</text>
+  <circle cx="1215" cy="394" r="7" fill="#efb04f"/>
+  <text x="1234" y="400" class="legend">Effect envelope</text>
+  <text x="1234" y="424" class="small">発光・変位・pattern。</text>
+  <text x="1234" y="444" class="small">端点は値と勾配が0。</text>
+
+  <g>
+    <rect x="105" y="625" width="390" height="88" rx="8" fill="#1f2d39" stroke="#466980"/>
+    <text x="125" y="654" class="legend">Progress</text>
+    <text x="125" y="678" class="small">Animation Clipから0→1へ駆動。</text>
+    <text x="125" y="699" class="small">全Roleで同じ値を使用します。</text>
+
+    <rect x="525" y="625" width="390" height="88" rx="8" fill="#2b2839" stroke="#74649d"/>
+    <text x="545" y="654" class="legend">Costume Windows</text>
+    <text x="545" y="678" class="small">4境界を移動して重なり時間を調整。</text>
+    <text x="545" y="699" class="small">順序を崩すと空白領域の原因になります。</text>
+
+    <rect x="945" y="625" width="390" height="88" rx="8" fill="#3b3020" stroke="#92713c"/>
+    <text x="965" y="654" class="legend">Effect Intensity</text>
+    <text x="965" y="678" class="small">VFX量を0～4倍。表示率は変えません。</text>
+    <text x="965" y="699" class="small">高値ではRenderer boundsを確認します。</text>
+  </g>
+</svg>

@@ -30,6 +30,7 @@ from typing import List, Optional, Tuple
 
 # ナビゲーションの 1 項目。(href, ラベル)
 NavItem = Tuple[str, str]
+NavGroup = Tuple[str, List[NavItem]]
 
 SITE_NAME = "SabaShader"
 REPOSITORY_URL = "https://github.com/sabas0ba/vrc_sabashader"
@@ -211,12 +212,29 @@ PAGE_STYLE = f"""
   }}
 
   nav.site {{
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.35rem 0.5rem;
+    display: grid;
+    gap: 0.55rem;
     padding-bottom: 1.1rem;
     border-bottom: 1px solid var(--border);
     margin-bottom: 2.25rem;
+  }}
+  nav.site .nav-group {{
+    display: grid;
+    grid-template-columns: 7.5rem minmax(0, 1fr);
+    align-items: start;
+    gap: 0.35rem 0.6rem;
+  }}
+  nav.site .nav-group-title {{
+    padding: 0.25rem 0;
+    color: var(--text-muted);
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+  }}
+  nav.site .nav-links {{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem 0.5rem;
   }}
   nav.site a, nav.site strong {{
     display: inline-block;
@@ -398,19 +416,40 @@ PAGE_STYLE = f"""
   @media (max-width: 30rem) {{
     h1 {{ font-size: 1.55rem; }}
     .card {{ padding: 1rem; }}
+    nav.site .nav-group {{ grid-template-columns: 1fr; }}
+    nav.site .nav-group-title {{ padding-bottom: 0; }}
   }}
 """
 
 
 def render_nav(pages: List[NavItem], current: Optional[str]) -> str:
     """ページ間のナビ。現在地は強調してリンクにしない。"""
-    links = []
-    for href, label in pages:
-        if href == current:
-            links.append(f'<strong aria-current="page">{html.escape(label)}</strong>')
-        else:
-            links.append(f'<a href="{html.escape(href, quote=True)}">{html.escape(label)}</a>')
-    return '<nav class="site">' + "".join(links) + "</nav>"
+    return render_grouped_nav([("ページ", pages)], current)
+
+
+def render_grouped_nav(groups: List[NavGroup], current: Optional[str]) -> str:
+    """分類見出し付きのページナビ。空の分類は出力しない。"""
+    rendered_groups = []
+    for group_label, pages in groups:
+        if not pages:
+            continue
+
+        links = []
+        for href, label in pages:
+            if href == current:
+                links.append(f'<strong aria-current="page">{html.escape(label)}</strong>')
+            else:
+                links.append(f'<a href="{html.escape(href, quote=True)}">{html.escape(label)}</a>')
+
+        rendered_groups.append(
+            '<div class="nav-group">'
+            f'<span class="nav-group-title">{html.escape(group_label)}</span>'
+            '<span class="nav-links">'
+            + "".join(links)
+            + "</span></div>"
+        )
+
+    return '<nav class="site">' + "".join(rendered_groups) + "</nav>"
 
 
 def render_header(home_href: str) -> str:

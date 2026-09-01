@@ -186,10 +186,12 @@ def render_page(listing: dict, docs: Optional[List[Tuple[str, str, str, str]]] =
     description = html.escape(listing.get("description", ""))
     listing_url = html.escape(listing["url"])
 
-    nav = site_theme.render_nav(
-        [("index.html", "リスティング")] + [(href, label) for href, label, _, _ in docs],
-        "index.html",
-    )
+    from tools.render_docs import group_navigation
+
+    nav_items = [("index.html", "リスティング")] + [
+        (href, label) for href, label, _, _ in docs
+    ]
+    nav = site_theme.render_grouped_nav(group_navigation(nav_items), "index.html")
 
     docs_section = ""
     if docs:

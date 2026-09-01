@@ -20,6 +20,9 @@ from typing import Dict, List, Optional, Tuple
 
 from .paths import (
     MODULES_DIR,
+    NONTOON_CACHE,
+    NONTOON_COMMIT,
+    NONTOON_URL,
     SHADERCORE_CACHE,
     SHADERCORE_COMMIT,
     SHADERCORE_PACKAGE_PATH,
@@ -531,6 +534,28 @@ def ensure_shadercore() -> Optional[Path]:
         return None
 
     return SHADERCORE_CACHE if marker.is_file() else None
+
+
+def ensure_nontoon() -> Optional[Path]:
+    """固定した NonToon を構造検査用に shallow clone する。"""
+    marker = NONTOON_CACHE / "Shaders" / "NonToon.scshader"
+    if marker.is_file():
+        return NONTOON_CACHE
+
+    NONTOON_CACHE.parent.mkdir(parents=True, exist_ok=True)
+    commands = [
+        ["git", "init", "--quiet", str(NONTOON_CACHE)],
+        ["git", "-C", str(NONTOON_CACHE), "remote", "add", "origin", NONTOON_URL],
+        ["git", "-C", str(NONTOON_CACHE), "fetch", "--quiet", "--depth", "1", "origin", NONTOON_COMMIT],
+        ["git", "-C", str(NONTOON_CACHE), "checkout", "--quiet", "FETCH_HEAD"],
+    ]
+    try:
+        for command in commands:
+            subprocess.run(command, check=True, timeout=300)
+    except (subprocess.SubprocessError, OSError):
+        return None
+
+    return NONTOON_CACHE if marker.is_file() else None
 
 
 def package_roots(shadercore: Path) -> Dict[str, Path]:

@@ -1,0 +1,27 @@
+{
+    "name": "__TransformationBank",
+    "uniqueID": "io.github.sabas0ba.transformationbank",
+    "phases": [
+        {
+            "phase": "morph",
+            "path": "bank_morph.hlsl"
+        },
+        {
+            "phase": "base",
+            "path": "bank_base.hlsl"
+        },
+        {
+            "phase": "postpixel",
+            "path": "bank_postpixel.hlsl",
+            "afters": ["__SpatialInterior", "__CrtGlitch"]
+        },
+        {
+            "phase": "pixelclip",
+            "path": "bank_pixelclip.hlsl"
+        },
+        {
+            "phase": "outlineclip",
+            "path": "bank_outlineclip.hlsl"
+        }
+    ]
+}

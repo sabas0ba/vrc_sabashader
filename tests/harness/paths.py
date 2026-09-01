@@ -29,3 +29,10 @@ SHADERCORE_CACHE = REPO_ROOT / ".cache" / "Shader-Core"
 SHADERCORE_URL = "https://github.com/lilxyzw/Shader-Core.git"
 SHADERCORE_COMMIT = "0a0b2fef78fc3b0438b58f443a2e75210db83ec4"  # tag 0.1.9
 SHADERCORE_PACKAGE_PATH = "Packages/jp.lilxyzw.shadercore"
+
+# NonToon との組み合わせは常用経路として Unity と構造検査の両方で確認する。
+# tag だけでは上流で参照先が変わり得るため、release 0.1.3 の commit を固定する。
+NONTOON_CACHE = REPO_ROOT / ".cache" / "nontoon-0.1.3"
+NONTOON_URL = "https://github.com/lilxyzw/NonToon.git"
+NONTOON_COMMIT = "130bea3e6be5183b4fceb60df0062d38ef98067c"  # tag 0.1.3
+NONTOON_PACKAGE_PATH = "Packages/jp.lilxyzw.nontoon"

@@ -14,6 +14,7 @@ import pytest
 
 from harness.paths import REPO_ROOT
 from tools.render_docs import (
+    PAGE_GROUPS,
     PAGES,
     build,
     collect_pages,
@@ -311,6 +312,18 @@ def test_pages_cover_every_doc():
         assert page.title, f"{page.source.name} の見出しがありません"
 
 
+def test_page_groups_cover_declared_pages_once():
+    """分類とフラットな索引が同じページ集合・同じ順序を持つこと。"""
+    grouped = [page for _, pages in PAGE_GROUPS for page in pages]
+    assert grouped == PAGES
+    assert [label for label, _ in PAGE_GROUPS] == [
+        "Core Shader",
+        "Shader拡張",
+        "利用ガイド",
+        "開発・配布",
+    ]
+
+
 def test_nav_follows_the_declared_order(site):
     """全ページのナビが同じ順で並ぶこと。"""
     expected = [name[:-3] + ".html" for name, _ in PAGES]
@@ -321,6 +334,47 @@ def test_nav_follows_the_declared_order(site):
         assert found[0] == "../index.html", f"{name}: 戻り先がありません"
         # 現在地はリンクにならないので、残りが順序どおり並んでいれば良い
         assert found[1:] == [href for href in expected if href != name], f"{name}: ナビの並びが違います"
+
+
+def test_nav_separates_core_shaders_and_extensions(site):
+    """Materialで選ぶshaderとmoduleで追加する機能を視覚的に分離する。"""
+    expected_groups = ["サイト"] + [label for label, _ in PAGE_GROUPS]
+    for name, text in site.items():
+        nav = text.split('<nav class="site">', 1)[1].split("</nav>", 1)[0]
+        found = re.findall(r'<span class="nav-group-title">([^<]+)</span>', nav)
+        assert found == expected_groups, f"{name}: ナビ分類が違います"
+
+
+def test_category_pages_compare_usage_parameters_and_rendering(site):
+    """2つの入口ページだけで選択・導入・主要調整値まで判断できること。"""
+    core = site["core-shaders.html"]
+    for term in (
+        "Illust2D",
+        "Debug",
+        "使い方",
+        "主要パラメータ",
+        "sphere_default.png",
+        "debug_shader_demo.png",
+    ):
+        assert term in core, f"Core Shader一覧に {term} がありません"
+
+    extensions = site["shader-extensions.html"]
+    for term in (
+        "Surface Overlay",
+        "Pixel Art",
+        "Video Input",
+        "Display Panel",
+        "CRT / Glitch",
+        "Decal",
+        "Surface Detail",
+        "Spatial Interior",
+        "Transition",
+        "衣装変身バンク",
+        "有効化方法",
+        "主要パラメータ",
+        "transformation_bank_demo.png",
+    ):
+        assert term in extensions, f"Shader拡張一覧に {term} がありません"
 
 
 def test_body_has_a_lede_and_a_table_of_contents():

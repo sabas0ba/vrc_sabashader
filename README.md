@@ -13,7 +13,7 @@ VRChat 向けシェーダー集です。**
 mesh とライティング入力を可視化する **Debug shader** と、
 その上に効果を足すモジュール（表面の重ね掛け・ドット絵風・ビデオ入力・
 表示パネル・ブラウン管とグリッチ・Decal・Surface Detail・Spatial Interior・
-Transition）です。
+Transition・衣装変身バンク）です。
 [Shader Core](https://github.com/lilxyzw/Shader-Core) をベースにしています。
 
 シェーディングの数式は
@@ -57,31 +57,45 @@ HLSL が実際にコンパイルできるかは
 | `.ci/UnityProject/` | Unity でのコンパイル検証用プロジェクトの雛形 |
 | `tools/` | `.meta` 生成・VPM リスティング生成・Pages のサイト生成・Unity プロジェクト組み立て |
 | `listing.json` | 配信するリスティングのメタ情報 |
-| `Containerfile` / `flake.nix` | harness と tools を動かす環境（CI もこれを使う） |
+| `Containerfile` / `flake.nix` | dotfiles を基準にした harness/tools 環境（CI もこれを使う） |
 | `.github/workflows/` | テスト・リリース・Pages 配信 |
 
 ## ドキュメント
 
 並びと表記は [GitHub Pages のサイト](https://sabas0ba.github.io/vrc_sabashader/)と揃えてあります。
 
-- [Illust2D のパラメータ](docs/shader-illust2d.md)
-- [Debug shader](docs/shader-debug.md)
-- [モジュールのパラメータ](docs/modules.md)（表面の重ね掛け・ドット絵風・ビデオ入力・表示パネル・ブラウン管とグリッチ）
-- [高度シェーダーモジュール](docs/modules-advanced.md)（Decal・Surface Detail・Spatial Interior・Transition）
+Core Shader:
+
+- [Core Shader一覧](docs/core-shaders.md)（Illust2DとDebugの用途・使い方・主要パラメータ）
+- [Illust2D の全パラメータ](docs/shader-illust2d.md)
+- [Debug shaderの全表示モード](docs/shader-debug.md)
+
+Shader拡張:
+
+- [Shader拡張一覧](docs/shader-extensions.md)（全10項目のレンダリング例・使い方・主要パラメータ）
+- [基本拡張の全パラメータ](docs/modules.md)（Surface Overlay・Pixel Art・Video Input・Display Panel・CRT / Glitch）
+- [高度拡張の全パラメータ](docs/modules-advanced.md)（Decal・Surface Detail・Spatial Interior・Transition）
+- [衣装変身バンク](docs/transformation-bank.md)（Clip Generator UI・全パラメータ・12 Style・NonToon・トラブル対応）
+
+利用・開発:
+
 - [アバターに適用して確認する](docs/avatar-demo.md)
 - [テストの仕組みと動かし方](docs/testing.md)
-- [シェーダーを追加する](docs/adding-a-shader.md)
-- [モジュールを追加する](docs/adding-a-module.md)
+- [Core Shaderを追加する](docs/adding-a-shader.md)
+- [Shader拡張を追加する](docs/adding-a-module.md)
 - [配布のしくみとリリース手順](docs/distribution.md)
 
-パラメータの説明には図が付いています。図はすべて描画回帰テストのゴールデン画像
-（`tests/golden/`）で、出荷する数式をそのまま描いたものです。
+パラメータの説明には図が付いています。shaderの見た目は描画回帰テストのキャプチャ、UIと作業範囲は
+実装に対応する静的図として、いずれも `tests/golden/` で参照切れを検査します。
 
 ## 開発
 
 harness と tools は**コンテナか nix の中で動かします**。ホスト OS に
 Python やヘッドレス OpenGL を入れる必要はありません。環境差が
 ゴールデン画像の比較に出るため、実行環境を固定しています。
+`flake.nix` は `sabas0ba/dotfiles` の固定リビジョンを基準 toolchain とし、
+プロジェクト固有の Python と Mesa を追加しています。`Containerfile` は同じ
+dev shell を Nix profile として実体化します。
 
 ```bash
 # コンテナ（podman / docker）。Containerfile が基準環境で、CI も同じイメージを使う
