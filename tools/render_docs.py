@@ -30,7 +30,7 @@ import re
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Callable, Dict, List, Optional
+from typing import Callable, Dict, List, Optional, Tuple
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 DOCS_DIR = REPO_ROOT / "docs"
@@ -49,20 +49,44 @@ GITHUB_BLOB = "https://github.com/sabas0ba/vrc_sabashader/blob/main"
 FIGURE_DIR = REPO_ROOT / "tests" / "golden"
 SITE_FIGURE_DIR = "figures"
 
-# ナビと索引に出す順と表記。ファイル名順ではなく読む順に並べる。
+# ナビと索引に出す分類、順序、表記。Core Shader と Shader 拡張を
+# 操作方法の違いで分離し、導入・開発情報を補助分類へ置く。
 # docs/*.md と過不足がないことは tests/test_docs_site.py が検査する。
-PAGES: List[tuple] = [
-    ("shader-illust2d.md", "Illust2D"),
-    ("shader-debug.md", "Debug"),
-    ("modules.md", "モジュール"),
-    ("modules-advanced.md", "高度モジュール"),
-    ("transformation-bank.md", "衣装変身バンク"),
-    ("avatar-demo.md", "アバターで確認"),
-    ("testing.md", "テスト"),
-    ("adding-a-shader.md", "シェーダーを追加"),
-    ("adding-a-module.md", "モジュールを追加"),
-    ("distribution.md", "配布"),
+PAGE_GROUPS: List[Tuple[str, List[tuple[str, str]]]] = [
+    (
+        "Core Shader",
+        [
+            ("core-shaders.md", "一覧"),
+            ("shader-illust2d.md", "Illust2D"),
+            ("shader-debug.md", "Debug"),
+        ],
+    ),
+    (
+        "Shader拡張",
+        [
+            ("shader-extensions.md", "一覧"),
+            ("modules.md", "基本拡張"),
+            ("modules-advanced.md", "高度拡張"),
+            ("transformation-bank.md", "衣装変身バンク"),
+        ],
+    ),
+    (
+        "利用ガイド",
+        [
+            ("avatar-demo.md", "アバターで確認"),
+        ],
+    ),
+    (
+        "開発・配布",
+        [
+            ("testing.md", "テスト"),
+            ("adding-a-shader.md", "Core Shaderを追加"),
+            ("adding-a-module.md", "Shader拡張を追加"),
+            ("distribution.md", "配布"),
+        ],
+    ),
 ]
+PAGES: List[tuple[str, str]] = [page for _, pages in PAGE_GROUPS for page in pages]
 
 _FENCE = re.compile(r"^```([A-Za-z0-9_+-]*)\s*$")
 _HEADING = re.compile(r"^(#{1,6})\s+(.*)$")
@@ -391,7 +415,38 @@ def render_body(
 
 
 def render_nav(pages: List[tuple[str, str]], current: Optional[str]) -> str:
-    return site_theme.render_nav(pages, current)
+    return site_theme.render_grouped_nav(group_navigation(pages), current)
+
+
+def group_navigation(
+    pages: List[tuple[str, str]],
+) -> List[tuple[str, List[tuple[str, str]]]]:
+    """href のディレクトリ接頭辞に関係なく `PAGE_GROUPS` へ分類する。"""
+    declared_group = {
+        name[:-3] + ".html": group_label
+        for group_label, group_pages in PAGE_GROUPS
+        for name, _ in group_pages
+    }
+    grouped = {group_label: [] for group_label, _ in PAGE_GROUPS}
+    site_items: List[tuple[str, str]] = []
+
+    for href, label in pages:
+        canonical = href.rsplit("/", 1)[-1]
+        group_label = declared_group.get(canonical)
+        if group_label is None:
+            site_items.append((href, label))
+        else:
+            grouped[group_label].append((href, label))
+
+    result: List[tuple[str, List[tuple[str, str]]]] = []
+    if site_items:
+        result.append(("サイト", site_items))
+    result.extend(
+        (group_label, grouped[group_label])
+        for group_label, _ in PAGE_GROUPS
+        if grouped[group_label]
+    )
+    return result
 
 
 def render_page(title: str, body: str, nav: str, *, home_href: str = "../index.html") -> str:

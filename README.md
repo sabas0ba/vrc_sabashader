@@ -64,15 +64,25 @@ HLSL が実際にコンパイルできるかは
 
 並びと表記は [GitHub Pages のサイト](https://sabas0ba.github.io/vrc_sabashader/)と揃えてあります。
 
-- [Illust2D のパラメータ](docs/shader-illust2d.md)
-- [Debug shader](docs/shader-debug.md)
-- [モジュールのパラメータ](docs/modules.md)（表面の重ね掛け・ドット絵風・ビデオ入力・表示パネル・ブラウン管とグリッチ）
-- [高度シェーダーモジュール](docs/modules-advanced.md)（Decal・Surface Detail・Spatial Interior・Transition）
+Core Shader:
+
+- [Core Shader一覧](docs/core-shaders.md)（Illust2DとDebugの用途・使い方・主要パラメータ）
+- [Illust2D の全パラメータ](docs/shader-illust2d.md)
+- [Debug shaderの全表示モード](docs/shader-debug.md)
+
+Shader拡張:
+
+- [Shader拡張一覧](docs/shader-extensions.md)（全10項目のレンダリング例・使い方・主要パラメータ）
+- [基本拡張の全パラメータ](docs/modules.md)（Surface Overlay・Pixel Art・Video Input・Display Panel・CRT / Glitch）
+- [高度拡張の全パラメータ](docs/modules-advanced.md)（Decal・Surface Detail・Spatial Interior・Transition）
 - [衣装変身バンク](docs/transformation-bank.md)（Clip Generator UI・全パラメータ・12 Style・NonToon・トラブル対応）
+
+利用・開発:
+
 - [アバターに適用して確認する](docs/avatar-demo.md)
 - [テストの仕組みと動かし方](docs/testing.md)
-- [シェーダーを追加する](docs/adding-a-shader.md)
-- [モジュールを追加する](docs/adding-a-module.md)
+- [Core Shaderを追加する](docs/adding-a-shader.md)
+- [Shader拡張を追加する](docs/adding-a-module.md)
 - [配布のしくみとリリース手順](docs/distribution.md)
 
 パラメータの説明には図が付いています。shaderの見た目は描画回帰テストのキャプチャ、UIと作業範囲は
