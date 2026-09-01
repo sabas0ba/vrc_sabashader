@@ -68,6 +68,7 @@ HLSL が実際にコンパイルできるかは
 - [Debug shader](docs/shader-debug.md)
 - [モジュールのパラメータ](docs/modules.md)（表面の重ね掛け・ドット絵風・ビデオ入力・表示パネル・ブラウン管とグリッチ）
 - [高度シェーダーモジュール](docs/modules-advanced.md)（Decal・Surface Detail・Spatial Interior・Transition・Mochi Skin）
+- Package Manager sample: `Mochi Skin World Demo`（静止比較・Play Mode接触preview）
 - [アバターに適用して確認する](docs/avatar-demo.md)
 - [テストの仕組みと動かし方](docs/testing.md)
 - [シェーダーを追加する](docs/adding-a-shader.md)

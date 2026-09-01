@@ -118,6 +118,18 @@ Shader CoreのProject Settingsで対象shaderへ`Mochi Skin`を追加します�
 Debug shaderのUV0–UV3表示またはDCCのUV editorで、各Receiverを置く肌位置に対応するUVを
 確認します。UV islandが重なるmeshでは、同じUV範囲にある別部位も同時に変形します。
 
+### Worldデモ
+
+Package ManagerのSamplesから`Mochi Skin World Demo`をImportし、
+`MochiSkinWorldDemo.unity`を開きます。左側はPressure 0の基準、右側は4点へ異なるPressureを
+適用したsurfaceです。Play Modeでは4個のprobeとPressureを位相差付きで自動再生します。
+
+![Mochi Skinの無変形surfaceと4点接触surfaceを比較したUnityキャプチャ](../tests/golden/mochi_skin_world_demo.png)
+
+このsampleはVRCSDKに依存せず、Contact ReceiverのFloat出力だけを通常のMonoBehaviourで
+模擬します。表示用Componentはsample専用であり、アバターやアップロードするWorldへは
+追加しません。実利用時の接続は次節のFX Animator設定を使用します。
+
 ### Contact ReceiverとFX Animator
 
 接触点ごとに、肌表面へ追従するGameObjectと`VRC Contact Receiver`を1個用意します。

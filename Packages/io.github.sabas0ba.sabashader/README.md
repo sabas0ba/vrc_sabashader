@@ -47,6 +47,7 @@ Package Manager の Samples から `Debug Shader Demo` を Import すると、�
 を参照してください。Package Manager の Samples から `Advanced Shader Suite Demo` を
 Importすると、Mochi Skinを除く4機能の代表設定を同一シーンで確認できます。
 Spatial InteriorにはUniverse、Starfield、Cyber、Mudの4presetがあります。
+Mochi Skinは別sampleの`Mochi Skin World Demo`で、静止比較とPlay Modeの接触previewを確認できます。
 
 ## ライセンス
 
