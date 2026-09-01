@@ -1,0 +1,60 @@
+msgid ""
+msgstr ""
+"Language: ja-JP\n"
+
+msgid "__MochiSkin"
+msgstr "もち肌"
+
+msgid "__Amount"
+msgstr "強さ"
+
+msgid "__AmountDesc"
+msgstr "0で変形を無効化し、1で設定した深さと法線変化を適用します。"
+
+msgid "__UVChannel"
+msgstr "UV channel"
+
+msgid "__UVChannelDesc"
+msgstr "4つの接触点を配置するUV channelです。"
+
+msgid "__Depth"
+msgstr "凹みの深さ"
+
+msgid "__DepthDesc"
+msgstr "Pressureが1のときに内側へ動かす最大距離をworld単位で指定します。"
+
+msgid "__Bulge"
+msgstr "外周の盛り上がり"
+
+msgid "__BulgeDesc"
+msgstr "凹みの外周に作る柔らかい盛り上がりをDepthに対する比率で指定します。"
+
+msgid "__NormalStrength"
+msgstr "法線の強さ"
+
+msgid "__NormalStrengthDesc"
+msgstr "silhouetteを変えずにtangent-space法線の反応を増減します。"
+
+msgid "__Point0"
+msgstr "接触点0"
+
+msgid "__Point1"
+msgstr "接触点1"
+
+msgid "__Point2"
+msgstr "接触点2"
+
+msgid "__Point3"
+msgstr "接触点3"
+
+msgid "__Point"
+msgstr "中心XY / 半径ZW"
+
+msgid "__PointDesc"
+msgstr "XYにUV中心、ZWに楕円のUV半径を指定します。"
+
+msgid "__Pressure"
+msgstr "圧力"
+
+msgid "__PressureDesc"
+msgstr "0から1の接触圧です。Contact Receiverからこのmaterial propertyをanimationします。"

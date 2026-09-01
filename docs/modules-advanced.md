@@ -1,7 +1,7 @@
 # 高度シェーダーモジュール
 
-Decal、Surface Detail、Spatial Interior、Transition の用途、設定手順、制約をまとめます。
-4機能は `SabaShader/Illust2D` へ個別に追加でき、不要な機能は `Amount = 0` または
+Decal、Surface Detail、Spatial Interior、Transition、Mochi Skinの用途、設定手順、制約をまとめます。
+5機能は `SabaShader/Illust2D` へ個別に追加でき、不要な機能は `Amount = 0` または
 `Progress = 1` の安全な既定値で無効になります。
 
 > このページの図は Package 同梱の `Advanced Shader Suite Demo` を Unity
@@ -15,9 +15,10 @@ Shader Core の Project Settings で `SabaShader/Illust2D` に次のモジュー
 - Surface Detail
 - Spatial Interior
 - Transition
+- Mochi Skin
 
 Package Manager の `Samples` から `Advanced Shader Suite Demo` を Import し、
-`AdvancedShaderSuiteDemo.unity` を開くと代表設定を確認できます。
+`AdvancedShaderSuiteDemo.unity` を開くとMochi Skinを除く4機能の代表設定を確認できます。
 
 ![4モジュールの代表設定を同一シーンで比較したUnityキャプチャ](../tests/golden/advanced_shader_suite_demo.png)
 
@@ -90,6 +91,82 @@ roughnessのばらつき、微小反射へ分けて適用します。Skinは不�
 この機能は視差遮蔽や頂点変位を行わないため、シルエットは変化しません。
 UVの密度が部位ごとに違うモデルでは `Scale` の見え方も変わります。皮膚の
 subsurface scatteringや布の異方性BRDFは実装していません。
+
+## Mochi Skin
+
+VRChatのContact Receiverが出力する4つのFloatを、UV上の固定した4接触点の押し込み量へ
+変換します。中央を頂点法線の内側へ変位させ、周囲へ小さい盛り上がりを作り、同じ高さ場の
+UV勾配をtangent-space法線へ加えます。Shader Coreの`morph`と`base`を使用するため、
+`SabaShader/Illust2D`のほか、これらのphaseを持つ
+[NonToon](https://github.com/lilxyzw/NonToon)などのShader Core shaderへ追加できます。
+
+### Material設定
+
+Shader CoreのProject Settingsで対象shaderへ`Mochi Skin`を追加します。まず`Amount = 1`、
+各`Pressure = 1`として位置を確認し、設定後にPressureを0へ戻します。
+
+| プロパティ | 説明 |
+| --- | --- |
+| Amount | モジュール全体の適用率。既定値の0で変形しない |
+| UV Channel | 4点の配置に使うUV0–UV3 |
+| Depth | Pressureが1のときに頂点を内側へ動かす最大距離。world単位 |
+| Outer Bulge | 凹みの外周に作る盛り上がり。Depthに対する比率 |
+| Normal Strength | 高さ場から作る法線の強さ。頂点変位量は変えない |
+| Contact Point 0–3 | XYがUV中心、ZWが楕円のUV半径 |
+| Pressure 0–3 | Animatorから駆動する0–1の押し込み量 |
+
+Debug shaderのUV0–UV3表示またはDCCのUV editorで、各Receiverを置く肌位置に対応するUVを
+確認します。UV islandが重なるmeshでは、同じUV範囲にある別部位も同時に変形します。
+
+### Worldデモ
+
+Package ManagerのSamplesから`Mochi Skin World Demo`をImportし、
+`MochiSkinWorldDemo.unity`を開きます。左側はPressure 0の基準、右側は4点へ異なるPressureを
+適用したsurfaceです。Play Modeでは4個のprobeとPressureを位相差付きで自動再生します。
+
+![Mochi Skinの無変形surfaceと4点接触surfaceを比較したUnityキャプチャ](../tests/golden/mochi_skin_world_demo.png)
+
+このsampleはVRCSDKに依存せず、Contact ReceiverのFloat出力だけを通常のMonoBehaviourで
+模擬します。表示用Componentはsample専用であり、アバターやアップロードするWorldへは
+追加しません。実利用時の接続は次節のFX Animator設定を使用します。
+
+### Contact ReceiverとFX Animator
+
+接触点ごとに、肌表面へ追従するGameObjectと`VRC Contact Receiver`を1個用意します。
+例としてPoint 0は次のように対応付けます。
+
+1. ReceiverをHead bone配下の頬位置へ置き、ShapeをSphere、Receiver Typeを`Proximity`にする。
+2. Collision Tagsへ`Finger`と`Hand`を追加し、`Allow Others`を有効にする。自分の手にも反応させる場合だけ`Allow Self`を有効にする。
+3. ParameterをFloatの`Mochi/P0`にする。他の3点は`Mochi/P1`から`Mochi/P3`を使用する。
+4. FX Animatorへ同名のFloatを追加する。Contact用parameterはExpression Parametersへ追加しなくてもよい。
+5. 0と1のAnimation Clipを持つ1D Blend Treeを作り、`Mochi/P0`をBlend Parameterにする。Clipでは対象Rendererの次のmaterial propertyだけを記録する。
+
+```
+material._io_github_sabas0ba_mochiskin_Pressure0
+```
+
+Point 1–3では末尾を`Pressure1`–`Pressure3`へ変え、独立したFX layerで同様に駆動します。
+VRChatのProximityは接触位置そのものではなく、Receiver中心への近さを0–1で出力します。
+このため1個のReceiver内で凹み中心が指に追従する方式ではなく、4個の固定領域から最も近い
+領域を連続的に押す方式です。
+
+他アバターからの接触を各clientで評価させる場合は`Local Only`を無効にします。
+`Local Only`を有効にしたReceiverは装着者のlocal clientに限定されます。一方、無効なReceiverは
+avatar performance rankのContacts数へ算入されます。動作はVRChat側のAvatar Interactions設定と
+Safety設定によって無効化される場合があります。
+
+VRChatはhumanoid avatarの標準Hand／Finger Contact Senderを自動生成するため、組み込みの
+`Hand`、`Finger` tagを使うと他アバターとの互換性を確保できます。詳細はVRChat公式の
+[Contacts](https://creators.vrchat.com/common-components/contacts/)と
+[Built-In Contact Tags](https://creators.vrchat.com/common-components/contacts/built-in-contact-tags/)を参照してください。
+
+### 制約
+
+- 頂点変位は既存頂点だけを動かす。接触範囲内の頂点が少ないmeshでは、法線だけが変化してsilhouetteの凹みは粗くなる
+- 変位方向は各頂点の法線であり、体積保存、自己衝突、隣接頂点による弾性計算は行わない
+- 4点の範囲が重なる場合は高さと勾配を加算するため、最大変位はDepthを超える場合がある
+- UV seamをまたぐ1個の接触点は連続しない。seamの両側を別のPointとして設定する
+- Receiverはboneへ追従するが、blend shapeによる肌表面の移動には追従しないため、表情差が大きい場合はReceiver半径と位置を調整する
 
 ## Spatial Interior
 
@@ -178,13 +255,15 @@ floatを遷移条件またはBlend Parameterとして使用します。複数Ren
 ## 処理順と負荷
 
 Decalをアルベドへ合成し、Surface Detailでmicro normalとroughnessを変更してから
-Illust2Dのライティングを行います。Spatial Interiorはライティング後の色を置き換え、
-Transitionの発光縁とclipを最後に適用します。
+Mochi Skinの高さ場による法線を加え、Illust2Dのライティングを行います。
+Mochi Skinの頂点変位はこれらの表面処理より前の`morph`で適用します。
+Spatial Interiorはライティング後の色を置き換え、Transitionの発光縁とclipを最後に適用します。
 
 | モジュール | 主な負荷 | `Amount = 0`／無効状態 |
 | --- | --- | --- |
 | Decal | 画像1回のsample、Projectionの座標計算 | sampleを省略 |
 | Surface Detail | 高さ場の複数評価、任意のdetail texture sample | 計算とsampleを省略 |
+| Mochi Skin | 4点の楕円距離と高さ勾配、頂点変位 | `Amount = 0`で計算を省略 |
 | Spatial Interior | preset別の3D noise、star field、格子 | 計算を省略 |
 | Transition | object-space noise、clip、任意の頂点変位 | `Progress = 1` でclip境界と変位を省略 |
 
