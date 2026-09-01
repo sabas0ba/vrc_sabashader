@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from xml.etree import ElementTree
 
 from harness.paths import PACKAGE_DIR, REPO_ROOT
 
@@ -21,6 +22,11 @@ UNITY_TEST = (
     / "TransformationBankClipGeneratorTests.cs"
 )
 DOCUMENTATION = REPO_ROOT / "docs" / "transformation-bank.md"
+DIAGRAMS = (
+    REPO_ROOT / "tests" / "golden" / "transformation_bank_generator_ui.svg",
+    REPO_ROOT / "tests" / "golden" / "transformation_bank_progress_roles.svg",
+    REPO_ROOT / "tests" / "golden" / "transformation_bank_workflow.svg",
+)
 
 
 def test_package_contains_editor_only_clip_generator():
@@ -101,6 +107,31 @@ def test_clip_generator_is_documented_as_a_separate_integration_step():
     source = DOCUMENTATION.read_text(encoding="utf-8")
 
     assert "Transformation Bank Clip Generator" in source
+    assert "transformation_bank_generator_ui.svg" in source
+    assert "transformation_bank_workflow.svg" in source
+    assert "transformation_bank_progress_roles.svg" in source
+    assert "Style推奨値を適用" in source
+    assert "生成物と変更範囲" in source
+    assert "Material Inspectorパラメータ" in source
+    assert "目的別の調整例" in source
+    assert "よくある問題" in source
     assert "Animator Controller" in source
     assert "Particle System" in source
     assert "元Material" in source
+
+
+def test_documentation_diagrams_are_accessible_svg():
+    namespace = {"svg": "http://www.w3.org/2000/svg"}
+
+    for diagram in DIAGRAMS:
+        root = ElementTree.parse(diagram).getroot()
+        assert root.tag == "{http://www.w3.org/2000/svg}svg"
+        assert root.attrib["role"] == "img"
+        labelled_by = root.attrib["aria-labelledby"].split()
+        ids = {
+            element.attrib["id"]
+            for element in root.findall("svg:title", namespace) + root.findall("svg:desc", namespace)
+        }
+        assert set(labelled_by) <= ids
+        assert root.find("svg:title", namespace).text.strip()
+        assert root.find("svg:desc", namespace).text.strip()

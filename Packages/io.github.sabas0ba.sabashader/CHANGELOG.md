@@ -11,6 +11,7 @@
 - 共通Effect envelopeを端点で値と勾配が0になるbell curveへ変更し、変身開始・完了時の急な収束を抑制
 - Style固有のnoise・turbulence・頂点変位をRole別bell curveで減衰し、衣装表示区間の境界で生じる非連続を解消
 - Incoming／Outgoingの表示閾値を相補化し、Gaia・Flameの方向遷移とUmbra等のnoise遷移で空白領域を抑制
+- Clip Generator UI、生成・修復の変更範囲、全Material／Demoパラメータ、Style選択、トラブル対応を図付きで文書化
 
 ### Added
 

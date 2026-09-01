@@ -55,6 +55,9 @@ Illust2DとNonToonで使用できます。設定、12 Style、Particle補助演�
 `Transformation Bank Clip Generator` から、衣装A／BとStyleに対応する双方向Animation Clipを生成できます。
 非対応Materialがある場合は、利用可能な対応Shader／Materialを確認し、元Materialを変更せずに互換Materialを生成して
 対象Renderer Slotへ割り当てられます。
+Generator UIの各入力、Material修復の変更範囲、全Materialパラメータ、Style選択、目的別調整例、よくある問題は
+[衣装変身バンクの利用ガイド](https://github.com/sabas0ba/vrc_sabashader/blob/main/docs/transformation-bank.md)
+に図付きで記載しています。
 
 ## ライセンス
 

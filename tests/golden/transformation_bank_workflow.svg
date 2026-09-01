@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="650" viewBox="0 0 1440 650" role="img" aria-labelledby="title desc">
+  <title id="title">Transformation Bank生成ワークフロー</title>
+  <desc id="desc">衣装選択、Material互換性確認、修復、Clip生成、Avatar組み込みの順序と変更範囲を示す。</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0 0l10 5-10 5z" fill="#7f90a5"/>
+    </marker>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="6" stdDeviation="7" flood-color="#05080c" flood-opacity="0.45"/>
+    </filter>
+    <style>
+      text { font-family: "Segoe UI", "Noto Sans JP", sans-serif; fill: #eef3f8; }
+      .title { font-size: 27px; font-weight: 700; }
+      .node-title { font-size: 20px; font-weight: 700; }
+      .body { font-size: 16px; fill: #c7d1dc; }
+      .small { font-size: 14px; fill: #aeb9c7; }
+      .arrow { fill: none; stroke: #7f90a5; stroke-width: 3; marker-end: url(#arrow); }
+    </style>
+  </defs>
+
+  <rect width="1440" height="650" fill="#11161d"/>
+  <text x="60" y="58" class="title">選択から生成、Avatar組み込みまで</text>
+  <text x="60" y="88" class="small">Material修復は必要な場合だけ実行します。Clip生成とAvatar組み込みは別工程です。</text>
+
+  <g filter="url(#shadow)">
+    <rect x="55" y="150" width="220" height="145" rx="12" fill="#233444" stroke="#4f85a8" stroke-width="2"/>
+    <circle cx="88" cy="181" r="18" fill="#4fb6e9"/><text x="82" y="188" font-size="19" font-weight="700">1</text>
+    <text x="116" y="188" class="node-title">対象を選択</text>
+    <text x="76" y="225" class="body">Avatar Root</text>
+    <text x="76" y="249" class="body">衣装 A / 衣装 B</text>
+    <text x="76" y="273" class="body">Style / 時間 / 強度</text>
+
+    <rect x="345" y="150" width="240" height="145" rx="12" fill="#2d2942" stroke="#8d70c4" stroke-width="2"/>
+    <circle cx="378" cy="181" r="18" fill="#a478e8"/><text x="372" y="188" font-size="19" font-weight="700">2</text>
+    <text x="406" y="188" class="node-title">互換性を検査</text>
+    <text x="366" y="225" class="body">全Renderer / 全Slot</text>
+    <text x="366" y="249" class="body">必須Property 4種</text>
+    <text x="366" y="273" class="body">binding path重複</text>
+
+    <polygon points="700,145 815,222 700,299 585,222" fill="#3b3221" stroke="#d5a64f" stroke-width="2" filter="url(#shadow)"/>
+    <text x="647" y="215" class="node-title">対応済み?</text>
+    <text x="640" y="241" class="small">Shader / Material</text>
+
+    <rect x="875" y="105" width="265" height="185" rx="12" fill="#40282a" stroke="#cf6f76" stroke-width="2"/>
+    <circle cx="908" cy="137" r="18" fill="#ed7c7c"/><text x="902" y="144" font-size="19" font-weight="700">3</text>
+    <text x="936" y="144" class="node-title">必要なら修復</text>
+    <text x="896" y="181" class="body">A. 対応Shaderから複製</text>
+    <text x="896" y="205" class="body">B. 既存対応Materialを割当</text>
+    <text x="896" y="239" class="small">変更: 対象Renderer Slot</text>
+    <text x="896" y="263" class="small">維持: 元Materialアセット</text>
+
+    <rect x="875" y="350" width="265" height="190" rx="12" fill="#224033" stroke="#62b98a" stroke-width="2"/>
+    <circle cx="908" cy="382" r="18" fill="#6fcf97"/><text x="902" y="389" font-size="19" font-weight="700">4</text>
+    <text x="936" y="389" class="node-title">Clipを生成</text>
+    <text x="896" y="426" class="body">A→B / B→A Clip</text>
+    <text x="896" y="450" class="body">Incoming / Outgoing Material</text>
+    <text x="896" y="474" class="body">Generation Report</text>
+    <text x="896" y="511" class="small">SceneとControllerは未変更</text>
+
+    <rect x="1210" y="350" width="185" height="190" rx="12" fill="#25303b" stroke="#75879a" stroke-width="2"/>
+    <circle cx="1243" cy="382" r="18" fill="#8292a5"/><text x="1237" y="389" font-size="19" font-weight="700">5</text>
+    <text x="1271" y="389" class="node-title">別工程</text>
+    <text x="1231" y="426" class="body">FX Animator</text>
+    <text x="1231" y="450" class="body">Parameter</text>
+    <text x="1231" y="474" class="body">Particle同期</text>
+    <text x="1231" y="511" class="small">Avatarへ組み込み</text>
+  </g>
+
+  <path d="M275 222h70" class="arrow"/>
+  <path d="M585 222h-1" class="arrow"/>
+  <path d="M815 207h60" class="arrow"/>
+  <text x="829" y="191" class="small">No</text>
+  <path d="M1007 290v60" class="arrow"/>
+  <text x="1021" y="326" class="small">再検査</text>
+  <path d="M700 299v145h175" class="arrow"/>
+  <text x="716" y="328" class="small">Yes</text>
+  <path d="M1140 445h70" class="arrow"/>
+
+  <rect x="55" y="575" width="1340" height="42" rx="7" fill="#1d252e" stroke="#43505e"/>
+  <text x="75" y="602" class="body">安全境界: 自動生成は元Material、Scene、Animator Controllerを変更しません。明示的なMaterial割当だけがUndo対応でRenderer Slotを変更します。</text>
+</svg>

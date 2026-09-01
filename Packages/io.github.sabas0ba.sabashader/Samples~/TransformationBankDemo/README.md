@@ -47,6 +47,9 @@ Outgoing衣装はProgressが1になった最終frameで無効化します。Anim
 衣装のMaterialが非対応の場合、Generatorの `Material互換性` に対象Slotと利用可能な対応Shader／Materialが
 表示されます。元Materialを変更せずに互換Materialを生成して割り当てるか、既存の対応Materialを割り当てられます。
 明示的な割当操作は対象Renderer Slotだけを変更し、Undoに対応します。
+Generatorの全入力、生成物、Material Inspectorの範囲／既定値、Style別の調整箇所は
+[衣装変身バンクの利用ガイド](https://github.com/sabas0ba/vrc_sabashader/blob/main/docs/transformation-bank.md)
+を参照してください。
 
 Particle Systemは表面shaderを補助するsample設定です。Avatarへ組み込む場合はStyleに対応する
 Particle Systemを衣装rootへ移し、同じAnimation ClipでEmissionやGameObjectの有効状態を制御します。

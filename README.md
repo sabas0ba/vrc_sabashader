@@ -68,15 +68,15 @@ HLSL が実際にコンパイルできるかは
 - [Debug shader](docs/shader-debug.md)
 - [モジュールのパラメータ](docs/modules.md)（表面の重ね掛け・ドット絵風・ビデオ入力・表示パネル・ブラウン管とグリッチ）
 - [高度シェーダーモジュール](docs/modules-advanced.md)（Decal・Surface Detail・Spatial Interior・Transition）
-- [衣装変身バンク](docs/transformation-bank.md)（Animation Clip Generator・12 Style・NonToon）
+- [衣装変身バンク](docs/transformation-bank.md)（Clip Generator UI・全パラメータ・12 Style・NonToon・トラブル対応）
 - [アバターに適用して確認する](docs/avatar-demo.md)
 - [テストの仕組みと動かし方](docs/testing.md)
 - [シェーダーを追加する](docs/adding-a-shader.md)
 - [モジュールを追加する](docs/adding-a-module.md)
 - [配布のしくみとリリース手順](docs/distribution.md)
 
-パラメータの説明には図が付いています。図はすべて描画回帰テストのゴールデン画像
-（`tests/golden/`）で、出荷する数式をそのまま描いたものです。
+パラメータの説明には図が付いています。shaderの見た目は描画回帰テストのキャプチャ、UIと作業範囲は
+実装に対応する静的図として、いずれも `tests/golden/` で参照切れを検査します。
 
 ## 開発
 
