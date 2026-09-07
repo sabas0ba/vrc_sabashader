@@ -247,6 +247,32 @@ DEFAULT_TRANSITION: Dict[str, object] = {
 
 MODULE_STYLE_DEFAULTS["SBSTransitionStyle"] = DEFAULT_TRANSITION
 
+# TransformationBankCore.hlsl の SBSBankStyle。既定のIncoming / Progress 1は
+# 完全表示で、発光境界と頂点変位を発生させない。
+DEFAULT_TRANSFORMATION_BANK: Dict[str, object] = {
+    "progress": 1.0,
+    "visibilityProgress": 1.0,
+    "role": 0.0,
+    "style": 0.0,
+    "effectIntensity": 1.0,
+    "direction": (0.0, 1.0, 0.0),
+    "boundsMin": -1.0,
+    "boundsMax": 1.0,
+    "noiseScale": 8.0,
+    "noiseAmount": 0.35,
+    "edgeWidth": 0.07,
+    "edgeColor": (0.375, 2.0, 2.5),
+    "displacement": 0.12,
+    "blockScale": 8.0,
+    "patternColor": (0.2, 0.75, 1.0, 1.0),
+    "patternScale": 6.0,
+    "patternSpeed": 1.0,
+    "patternEmission": 2.0,
+    "time": 0.0,
+}
+
+MODULE_STYLE_DEFAULTS["SBSBankStyle"] = DEFAULT_TRANSFORMATION_BANK
+
 DEFAULT_OUTLINE: Dict[str, object] = {
     "color": (0.15, 0.10, 0.13),
     "hueShift": 0.02,

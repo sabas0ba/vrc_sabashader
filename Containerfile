@@ -1,55 +1,42 @@
-# harness と tools を動かすための環境。
-#
-# ホスト OS に Python やヘッドレス OpenGL を入れずに済ませるためのもので、
-# CI（ubuntu-24.04 ランナー）と同じ Ubuntu 24.04 のパッケージを使う。
-# ゴールデン画像は Mesa のバージョンに依存するので、ここを基準環境とする。
+# dotfiles のコンテナ構成を基準に、vrc_sabashader の開発シェルを実体化する。
+# 参照元: https://github.com/sabas0ba/dotfiles/tree/fc4cdecc02a6a95c81a259549d3fb9e7df18bb8f
 #
 #   podman build -t vrc-sabashader-dev -f Containerfile .
-#   podman run --rm -v "$PWD:/work:z" -w /work vrc-sabashader-dev python -m pytest tests -q
+#   podman run --rm -v "$PWD:/work:z" -w /work vrc-sabashader-dev
 #
-# ベースは digest で固定する。タグは動くため。
-FROM docker.io/library/ubuntu@sha256:1e0a86e57d247923571b75e0aaf48a1449cf8c543d51fb3e07a4a7d7bfa79316
+# flake.nix が dotfiles toolchain とプロジェクト固有依存の単一情報源である。
+# ビルド時に dev shell を profile として実体化するため、実行時の依存取得は不要。
 
-# apt がインストール中に対話を求めないようにする
-ARG DEBIAN_FRONTEND=noninteractive
+# dotfiles の Dockerfile と同じ Nix バージョンおよび digest に固定する。
+ARG NIX_VERSION=2.35.1
+ARG NIX_IMAGE_DIGEST=sha256:377d4887aca98f0dfa12971c1ea6d6a625a435d8b610d4c95a436843da6fbfd1
+FROM docker.io/nixos/nix:${NIX_VERSION}@${NIX_IMAGE_DIGEST}
 
-# ヘッドレス OpenGL 一式。GitHub Actions のランナーイメージには
-# 最初から入っているものがあるため tests.yml の apt は 4 つで足りているが、
-# 素の Ubuntu では libGL.so 側（libgl1 / libglx-mesa0 / libegl-mesa0）も要る。
-# ここで明示することで、CI が暗黙に頼っている前提を無くす。
-# git は構造チェックが Shader Core を shallow clone するのに使う。
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends \
-        ca-certificates \
-        git \
-        libegl-mesa0 \
-        libegl1 \
-        libgl1 \
-        libgl1-mesa-dri \
-        libgles2 \
-        libglvnd0 \
-        libglx-mesa0 \
-        python3 \
-        python3-pip \
-        python3-venv \
-        zip \
-    && rm -rf /var/lib/apt/lists/*
+# Podman/Docker の seccomp と Nix sandbox の競合を避ける設定も dotfiles に合わせる。
+RUN mkdir -p /etc/nix \
+    && printf '%s\n' \
+        'experimental-features = nix-command flakes' \
+        'sandbox = false' \
+        'filter-syscalls = false' \
+        'max-jobs = auto' \
+        'flake-registry = ' \
+        >> /etc/nix/nix.conf
 
-# Ubuntu 24.04 の Python は外部管理環境なので、venv を切って使う。
-ENV VIRTUAL_ENV=/opt/venv
-RUN python3 -m venv "$VIRTUAL_ENV"
-ENV PATH="$VIRTUAL_ENV/bin:$PATH"
-
-COPY tests/requirements.txt /tmp/requirements.txt
-RUN pip install --no-cache-dir --upgrade pip \
-    && pip install --no-cache-dir -r /tmp/requirements.txt \
-    && rm /tmp/requirements.txt
-
-# GPU の無い環境で llvmpipe を確実に使う。tests.yml と同じ設定。
-ENV LIBGL_ALWAYS_SOFTWARE=1 \
-    MESA_LOADER_DRIVER_OVERRIDE=llvmpipe \
+ENV SABASHADER_PROFILE=/nix/var/nix/profiles/vrc-sabashader-dev \
     PYTHONDONTWRITEBYTECODE=1
 
 WORKDIR /work
 
+# 環境定義だけを先に配置し、ソース変更時も Nix closure のレイヤを再利用する。
+COPY flake.nix flake.lock ./
+RUN nix develop --profile "$SABASHADER_PROFILE" --command true \
+    && nix flake archive --json > /dev/null \
+    && nix registry add nixpkgs \
+       "path:$(nix eval --raw --impure --expr '(builtins.getFlake "/work").inputs.nixpkgs.outPath')" \
+    && rm -rf /root/.cache/nix
+
+COPY tools/container-entrypoint.sh /usr/local/bin/vrc-sabashader-entrypoint.sh
+RUN chmod +x /usr/local/bin/vrc-sabashader-entrypoint.sh
+
+ENTRYPOINT ["/bin/sh", "/usr/local/bin/vrc-sabashader-entrypoint.sh"]
 CMD ["python", "-m", "pytest", "tests", "-q"]

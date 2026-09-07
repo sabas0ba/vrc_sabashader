@@ -4,6 +4,37 @@
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-09-02
+
+### Changed
+
+- 開発コンテナを固定 dotfiles/Nix dev shell を実体化する構成へ変更
+- Unity 検証プロジェクト生成時に旧版 sample を除去し、Podman bind mount 上の固定依存取得に対応
+- 共通Effect envelopeを端点で値と勾配が0になるbell curveへ変更し、変身開始・完了時の急な収束を抑制
+- Style固有のnoise・turbulence・頂点変位をRole別bell curveで減衰し、衣装表示区間の境界で生じる非連続を解消
+- Incoming／Outgoingの表示閾値を相補化し、Gaia・Flameの方向遷移とUmbra等のnoise遷移で空白領域を抑制
+- Clip Generator UI、生成・修復の変更範囲、全Material／Demoパラメータ、Style選択、トラブル対応を図付きで文書化
+
+### Added
+
+- 衣装変身バンクモジュール（`io.github.sabas0ba.transformationbank`）
+  - 旧衣装と新衣装を1本の`Progress`で制御
+  - Arcane、Cyber、Astral、Gaia、Umbra、Flame、Shatter、Glitch、Melt、Cosmic Rift、Magical Sparkle、Mana Mistの12 style
+  - 頂点変位と発光を一括調整する`Effect Intensity`
+  - Illust2DとNonToon 0.1.3のUnityコンパイル検証
+  - 既定タイミングでOutgoingとIncomingの表示率の和を維持
+- 12 Style、Capsule／CylinderのRole形状、Progressへ同期する2系統の専用mesh Particleを可視化するUPM sample `Transformation Bank Demo`
+  - MeltのOutgoingを液体状に波打たせ、液滴と水玉へ分離して消去
+  - 火の粉、Triangle／Quad破片、pixel片、星片、液滴、霧のStyle別Particle silhouette
+  - MeltのIncomingへOutgoingの融解を時間反転した液体復元を適用
+  - Astral／GaiaのParticle停止、Umbraの霧粒化、Flameの火の粉主体への調整
+- 衣装A／B、VFX Style、遷移時間から双方向Animation Clipと非破壊Material複製を生成する `Transformation Bank Clip Generator`
+  - 遷移中は両衣装を有効にし、Outgoingを完全にclipした最終frameで無効化
+  - 元Material、Scene、Animator Controllerを変更せず、一意なFolderへ生成
+  - 生成条件とAsset参照を保持する `TransformationBankGenerationReport.asset`
+  - 非対応Slot、不足Property、利用可能な対応Shader／Project MaterialをEditor上に表示
+  - 元Materialを維持した互換Material生成と、Undo対応のRenderer Slot割当
+
 ## [0.5.0] - 2026-08-29
 
 ### Added

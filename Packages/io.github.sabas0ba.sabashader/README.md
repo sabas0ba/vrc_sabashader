@@ -47,6 +47,18 @@ Package Manager の Samples から `Debug Shader Demo` を Import すると、�
 Importすると、4機能の代表設定を同一シーンで確認できます。
 Spatial InteriorにはUniverse、Starfield、Cyber、Mudの4presetがあります。
 
+旧衣装と新衣装を1本のAnimation Controllerでつなぐ「Transformation Bank」も同梱しています。
+Illust2DとNonToonで使用できます。設定、12 Style、Particle補助演出は
+[docs/transformation-bank.md](https://github.com/sabas0ba/vrc_sabashader/blob/main/docs/transformation-bank.md)
+を参照してください。Package ManagerのSamplesから `Transformation Bank Demo` をImportすると、
+12 Styleの同期再生、Roleごとの異なる形状、Particle Systemを確認できます。Unity Editorの
+`Transformation Bank Clip Generator` から、衣装A／BとStyleに対応する双方向Animation Clipを生成できます。
+非対応Materialがある場合は、利用可能な対応Shader／Materialを確認し、元Materialを変更せずに互換Materialを生成して
+対象Renderer Slotへ割り当てられます。
+Generator UIの各入力、Material修復の変更範囲、全Materialパラメータ、Style選択、目的別調整例、よくある問題は
+[衣装変身バンクの利用ガイド](https://github.com/sabas0ba/vrc_sabashader/blob/main/docs/transformation-bank.md)
+に図付きで記載しています。
+
 ## ライセンス
 
 MIT License。詳細は [LICENSE.md](LICENSE.md) を参照してください。

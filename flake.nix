@@ -2,55 +2,63 @@
   description = "vrc_sabashader の harness と tools を動かす環境";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.11";
+    # 開発環境の基準。リビジョンは明示的に固定し、更新時は Containerfile の
+    # 参照元コメントと flake.lock も同じ変更に含める。
+    dotfiles.url = "github:sabas0ba/dotfiles/fc4cdecc02a6a95c81a259549d3fb9e7df18bb8f";
+    nixpkgs.follows = "dotfiles/nixpkgs";
   };
 
   outputs =
-    { self, nixpkgs }:
+    {
+      self,
+      dotfiles,
+      nixpkgs,
+    }:
     let
-      # ヘッドレス OpenGL を使うので Linux のみ。
-      # macOS は Containerfile 側を使う。
       systems = [
         "x86_64-linux"
         "aarch64-linux"
       ];
-      forAllSystems = f: nixpkgs.lib.genAttrs systems (system: f nixpkgs.legacyPackages.${system});
+      forAllSystems = f: nixpkgs.lib.genAttrs systems (system: f system nixpkgs.legacyPackages.${system});
     in
     {
-      devShells = forAllSystems (pkgs: {
-        default = pkgs.mkShell {
-          packages = [
-            (pkgs.python311.withPackages (
-              ps: with ps; [
-                moderngl
-                numpy
-                pillow
-                pytest
-              ]
-            ))
-            pkgs.git
-            pkgs.zip
-          ];
+      devShells = forAllSystems (
+        system: pkgs: {
+          default = pkgs.mkShellNoCC {
+            packages = [
+              # dotfiles の基本ツール群をそのまま含める。
+              dotfiles.packages.${system}.default
+              (pkgs.python3.withPackages (
+                ps: with ps; [
+                  moderngl
+                  numpy
+                  pillow
+                  pytest
+                ]
+              ))
+              pkgs.zip
+            ];
 
-          # GPU の無い環境で llvmpipe を確実に使う。Containerfile と同じ設定。
-          LIBGL_ALWAYS_SOFTWARE = "1";
-          MESA_LOADER_DRIVER_OVERRIDE = "llvmpipe";
+            env = {
+              DOTFILES_ENV = "nix-develop";
+              LIBGL_ALWAYS_SOFTWARE = "1";
+              MESA_LOADER_DRIVER_OVERRIDE = "llvmpipe";
+              PYTHONDONTWRITEBYTECODE = "1";
+            };
 
-          # nixpkgs の Mesa は FHS のパスに置かれないので、ドライバと
-          # EGL のベンダ定義の場所を明示する。DRI ドライバと
-          # 50_mesa.json は out ではなく drivers output にある。
-          shellHook = ''
-            export LD_LIBRARY_PATH=${
-              pkgs.lib.makeLibraryPath [
-                pkgs.libglvnd
-                pkgs.mesa
-                pkgs.mesa.drivers
-              ]
-            }''${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}
-            export LIBGL_DRIVERS_PATH=${pkgs.mesa.drivers}/lib/dri
-            export __EGL_VENDOR_LIBRARY_FILENAMES=${pkgs.mesa.drivers}/share/glvnd/egl_vendor.d/50_mesa.json
-          '';
-        };
-      });
+            # nixpkgs の Mesa は FHS パス外にあるため、llvmpipe と EGL の場所を示す。
+            shellHook = ''
+              export LD_LIBRARY_PATH=${
+                pkgs.lib.makeLibraryPath [
+                  pkgs.libglvnd
+                  pkgs.mesa
+                ]
+              }''${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}
+              export LIBGL_DRIVERS_PATH=${pkgs.mesa}/lib/dri
+              export __EGL_VENDOR_LIBRARY_FILENAMES=${pkgs.mesa}/share/glvnd/egl_vendor.d/50_mesa.json
+            '';
+          };
+        }
+      );
     };
 }
