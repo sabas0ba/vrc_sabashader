@@ -47,19 +47,26 @@ def test_world_demo_contains_scene_component_editor_and_readme():
         (SAMPLE_DIR / "MochiSkinWorldDemoObject.cs").relative_to(PACKAGE_DIR).as_posix()
     )
     assert scene.count(f"guid: {component_guid}") == 2
-    assert "Contact Driven Surface" in scene
+    assert "Dry Skin Surface" in scene
+    assert "Glossy Skin Surface" in scene
     assert scene.count("  pressure0: ") == 2
 
 
 def test_world_demo_uses_transient_dense_mesh_and_mochi_properties():
     source = (SAMPLE_DIR / "MochiSkinWorldDemoObject.cs").read_text(encoding="utf-8")
 
-    assert 'ShaderName = "SabaShader/Illust2D"' in source
+    assert 'PreferredShaderName = "NonToon"' in source
+    assert 'FallbackShaderName = "SabaShader/Illust2D"' in source
     assert 'MochiSkin = "_io_github_sabas0ba_mochiskin_"' in source
-    assert "HorizontalSegments = 64" in source
-    assert "VerticalSegments = 48" in source
+    assert "HorizontalSegments = 72" in source
+    assert "VerticalSegments = 54" in source
     assert "HideFlags.HideAndDontSave" in source
     assert "SetFloat(MochiSkin + \"Pressure\" + index" in source
+    assert "SetVector(MochiSkin + \"Shape\" + index" in source
+    assert "proximity < contactThreshold" in source
+    assert "PrimitiveType.Cylinder" in source
+    assert "PrimitiveType.Cube" in source
+    assert "PrimitiveType.Capsule" in source
     assert "Application.isPlaying" in source
     assert '[AddComponentMenu("")]' in source
 
@@ -72,6 +79,9 @@ def test_world_demo_is_marked_sample_only_and_explains_vrc_boundary():
 
     assert "SAMPLE ONLY / サンプル専用" in editor
     assert "Auto Animate in Play Mode" in editor
+    assert "Contact Threshold" in editor
+    assert "Edge Softness" in editor
+    assert "Contour Irregularity" in editor
     assert "Rebuild Demo Preview" in editor
     assert "VRCSDKに依存せず" in readme
     assert "アップロードするWorldへ追加しない" in readme
@@ -83,11 +93,22 @@ def test_world_demo_builder_has_stable_scene_and_capture_mapping():
 
     assert "PackageInfo.FindForAssetPath" in source
     assert 'MochiSkinWorldDemo.unity"' in source
-    assert '"Rest Surface"' in source
-    assert '"Contact Driven Surface"' in source
-    assert "CreateProbe(patch.transform, index)" in source
+    assert '"Dry Skin Surface"' in source
+    assert '"Glossy Skin Surface"' in source
+    assert 'NonToonPath = "Packages/jp.lilxyzw.nontoon/Shaders/NonToon.scshader"' in source
+    assert "CreateProbe(componentType, patch.transform, index)" in source
     assert '"mochi_skin_world_demo.png"' in source
     assert "1920," in source and "1080);" in source
+
+
+def test_world_demo_pins_nontoon_for_unity_review_only():
+    setup = (REPO_ROOT / "tools" / "setup_unity_project.py").read_text(encoding="utf-8")
+
+    assert 'NONTOON_URL = "https://github.com/lilxyzw/NonToon.git"' in setup
+    assert 'NONTOON_COMMIT = "130bea3e6be5183b4fceb60df0062d38ef98067c"' in setup
+    assert 'clone_nontoon(packages / "jp.lilxyzw.nontoon")' in setup
+    assert '"jp.lilxyzw.nontoon.shade"' in setup
+    assert '"jp.lilxyzw.nontoon.specular"' in setup
 
 
 def test_world_demo_capture_is_documented_and_has_expected_size():

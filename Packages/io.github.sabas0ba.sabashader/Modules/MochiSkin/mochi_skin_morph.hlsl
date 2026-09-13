@@ -13,9 +13,19 @@
             _Point1,
             _Point2,
             _Point3,
+            _Shape0,
+            _Shape1,
+            _Shape2,
+            _Shape3,
             mochiPressure,
             _Depth,
-            _Bulge);
+            _Bulge,
+            _IndentSpread,
+            _EdgeSoftness,
+            _Irregularity,
+            _IrregularityScale,
+            _ContactThreshold,
+            _ContactSoftness);
         vertex.position += normalize(vertex.N) * mochiHeight * saturate(_Amount);
     }
 }

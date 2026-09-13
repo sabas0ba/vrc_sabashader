@@ -13,9 +13,19 @@
             _Point1,
             _Point2,
             _Point3,
+            _Shape0,
+            _Shape1,
+            _Shape2,
+            _Shape3,
             mochiPressure,
             _Depth,
-            _Bulge);
+            _Bulge,
+            _IndentSpread,
+            _EdgeSoftness,
+            _Irregularity,
+            _IrregularityScale,
+            _ContactThreshold,
+            _ContactSoftness);
         half mochiNormalAmount = saturate(_Amount) * _NormalStrength;
         sd.N = SBSMochiApplyNormal(sd.N, mochiGradient, mochiNormalAmount);
         sd.N_detail = SBSMochiApplyNormal(sd.N_detail, mochiGradient, mochiNormalAmount);

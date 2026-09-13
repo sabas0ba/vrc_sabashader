@@ -406,7 +406,16 @@ def test_mochi_skin_exposes_four_independent_pressures():
     declared = {property.original_name for property in module.properties}
 
     assert {f"_Point{i}" for i in range(4)} <= declared
+    assert {f"_Shape{i}" for i in range(4)} <= declared
     assert {f"_Pressure{i}" for i in range(4)} <= declared
+    assert {
+        "_IndentSpread",
+        "_EdgeSoftness",
+        "_Irregularity",
+        "_IrregularityScale",
+        "_ContactThreshold",
+        "_ContactSoftness",
+    } <= declared
     assert {phase.phase for phase in module.phases} == {"morph", "base"}
 
 
@@ -417,6 +426,8 @@ def test_mochi_skin_uses_one_height_field_for_geometry_and_normals():
     base = (module_dir / "mochi_skin_base.hlsl").read_text(encoding="utf-8")
 
     assert "SBSMochiProfile" in core
+    assert "SBSMochiActivatedPressure" in core
+    assert "SBSMochiShapeRadius" in core
     assert "SBSMochiHeight4" in morph
     assert "SBSMochiGradient4" in base
     assert "sd.N = SBSMochiApplyNormal" in base

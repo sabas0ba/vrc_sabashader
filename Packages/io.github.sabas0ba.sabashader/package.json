@@ -34,7 +34,7 @@
     },
     {
       "displayName": "Mochi Skin World Demo",
-      "description": "4点の接触圧によるMochi Skinの変形をWorld展示形式で確認します。",
+      "description": "NonToonの2種類の肌へ、球・円柱・板・capsuleを接触させるMochi Skinの変形を確認します。",
       "path": "Samples~/MochiSkinWorldDemo"
     }
   ],

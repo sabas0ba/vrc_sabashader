@@ -29,6 +29,42 @@ msgstr "Outer Bulge"
 msgid "__BulgeDesc"
 msgstr "Height of the soft raised ring around each depression relative to Depth."
 
+msgid "__IndentSpread"
+msgstr "Indent Spread"
+
+msgid "__IndentSpreadDesc"
+msgstr "Fraction of the contact footprint used by the central depression. Lower values leave a wider cushion rim."
+
+msgid "__EdgeSoftness"
+msgstr "Edge Softness"
+
+msgid "__EdgeSoftnessDesc"
+msgstr "Widens the transition from the depression through the rim to the unaffected surface."
+
+msgid "__Irregularity"
+msgstr "Contour Irregularity"
+
+msgid "__IrregularityDesc"
+msgstr "Applies a low-frequency distortion to avoid a perfectly regular concentric contour."
+
+msgid "__IrregularityScale"
+msgstr "Irregularity Scale"
+
+msgid "__IrregularityScaleDesc"
+msgstr "Frequency of the low-frequency contour distortion."
+
+msgid "__ContactThreshold"
+msgstr "Contact Threshold"
+
+msgid "__ContactThresholdDesc"
+msgstr "Ignores Proximity below this value so deformation begins at physical contact instead of at receiver range entry."
+
+msgid "__ContactSoftness"
+msgstr "Contact Softness"
+
+msgid "__ContactSoftnessDesc"
+msgstr "Controls the response curve from Contact Threshold to maximum pressure. One gives a smooth response at both ends."
+
 msgid "__NormalStrength"
 msgstr "Normal Strength"
 
@@ -51,10 +87,16 @@ msgid "__Point"
 msgstr "Center XY / Radius ZW"
 
 msgid "__PointDesc"
-msgstr "UV center in XY and elliptical UV radius in ZW."
+msgstr "UV center in XY and contact footprint radius in ZW."
+
+msgid "__Shape"
+msgstr "Angle / Shape Exponent / Seed / Reserved"
+
+msgid "__ShapeDesc"
+msgstr "X is the UV angle. Y is the shape exponent: 2 is elliptical and higher values approach a rounded plate. Z is the contour seed."
 
 msgid "__Pressure"
 msgstr "Pressure"
 
 msgid "__PressureDesc"
-msgstr "Contact pressure from 0 to 1. Animate this material property from a Contact Receiver."
+msgstr "Proximity from 0 to 1. Animate this material property from a Contact Receiver; values below Contact Threshold do not deform."

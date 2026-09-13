@@ -111,9 +111,15 @@ Shader CoreのProject Settingsで対象shaderへ`Mochi Skin`を追加します�
 | UV Channel | 4点の配置に使うUV0–UV3 |
 | Depth | Pressureが1のときに頂点を内側へ動かす最大距離。world単位 |
 | Outer Bulge | 凹みの外周に作る盛り上がり。Depthに対する比率 |
+| Indent Spread | 接触footprintのうち中央の凹みに使う範囲 |
+| Edge Softness | 凹み、外周、無変位領域の間を補間する幅 |
+| Contour Irregularity / Irregularity Scale | 規則的な輪郭を崩す量と低周波の密度 |
+| Contact Threshold | Proximityを変形へ反映し始める値。接触前の反応を除く |
+| Contact Softness | thresholdから最大圧力までの立ち上がり曲線 |
 | Normal Strength | 高さ場から作る法線の強さ。頂点変位量は変えない |
-| Contact Point 0–3 | XYがUV中心、ZWが楕円のUV半径 |
-| Pressure 0–3 | Animatorから駆動する0–1の押し込み量 |
+| Contact Point 0–3 | XYがUV中心、ZWが接触footprintのUV半径 |
+| Contact Shape 0–3 | XがUV上の角度、Yが形状指数、Zが輪郭のseed。2は楕円、大きい値は角丸矩形 |
+| Pressure 0–3 | Animatorから駆動する0–1のProximity |
 
 Debug shaderのUV0–UV3表示またはDCCのUV editorで、各Receiverを置く肌位置に対応するUVを
 確認します。UV islandが重なるmeshでは、同じUV範囲にある別部位も同時に変形します。
@@ -121,14 +127,18 @@ Debug shaderのUV0–UV3表示またはDCCのUV editorで、各Receiverを置く
 ### Worldデモ
 
 Package ManagerのSamplesから`Mochi Skin World Demo`をImportし、
-`MochiSkinWorldDemo.unity`を開きます。左側はPressure 0の基準、右側は4点へ異なるPressureを
-適用したsurfaceです。Play Modeでは4個のprobeとPressureを位相差付きで自動再生します。
+`MochiSkinWorldDemo.unity`を開きます。NonToonをbaseにした高roughnessのさらさら肌と、
+低roughnessのてかり肌を並べています。各surfaceでは球、円柱、板、capsuleを異なる向きで
+接触させ、円、細長い形、角丸矩形のfootprintを比較できます。Play Modeではprobeの接近、
+接触、penetrationを位相差付きで自動再生します。
 
-![Mochi Skinの無変形surfaceと4点接触surfaceを比較したUnityキャプチャ](../tests/golden/mochi_skin_world_demo.png)
+![NonToonのさらさら肌とてかり肌に4形状を接触させたUnityキャプチャ](../tests/golden/mochi_skin_world_demo.png)
 
 このsampleはVRCSDKに依存せず、Contact ReceiverのFloat出力だけを通常のMonoBehaviourで
-模擬します。表示用Componentはsample専用であり、アバターやアップロードするWorldへは
-追加しません。実利用時の接続は次節のFX Animator設定を使用します。
+模擬します。`Contact Threshold`まではprobeだけが接近してsurfaceを変形せず、thresholdで
+probe表面がsurfaceへ到達します。それ以上のProximityだけがpenetrationと凹みになります。
+表示用Componentはsample専用であり、アバターやアップロードするWorldへは追加しません。
+実利用時の接続は次節のFX Animator設定を使用します。
 
 ### Contact ReceiverとFX Animator
 
@@ -148,7 +158,9 @@ material._io_github_sabas0ba_mochiskin_Pressure0
 Point 1–3では末尾を`Pressure1`–`Pressure3`へ変え、独立したFX layerで同様に駆動します。
 VRChatのProximityは接触位置そのものではなく、Receiver中心への近さを0–1で出力します。
 このため1個のReceiver内で凹み中心が指に追従する方式ではなく、4個の固定領域から最も近い
-領域を連続的に押す方式です。
+領域を連続的に押す方式です。Receiverの外周へsenderが入った時点からProximityは増えるため、
+未調整では物理的な接触前に凹み始めます。`Contact Threshold`をsenderが肌へ到達する時点の値へ
+合わせ、`Contact Softness`で接触後の立ち上がりを調整します。
 
 他アバターからの接触を各clientで評価させる場合は`Local Only`を無効にします。
 `Local Only`を有効にしたReceiverは装着者のlocal clientに限定されます。一方、無効なReceiverは
@@ -263,7 +275,7 @@ Spatial Interiorはライティング後の色を置き換え、Transitionの発
 | --- | --- | --- |
 | Decal | 画像1回のsample、Projectionの座標計算 | sampleを省略 |
 | Surface Detail | 高さ場の複数評価、任意のdetail texture sample | 計算とsampleを省略 |
-| Mochi Skin | 4点の楕円距離と高さ勾配、頂点変位 | `Amount = 0`で計算を省略 |
+| Mochi Skin | 4点の回転superellipse高さ場、central difference勾配、頂点変位 | `Amount = 0`で計算を省略 |
 | Spatial Interior | preset別の3D noise、star field、格子 | 計算を省略 |
 | Transition | object-space noise、clip、任意の頂点変位 | `Progress = 1` でclip境界と変位を省略 |
 

@@ -12,6 +12,8 @@ namespace SabaShader.CI
     /// <summary>Mochi SkinをVRCSDKなしで確認するWorld展示形式のUPM sampleを生成する。</summary>
     public static class MochiSkinWorldDemoBuilder
     {
+        const string NonToonPath = "Packages/jp.lilxyzw.nontoon/Shaders/NonToon.scshader";
+
         public static string SampleDirectory
         {
             get
@@ -78,7 +80,6 @@ namespace SabaShader.CI
             }
 
             Build();
-            EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
             var camera = UnityEngine.Object.FindObjectOfType<Camera>();
             if (camera == null)
             {
@@ -95,10 +96,10 @@ namespace SabaShader.CI
 
         public static void Build()
         {
-            var shader = ShaderCompileChecker.ImportAndLoad(ShaderCompileChecker.Illust2DPath);
+            var shader = ShaderCompileChecker.ImportAndLoad(NonToonPath);
             if (shader == null)
             {
-                throw new InvalidOperationException("SabaShader/Illust2D をインポートできませんでした。");
+                throw new InvalidOperationException("NonToon をインポートできませんでした。");
             }
 
             var componentType = FindDemoComponentType();
@@ -139,81 +140,85 @@ namespace SabaShader.CI
             CreateText(
                 root.transform,
                 "Title",
-                "SabaShader / Mochi Skin World Demo",
+                "MOCHI SKIN / NONTOON",
                 new Vector3(0.0f, 1.75f, -0.45f),
                 0.075f,
                 58,
                 Color.white);
 
-            CreatePatch(root.transform, componentType, "Rest Surface", new Vector3(-1.12f, 0.25f, 0.0f), false);
-            CreatePatch(root.transform, componentType, "Contact Driven Surface", new Vector3(1.12f, 0.25f, 0.0f), true);
+            CreatePatch(root.transform, componentType, "Dry Skin Surface", new Vector3(-1.10f, 0.28f, 0.0f), 0);
+            CreatePatch(root.transform, componentType, "Glossy Skin Surface", new Vector3(1.10f, 0.28f, 0.0f), 1);
             CreateText(
                 root.transform,
-                "Rest Label",
-                "REST / Pressure = 0",
-                new Vector3(-1.12f, -0.68f, -0.45f),
+                "Dry Skin Label",
+                "DRY SKIN\nROUGHNESS 0.78",
+                new Vector3(-1.10f, -0.65f, -0.45f),
                 0.036f,
                 44,
-                new Color(0.82f, 0.85f, 0.91f, 1.0f));
+                new Color(0.94f, 0.78f, 0.70f, 1.0f));
             CreateText(
                 root.transform,
-                "Contact Label",
-                "4 CONTACT RECEIVERS",
-                new Vector3(1.12f, -0.68f, -0.45f),
+                "Glossy Skin Label",
+                "GLOSSY SKIN\nROUGHNESS 0.13",
+                new Vector3(1.10f, -0.65f, -0.45f),
                 0.036f,
                 44,
-                new Color(1.0f, 0.79f, 0.72f, 1.0f));
+                new Color(1.0f, 0.70f, 0.65f, 1.0f));
+            CreateText(
+                root.transform,
+                "Probe Shapes",
+                "SPHERE  /  CYLINDER  /  PLATE  /  CAPSULE    -    ROTATED CONTACT FOOTPRINTS",
+                new Vector3(0.0f, -0.98f, -0.45f),
+                0.030f,
+                38,
+                new Color(0.72f, 0.78f, 0.89f, 1.0f));
             CreateText(
                 root.transform,
                 "Instructions",
-                "Enter Play Mode to animate proximity pressure  /  Select the right surface to edit Pressure 0-3",
-                new Vector3(0.0f, -1.25f, -0.45f),
-                0.038f,
+                "PLAY: approach -> touch -> penetration    /    DEFORMATION STARTS AT PHYSICAL CONTACT",
+                new Vector3(0.0f, -1.26f, -0.45f),
+                0.034f,
                 38,
                 new Color(0.68f, 0.72f, 0.82f, 1.0f));
         }
 
-        static void CreatePatch(Transform parent, Type componentType, string name, Vector3 position, bool contactDriven)
+        static void CreatePatch(Transform parent, Type componentType, string name, Vector3 position, int skinFinish)
         {
             var patch = new GameObject(name, typeof(MeshFilter), typeof(MeshRenderer));
             patch.transform.SetParent(parent, false);
             patch.transform.localPosition = position;
-            patch.transform.localRotation = Quaternion.Euler(-4.0f, contactDriven ? 13.0f : -13.0f, 0.0f);
+            patch.transform.localRotation = Quaternion.Euler(-8.0f, skinFinish == 0 ? -18.0f : 18.0f, 0.0f);
 
             var component = patch.AddComponent(componentType);
             var serialized = new SerializedObject(component);
-            serialized.FindProperty("pressure0").floatValue = contactDriven ? 0.95f : 0.0f;
-            serialized.FindProperty("pressure1").floatValue = contactDriven ? 0.68f : 0.0f;
-            serialized.FindProperty("pressure2").floatValue = contactDriven ? 0.42f : 0.0f;
-            serialized.FindProperty("pressure3").floatValue = contactDriven ? 0.82f : 0.0f;
-            serialized.FindProperty("animateInPlayMode").boolValue = contactDriven;
+            serialized.FindProperty("skinFinish").enumValueIndex = skinFinish;
+            serialized.FindProperty("pressure0").floatValue = skinFinish == 0 ? 0.96f : 0.90f;
+            serialized.FindProperty("pressure1").floatValue = skinFinish == 0 ? 0.88f : 0.98f;
+            serialized.FindProperty("pressure2").floatValue = skinFinish == 0 ? 0.93f : 0.86f;
+            serialized.FindProperty("pressure3").floatValue = skinFinish == 0 ? 0.99f : 0.94f;
+            serialized.FindProperty("animateInPlayMode").boolValue = true;
 
-            if (contactDriven)
+            for (var index = 0; index < 4; index++)
             {
-                for (var index = 0; index < 4; index++)
-                {
-                    var probe = CreateProbe(patch.transform, index);
-                    serialized.FindProperty("probe" + index).objectReferenceValue = probe.transform;
-                }
+                var probe = CreateProbe(componentType, patch.transform, index);
+                serialized.FindProperty("probe" + index).objectReferenceValue = probe.transform;
             }
 
             serialized.ApplyModifiedPropertiesWithoutUndo();
             componentType.GetMethod("Apply", BindingFlags.Instance | BindingFlags.Public)?.Invoke(component, null);
         }
 
-        static GameObject CreateProbe(Transform parent, int index)
+        static GameObject CreateProbe(Type componentType, Transform parent, int index)
         {
-            var probe = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            probe.name = "Contact Probe " + index;
-            probe.transform.SetParent(parent, false);
-            probe.transform.localScale = Vector3.one * 0.13f;
-            var collider = probe.GetComponent<Collider>();
-            if (collider != null)
+            var method = componentType.GetMethod(
+                "CreateProbePreview",
+                BindingFlags.Static | BindingFlags.Public);
+            if (method == null)
             {
-                UnityEngine.Object.DestroyImmediate(collider);
+                throw new MissingMethodException(componentType.FullName, "CreateProbePreview");
             }
 
-            return probe;
+            return (GameObject)method.Invoke(null, new object[] { parent, index });
         }
 
         static void CreateCamera(Transform parent)
@@ -224,7 +229,7 @@ namespace SabaShader.CI
             cameraObject.transform.localPosition = new Vector3(0.0f, 0.15f, -6.0f);
             var camera = cameraObject.AddComponent<Camera>();
             camera.orthographic = true;
-            camera.orthographicSize = 2.15f;
+            camera.orthographicSize = 2.20f;
             camera.clearFlags = CameraClearFlags.SolidColor;
             camera.backgroundColor = new Color(0.012f, 0.016f, 0.027f, 1.0f);
             camera.nearClipPlane = 0.1f;
@@ -265,12 +270,16 @@ namespace SabaShader.CI
             textObject.transform.SetParent(parent, false);
             textObject.transform.localPosition = position;
             var textMesh = textObject.AddComponent<TextMesh>();
+            var font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            font.RequestCharactersInTexture(text, fontSize, FontStyle.Normal);
             textMesh.text = text;
+            textMesh.font = font;
             textMesh.anchor = TextAnchor.MiddleCenter;
             textMesh.alignment = TextAlignment.Center;
             textMesh.characterSize = characterSize;
             textMesh.fontSize = fontSize;
             textMesh.color = color;
+            textObject.GetComponent<MeshRenderer>().sharedMaterial = font.material;
         }
 
         static void CaptureView(Camera camera, string output, int width, int height)

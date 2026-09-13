@@ -11,6 +11,8 @@
   - 中央の凹みと外周の盛り上がりを一致させた頂点変位とtangent-space法線
   - VRChat Contact ReceiverとFX Animatorの設定手順
   - Edit Mode比較とPlay Mode自動再生を備えたMochi Skin World Demo sample
+  - Contact Threshold、輪郭の柔らかさと不規則さ、回転superellipse形状を追加
+  - NonToonのさらさら肌／てかり肌と、球・円柱・板・capsuleを比較するWorld Demoへ更新
 
 ## [0.5.0] - 2026-08-29
 
