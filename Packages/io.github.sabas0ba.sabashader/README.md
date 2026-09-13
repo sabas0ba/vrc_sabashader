@@ -41,11 +41,13 @@ Package Manager の Samples から `Debug Shader Demo` を Import すると、�
 
 任意画像を貼る「Decal」、肌と布の微細質感を追加する「Surface Detail」、
 裂け目や裏面へ異空間を表示する「Spatial Interior」、登場・退場を制御する
-「Transition」もモジュールとして同梱しています。設定と制約は
+「Transition」、Contact Receiverから肌を押し込む「Mochi Skin」もモジュールとして
+同梱しています。設定と制約は
 [docs/modules-advanced.md](https://github.com/sabas0ba/vrc_sabashader/blob/main/docs/modules-advanced.md)
 を参照してください。Package Manager の Samples から `Advanced Shader Suite Demo` を
-Importすると、4機能の代表設定を同一シーンで確認できます。
+Importすると、Mochi Skinを除く4機能の代表設定を同一シーンで確認できます。
 Spatial InteriorにはUniverse、Starfield、Cyber、Mudの4presetがあります。
+Mochi Skinは別sampleの`Mochi Skin World Demo`で、静止比較とPlay Modeの接触previewを確認できます。
 
 ## ライセンス
 

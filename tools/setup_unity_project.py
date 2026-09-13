@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Unity でのコンパイル検証用プロジェクトを組み立てる。
 
-`.ci/UnityProject` の雛形に、このリポジトリのパッケージと Shader Core を
+`.ci/UnityProject` の雛形に、このリポジトリのパッケージ、Shader Core、NonToonを
 埋め込みパッケージとして配置する。CI から使うが、Unity を持っている人が
 手元で同じ検証をするのにも使える。
 
@@ -27,28 +27,42 @@ PACKAGE_DIR = REPO_ROOT / "Packages" / "io.github.sabas0ba.sabashader"
 SHADERCORE_URL = "https://github.com/lilxyzw/Shader-Core.git"
 # tests/harness/paths.py と同じコミットに固定する
 SHADERCORE_COMMIT = "0a0b2fef78fc3b0438b58f443a2e75210db83ec4"
+NONTOON_URL = "https://github.com/lilxyzw/NonToon.git"
+# tag 0.1.3。Mochi Skin World DemoのNonToon統合検証にだけ使用する。
+NONTOON_COMMIT = "130bea3e6be5183b4fceb60df0062d38ef98067c"
 
 
-def clone_shadercore(destination: Path) -> None:
+def clone_package(destination: Path, url: str, commit: str, display_name: str) -> None:
     if (destination / "package.json").is_file():
-        print(f"Shader Core は配置済み: {destination}")
+        print(f"{display_name} は配置済み: {destination}")
         return
 
     if destination.exists():
         shutil.rmtree(destination)
     destination.mkdir(parents=True)
 
+    # Windowsのbind mountはcontainer内のuidと一致しないため、対象cloneだけを
+    # safe.directoryに指定する。hostやcontainerのglobal git設定は変更しない。
+    git = ["git", "-c", f"safe.directory={destination}"]
     commands = [
-        ["git", "init", "--quiet", str(destination)],
-        ["git", "-C", str(destination), "remote", "add", "origin", SHADERCORE_URL],
-        ["git", "-C", str(destination), "fetch", "--quiet", "--depth", "1", "origin", SHADERCORE_COMMIT],
-        ["git", "-C", str(destination), "checkout", "--quiet", "FETCH_HEAD"],
+        [*git, "init", "--quiet", str(destination)],
+        [*git, "-C", str(destination), "remote", "add", "origin", url],
+        [*git, "-C", str(destination), "fetch", "--quiet", "--depth", "1", "origin", commit],
+        [*git, "-C", str(destination), "checkout", "--quiet", "FETCH_HEAD"],
     ]
     for command in commands:
         subprocess.run(command, check=True, timeout=300)
 
     shutil.rmtree(destination / ".git", ignore_errors=True)
-    print(f"Shader Core を配置しました: {destination}")
+    print(f"{display_name} を配置しました: {destination}")
+
+
+def clone_shadercore(destination: Path) -> None:
+    clone_package(destination, SHADERCORE_URL, SHADERCORE_COMMIT, "Shader Core")
+
+
+def clone_nontoon(destination: Path) -> None:
+    clone_package(destination, NONTOON_URL, NONTOON_COMMIT, "NonToon")
 
 
 def copy_package(destination: Path) -> None:
@@ -80,7 +94,7 @@ def copy_samples(project: Path) -> None:
 
 
 def enable_modules(project: Path) -> None:
-    """パッケージ内のモジュールを全シェーダーで有効にする。
+    """各検証shaderで必要なパッケージmoduleを有効にする。
 
     Shader Core はシェーダーごとに有効なモジュールを ProjectSettings に持ち、
     既定値は「シェーダーと同じディレクトリにあるもの」だけ。モジュールを
@@ -94,11 +108,23 @@ def enable_modules(project: Path) -> None:
         json.loads(path.read_text(encoding="utf-8"))["uniqueID"]
         for path in (PACKAGE_DIR / "Modules").rglob("*.scmodule")
     )
-    shaders = sorted(
+    package_shaders = sorted(
         re.search(r'^\s*Shader\s+"([^"]+)"', path.read_text(encoding="utf-8"), re.MULTILINE).group(1)
         for path in (PACKAGE_DIR / "Shaders").rglob("*.scshader")
     )
-    if not modules or not shaders:
+    shader_modules = {shader: modules for shader in package_shaders}
+    nontoon = project / "Packages" / "jp.lilxyzw.nontoon" / "Shaders" / "NonToon.scshader"
+    if nontoon.is_file():
+        match = re.search(r'^\s*Shader\s+"([^"]+)"', nontoon.read_text(encoding="utf-8"), re.MULTILINE)
+        if match is None:
+            raise SystemExit(f"NonToonのshader名を読めません: {nontoon}")
+        # NonToon標準の肌陰影にMochi Skinを重ねた互換性を検証する。
+        shader_modules[match.group(1)] = [
+            "jp.lilxyzw.nontoon.shade",
+            "jp.lilxyzw.nontoon.specular",
+            "io.github.sabas0ba.mochiskin",
+        ]
+    if not modules or not shader_modules:
         return
 
     meta = project / "Packages" / "jp.lilxyzw.shadercore" / "Editor" / "ProjectSettings.cs.meta"
@@ -109,9 +135,9 @@ def enable_modules(project: Path) -> None:
     entries = "\n".join(
         f"  - shadername: {shader}\n"
         + "    modules:\n"
-        + "\n".join(f"    - {module}" for module in modules)
+        + "\n".join(f"    - {module}" for module in enabled_modules)
         + "\n    multiModules: []"
-        for shader in shaders
+        for shader, enabled_modules in sorted(shader_modules.items())
     )
 
     body = f"""%YAML 1.1
@@ -135,7 +161,11 @@ MonoBehaviour:
     target = project / "ProjectSettings" / "jp.lilxyzw.shadercore.asset"
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(body, encoding="utf-8")
-    print(f"モジュールを有効化しました: {', '.join(modules)} -> {', '.join(shaders)}")
+    summary = ", ".join(
+        f"{shader}=[{', '.join(enabled_modules)}]"
+        for shader, enabled_modules in sorted(shader_modules.items())
+    )
+    print(f"モジュールを有効化しました: {summary}")
 
 
 def main() -> int:
@@ -151,6 +181,7 @@ def main() -> int:
     copy_package(packages / PACKAGE_DIR.name)
     copy_samples(args.project)
     clone_shadercore(packages / "jp.lilxyzw.shadercore")
+    clone_nontoon(packages / "jp.lilxyzw.nontoon")
     enable_modules(args.project)
 
     print(f"\n準備完了: {args.project}")

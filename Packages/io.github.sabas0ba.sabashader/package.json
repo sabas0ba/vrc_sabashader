@@ -31,6 +31,11 @@
       "displayName": "Advanced Shader Suite Demo",
       "description": "Decal、Surface Detail、Spatial Interior、Transition の代表設定を確認します。",
       "path": "Samples~/AdvancedShaderSuiteDemo"
+    },
+    {
+      "displayName": "Mochi Skin World Demo",
+      "description": "NonToonの2種類の肌へ、球・円柱・板・capsuleを接触させるMochi Skinの変形を確認します。",
+      "path": "Samples~/MochiSkinWorldDemo"
     }
   ],
   "legacyFolders": {}
