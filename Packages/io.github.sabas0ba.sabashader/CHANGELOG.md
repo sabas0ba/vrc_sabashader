@@ -6,6 +6,9 @@
 
 ### Added
 
+- Mochi Skinにへこみやすさ・テクスチャマスクとHumanoid骨マスクのEditor生成を追加
+- Worldデモの接触判定を曲面と回転probeの頂点から求め、凹み中心を接触点へ移動
+
 - Mochi Skinモジュール（`io.github.sabas0ba.mochiskin`）
   - 4つの独立したUV接触点をAnimatorから0–1で制御
   - 中央の凹みと外周の盛り上がりを一致させた頂点変位とtangent-space法線

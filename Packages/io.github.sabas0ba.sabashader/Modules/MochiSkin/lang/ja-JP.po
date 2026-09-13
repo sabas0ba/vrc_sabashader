@@ -2,6 +2,24 @@ msgid ""
 msgstr ""
 "Language: ja-JP\n"
 
+msgid "__Compliance"
+msgstr "へこみやすさ"
+
+msgid "__ComplianceDesc"
+msgstr "0で変形なし、1で設定した深さまで変形します。"
+
+msgid "__ComplianceMask"
+msgstr "へこみやすさマスク (R)"
+
+msgid "__ComplianceMaskDesc"
+msgstr "sRGB無効のテクスチャを使用します。黒は硬く、白は柔らかくなります。接触UVを使用し、範囲外はClampします。"
+
+msgid "__UseBoneCompliance"
+msgstr "生成した骨マスクを使用"
+
+msgid "__UseBoneComplianceDesc"
+msgstr "生成済みmeshのUV3.xを骨マスクとして使用します。UV3は接触座標など他の用途と併用できません。"
+
 msgid "__MochiSkin"
 msgstr "もち肌"
 

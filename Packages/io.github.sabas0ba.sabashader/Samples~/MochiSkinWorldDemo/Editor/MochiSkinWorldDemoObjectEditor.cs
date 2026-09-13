@@ -64,6 +64,8 @@ namespace SabaShader.Samples.Editor
             EditorGUILayout.Space();
             EditorGUILayout.LabelField("Cushion Profile", EditorStyles.boldLabel);
             EditorGUILayout.PropertyField(depth, new GUIContent("Depth"));
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("compliance"), new GUIContent("Compliance / へこみやすさ"));
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("complianceMask"), new GUIContent("Compliance Mask (R)"));
             EditorGUILayout.PropertyField(outerBulge, new GUIContent("Outer Bulge"));
             EditorGUILayout.PropertyField(indentSpread, new GUIContent("Indent Spread"));
             EditorGUILayout.PropertyField(edgeSoftness, new GUIContent("Edge Softness"));

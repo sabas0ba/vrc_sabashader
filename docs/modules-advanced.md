@@ -94,6 +94,8 @@ subsurface scatteringや布の異方性BRDFは実装していません。
 
 ## Mochi Skin
 
+部位別の硬さとテクスチャ制御は[肌のへこみやすさ](mochi-compliance.md)を参照してください。
+
 VRChatのContact Receiverが出力する4つのFloatを、UV上の固定した4接触点の押し込み量へ
 変換します。中央を頂点法線の内側へ変位させ、周囲へ小さい盛り上がりを作り、同じ高さ場の
 UV勾配をtangent-space法線へ加えます。Shader Coreの`morph`と`base`を使用するため、

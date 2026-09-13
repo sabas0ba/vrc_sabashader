@@ -1,4 +1,7 @@
 SC_float(_Amount, 0, [SCRange(0,1)], "__Amount", "__AmountDesc")
+SC_float(_Compliance, 1, [SCRange(0,1)], "__Compliance", "__ComplianceDesc")
+SC_Texture2D(_ComplianceMask, "white", [], "__ComplianceMask", "__ComplianceMaskDesc")
+SC_uint(_UseBoneCompliance, 0, [SCToggle], "__UseBoneCompliance", "__UseBoneComplianceDesc")
 SC_uint(_UVChannel, 0, [SCEnum(UV0,0,UV1,1,UV2,2,UV3,3)], "__UVChannel", "__UVChannelDesc")
 SC_float(_Depth, 0.006, [SCRange(0,0.03)], "__Depth", "__DepthDesc")
 SC_float(_Bulge, 0.2, [SCRange(0,1)], "__Bulge", "__BulgeDesc")

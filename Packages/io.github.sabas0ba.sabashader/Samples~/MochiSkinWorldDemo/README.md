@@ -15,6 +15,8 @@ NonToonが無いprojectでは`SabaShader/Illust2D`へfallbackします。この�
 Edit Modeでは各surfaceの`Mochi Skin World Demo Object`から、次を直接変更できます。
 
 - `Skin Finish`: Dry／Glossyの肌色とroughness
+- `Compliance`: 全体のへこみやすさ（0で硬く、1で設定した深さ）
+- `Compliance Mask (R)`: sRGBを無効にしたテクスチャ。黒は変形なし、白は変形あり
 - `Pressure 0`–`Pressure 3`: Contact Receiver Proximityの模擬値
 - `Depth`／`Outer Bulge`／`Indent Spread`: 凹みの強さ、外周の盛り上がり、範囲
 - `Edge Softness`: 凹みから無変位領域までの輪郭幅
@@ -25,7 +27,9 @@ Edit Modeでは各surfaceの`Mochi Skin World Demo Object`から、次を直接�
 
 preview meshは72×54分割で実行時に生成します。`Mochi Skin World Demo Object`はsample専用の通常のMonoBehaviourであり、アバターやアップロードするWorldへ追加しないでください。生成するmesh、material、textureは`HideAndDontSave`で保持され、sceneやprojectへ保存されません。
 
-接触輪郭は各probe用に設定したUV上の近似形状です。任意の接触物のmeshから輪郭を自動推定する機能や物理シミュレーションではありません。デモの接触開始位置は回転・scaleを含むprobe meshと肌の接平面から求めます。
+接触輪郭は各probe用に設定したUV上の近似形状です。任意の接触物のmeshから輪郭を自動推定する機能や物理シミュレーションではありません。デモは回転・scaleを含むprobe頂点と肌の曲面から最初の接触位置を求め、凹み中心もその位置に合わせます。
+
+Humanoidアバター向けの骨マスク自動生成は[肌のへこみやすさ](https://github.com/sabas0ba/vrc_sabashader/blob/sabas0ba/mochi_skin/docs/mochi-compliance.md)を参照してください。デモのパッチはSkinnedMeshではないため、骨マスクの生成対象ではありません。
 
 実際のアバターでは、Contact ReceiverのFloatをFX Animatorから次のmaterial propertyへ接続します。
 

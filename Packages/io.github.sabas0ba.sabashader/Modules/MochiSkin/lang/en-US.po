@@ -2,6 +2,24 @@ msgid ""
 msgstr ""
 "Language: en-US\n"
 
+msgid "__Compliance"
+msgstr "Compliance"
+
+msgid "__ComplianceDesc"
+msgstr "Zero is rigid; one retains the configured depth."
+
+msgid "__ComplianceMask"
+msgstr "Compliance Mask (R)"
+
+msgid "__ComplianceMaskDesc"
+msgstr "Linear texture: black is rigid, white is soft. Uses contact UVs with clamp sampling."
+
+msgid "__UseBoneCompliance"
+msgstr "Use Baked Bone Compliance"
+
+msgid "__UseBoneComplianceDesc"
+msgstr "Use generated UV3.x compliance. Requires a prepared mesh; reserve UV3 for the bone mask."
+
 msgid "__MochiSkin"
 msgstr "Mochi Skin"
 

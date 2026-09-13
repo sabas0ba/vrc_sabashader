@@ -99,6 +99,8 @@ namespace SabaShader.Samples
         [SerializeField, Range(0.0f, 1.0f)] float pressure2;
         [SerializeField, Range(0.0f, 1.0f)] float pressure3;
         [SerializeField, Range(0.0f, 0.03f)] float depth = 0.028f;
+        [SerializeField, Range(0.0f, 1.0f)] float compliance = 1.0f;
+        [SerializeField] Texture2D complianceMask;
         [SerializeField, Range(0.0f, 1.0f)] float outerBulge = 0.22f;
         [SerializeField, Range(0.15f, 0.85f)] float indentSpread = 0.60f;
         [SerializeField, Range(0.0f, 1.0f)] float edgeSoftness = 0.78f;
@@ -374,6 +376,8 @@ namespace SabaShader.Samples
             previewMaterial.SetFloat(MochiSkin + "Amount", 1.0f);
             previewMaterial.SetInteger(MochiSkin + "UVChannel", 0);
             previewMaterial.SetFloat(MochiSkin + "Depth", depth);
+            previewMaterial.SetFloat(MochiSkin + "Compliance", compliance);
+            previewMaterial.SetTexture(MochiSkin + "ComplianceMask", complianceMask != null ? complianceMask : Texture2D.whiteTexture);
             previewMaterial.SetFloat(MochiSkin + "Bulge", outerBulge);
             previewMaterial.SetFloat(MochiSkin + "IndentSpread", indentSpread);
             previewMaterial.SetFloat(MochiSkin + "EdgeSoftness", edgeSoftness);
@@ -400,7 +404,8 @@ namespace SabaShader.Samples
             {
                 var proximity = Mathf.Clamp01(pressures[index]);
                 previewMaterial.SetFloat(MochiSkin + "Pressure" + index, proximity);
-                UpdateProbe(Probe(index), Contacts[index], proximity);
+                var point = UpdateProbe(Probe(index), Contacts[index], proximity);
+                previewMaterial.SetVector(MochiSkin + "Point" + index, point);
             }
         }
 
@@ -415,11 +420,11 @@ namespace SabaShader.Samples
             }
         }
 
-        void UpdateProbe(Transform probe, ContactSpec contact, float proximity)
+        Vector4 UpdateProbe(Transform probe, ContactSpec contact, float proximity)
         {
             if (probe == null)
             {
-                return;
+                return contact.Point;
             }
 
             float signedGap;
@@ -438,20 +443,29 @@ namespace SabaShader.Samples
             }
 
             var surface = SurfacePosition(contact.Point.x, contact.Point.y);
-            var normal = SurfaceNormal(contact.Point.x, contact.Point.y);
-            // 回転・scaleを反映したmeshの接平面支持距離で接触開始を揃える。
-            var support = contact.SupportDistance;
+            // 接平面ではなく曲面への最初の接触を求める。接触点も輪郭中心へ反映する。
+            var touchZ = surface.z - contact.SupportDistance;
+            var point = contact.Point;
             var meshFilter = probe.GetComponent<MeshFilter>();
             if (meshFilter != null && meshFilter.sharedMesh != null)
             {
-                support = 0.0f;
+                touchZ = float.PositiveInfinity;
                 foreach (var vertex in meshFilter.sharedMesh.vertices)
                 {
                     var offset = probe.localRotation * Vector3.Scale(vertex, probe.localScale);
-                    support = Mathf.Max(support, -Vector3.Dot(offset, normal));
+                    var u = (surface.x + offset.x) / PatchWidth + 0.5f;
+                    var v = (surface.y + offset.y) / PatchHeight + 0.5f;
+                    var candidate = SurfacePosition(u, v).z - offset.z;
+                    if (candidate < touchZ)
+                    {
+                        touchZ = candidate;
+                        point.x = u;
+                        point.y = v;
+                    }
                 }
             }
-            probe.localPosition = surface + normal * (support + signedGap);
+            probe.localPosition = new Vector3(surface.x, surface.y, touchZ - signedGap);
+            return point;
         }
 
         void SetTextureIfPresent(string property, Texture texture)

@@ -26,6 +26,10 @@
             _IrregularityScale,
             _ContactThreshold,
             _ContactSoftness);
-        vertex.position += normalize(vertex.N) * mochiHeight * saturate(_Amount);
+        half mochiCompliance = saturate(_Compliance) * saturate(
+            _ComplianceMask.SampleLevel(sampler_linear_clamp, mochiUV, 0).r);
+        if (_UseBoneCompliance != 0)
+            mochiCompliance *= saturate(vertex.uv[3].x);
+        vertex.position += normalize(vertex.N) * mochiHeight * saturate(_Amount) * mochiCompliance;
     }
 }
