@@ -54,7 +54,7 @@ half4 frag(v2f i, bool isFront : SV_IsFrontFace) : SV_Target
     half3 L = normalize(sd.L);
     half3 V = normalize(vertex.V);
     half diffuse = SBSFlatDiffuse(N, L, _Flatness, _ShadeThreshold);
-    half surfaceLight = lerp(1.0, diffuse * sd.shadow, saturate((half)_SurfaceShadowEnabled));
+    half surfaceLight = lerp(1.0, diffuse, saturate((half)_SurfaceShadowEnabled));
 
     #ifdef UNITY_PASS_FORWARDADD
         half3 lighting = lightSum.color * surfaceLight;
