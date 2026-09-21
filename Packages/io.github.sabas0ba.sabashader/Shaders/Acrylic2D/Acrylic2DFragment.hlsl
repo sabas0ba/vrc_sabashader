@@ -71,15 +71,20 @@ half4 frag(v2f i, bool isFront : SV_IsFrontFace) : SV_Target
         SCSample(_BaseTexture, sampler_BaseTexture, sd.uv + float2(0.0, edgeStep.y)).a,
         SCSample(_BaseTexture, sampler_BaseTexture, sd.uv - float2(0.0, edgeStep.y)).a) * _BaseColor.a;
     half contour = SBSAlphaContourMask(sd.albedoAlpha.a, adjacentAlpha);
-    half specular = SBSBlinnSpecular(N, L, V, lerp(16.0, _SpecularPower, saturate(1.0 - _Roughness)));
 
     #ifdef UNITY_PASS_FORWARDADD
         half3 lighting = lightSum.color * surfaceLight;
+        half3 specularLight = lightSum.color;
     #else
         half3 ambient = env * _SHLightWeight;
         half directional = lerp(0.5, 1.0, saturate(_SHLightDirectionWeight));
         half3 lighting = ambient + lightSum.color * surfaceLight * directional;
+        half3 specularLight = lightSum.color * directional;
     #endif
+
+    half3 specular = _SpecularColor.rgb
+        * SBSBlinnSpecular(N, L, V, lerp(16.0, _SpecularPower, saturate(1.0 - _Roughness)))
+        * specularLight;
 
     half coatTintWeight = lerp(0.25, 1.0 - diffuse, saturate((half)_SurfaceShadowEnabled)) * _TransmissionStrength;
     half grain = SBSPaperGrain(sd.uv * _PaperGrainScale);
@@ -90,7 +95,7 @@ half4 frag(v2f i, bool isFront : SV_IsFrontFace) : SV_Target
     half3 internalLight = _TransmissionColor.rgb * (0.10 + _InternalLight * grazing) * _Thickness;
     half3 volumeEdge = _TransmissionColor.rgb * grazing * (0.18 + 0.42 * _Thickness);
     half3 edge = _EdgeColor.rgb * contour * (0.35 + 0.65 * fresnel) * _EdgeIntensity;
-    half3 highlight = _SpecularColor.rgb * specular * _SpecularIntensity
+    half3 highlight = specular * _SpecularIntensity
         * (0.15 + 0.85 * saturate(contour + fresnel * 0.25));
 
     #ifdef UNITY_PASS_FORWARDADD
