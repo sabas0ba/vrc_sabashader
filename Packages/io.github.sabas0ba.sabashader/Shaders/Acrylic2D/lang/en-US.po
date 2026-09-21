@@ -1,0 +1,132 @@
+msgid ""
+msgstr ""
+"Language: en-US\n"
+
+msgid "__NormalScale"
+msgstr "Normal Strength"
+
+msgid "__Acrylic"
+msgstr "Acrylic"
+
+msgid "__Opacity"
+msgstr "Acrylic Coat Strength"
+
+msgid "__OpacityDesc"
+msgstr "Strength of the acrylic coat composited over the printed base."
+
+msgid "__Thickness"
+msgstr "Volume Thickness"
+
+msgid "__ThicknessDesc"
+msgstr "Controls the visible acrylic side thickness and internal layer strength."
+
+msgid "__RefractionStrength"
+msgstr "Print Refraction"
+
+msgid "__RefractionStrengthDesc"
+msgstr "Offsets the printed layer at grazing view angles."
+
+msgid "__RefractionScale"
+msgstr "Refraction Scale"
+
+msgid "__RefractionScaleDesc"
+msgstr "Scales the view angle and UV displacement of the printed layer."
+
+msgid "__InternalLight"
+msgstr "Internal Light"
+
+msgid "__InternalLightDesc"
+msgstr "Strength of the light scattered between the surface and printed layer."
+
+msgid "__TransmissionColor"
+msgstr "Acrylic Tint"
+
+msgid "__TransmissionStrength"
+msgstr "Tint Strength"
+
+msgid "__EdgeColor"
+msgstr "Edge Color"
+
+msgid "__EdgeWidth"
+msgstr "Edge Width"
+
+msgid "__EdgeWidthDesc"
+msgstr "UV offset used to detect a texture alpha edge."
+
+msgid "__EdgePower"
+msgstr "Edge Spread"
+
+msgid "__EdgeIntensity"
+msgstr "Edge Intensity"
+
+msgid "__Specular"
+msgstr "Specular"
+
+msgid "__SpecularColor"
+msgstr "Specular Color"
+
+msgid "__SpecularIntensity"
+msgstr "Specular Intensity"
+
+msgid "__SpecularPower"
+msgstr "Specular Sharpness"
+
+msgid "__LightSettings"
+msgstr "Lighting"
+
+msgid "__SHLightWeight"
+msgstr "Environment Light Strength"
+
+msgid "__SHLightDirectionWeight"
+msgstr "Environment Light Direction"
+
+msgid "__DepthScale"
+msgstr "Local Z Thickness"
+
+msgid "__DepthScaleDesc"
+msgstr "Compresses the source 3D mesh along its local Z axis."
+
+msgid "__Flatness"
+msgstr "Flat Shading"
+
+msgid "__FlatnessDesc"
+msgstr "Strength of two-band lighting on the 3D mesh."
+
+msgid "__ShadeThreshold"
+msgstr "Shade Boundary"
+
+msgid "__ShadeThresholdDesc"
+msgstr "Diffuse lighting threshold for the flat color band."
+
+msgid "__RimWidth"
+msgstr "Silhouette Rim Width"
+
+msgid "__RimWidthDesc"
+msgstr "Additional silhouette rim width. Acrylic thickness also expands this rim."
+
+msgid "__SurfaceShadowEnabled"
+msgstr "Surface Shadows"
+
+msgid "__SurfaceShadowEnabledDesc"
+msgstr "Switches the light and dark bands on the printed surface."
+
+msgid "__PaperGrain"
+msgstr "Printed Paper Grain"
+
+msgid "__PaperGrainDesc"
+msgstr "Fine brightness variation under the acrylic coat."
+
+msgid "__WhiteBorderWidth"
+msgstr "White Margin Width"
+
+msgid "__WhiteBorderWidthDesc"
+msgstr "Width of the outer keychain margin in world units."
+
+msgid "__WhiteBorderColor"
+msgstr "Margin Color"
+
+msgid "__CastShadowEnabled"
+msgstr "Cast Shadows"
+
+msgid "__CastShadowEnabledDesc"
+msgstr "Controls the shadow cast onto other objects."

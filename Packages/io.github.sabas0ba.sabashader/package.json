@@ -31,6 +31,11 @@
       "displayName": "Advanced Shader Suite Demo",
       "description": "Decal、Surface Detail、Spatial Interior、Transition の代表設定を確認します。",
       "path": "Samples~/AdvancedShaderSuiteDemo"
+    },
+    {
+      "displayName": "Thin2D Demo",
+      "description": "同じ 3D メッシュで紙、白い余白、単層のアクリル表現を比較します。",
+      "path": "Samples~/Thin2DDemo"
     }
   ],
   "legacyFolders": {}
