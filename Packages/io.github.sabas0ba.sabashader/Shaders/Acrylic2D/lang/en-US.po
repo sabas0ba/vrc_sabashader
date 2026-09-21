@@ -130,3 +130,12 @@ msgstr "Cast Shadows"
 
 msgid "__CastShadowEnabledDesc"
 msgstr "Controls the shadow cast onto other objects."
+
+msgid "__Cull"
+msgstr "Culling"
+
+msgid "__CullDesc"
+msgstr "Which faces to draw. Use Off for double sided meshes."
+
+msgid "__PaperGrainScale"
+msgstr "Printed Grain Scale"

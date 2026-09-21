@@ -115,3 +115,6 @@ msgstr "投影影"
 
 msgid "__CastShadowEnabledDesc"
 msgstr "他のオブジェクトへ落とす影を切り替えます。"
+
+msgid "__PaperGrainScale"
+msgstr "紙面グレインのスケール"

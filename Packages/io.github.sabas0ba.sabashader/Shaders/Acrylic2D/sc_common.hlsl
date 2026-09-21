@@ -2,6 +2,7 @@
 #define SABASHADER_ACRYLIC2D_COMMON_INCLUDED
 
 #include "../Thin2D/Thin2DCore.hlsl"
+#include "../Thin2D/Thin2DVertex.hlsl"
 
 struct SCCustomData
 {

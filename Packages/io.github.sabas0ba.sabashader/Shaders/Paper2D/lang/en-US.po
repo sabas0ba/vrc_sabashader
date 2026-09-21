@@ -115,3 +115,6 @@ msgstr "Cast Shadows"
 
 msgid "__CastShadowEnabledDesc"
 msgstr "Controls the shadow cast onto other objects."
+
+msgid "__PaperGrainScale"
+msgstr "Paper Grain Scale"

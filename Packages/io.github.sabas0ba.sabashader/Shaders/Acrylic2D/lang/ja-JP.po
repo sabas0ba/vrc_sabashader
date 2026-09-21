@@ -130,3 +130,12 @@ msgstr "投影影"
 
 msgid "__CastShadowEnabledDesc"
 msgstr "他のオブジェクトへ落とす影を切り替えます。"
+
+msgid "__Cull"
+msgstr "カリング"
+
+msgid "__CullDesc"
+msgstr "描画する面を選択します。両面メッシュには Off を使用します。"
+
+msgid "__PaperGrainScale"
+msgstr "印刷グレインのスケール"

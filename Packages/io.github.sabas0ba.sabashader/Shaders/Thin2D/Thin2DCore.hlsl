@@ -6,14 +6,6 @@ half SBSThinLuminance(half3 color)
     return dot(color, half3(0.2126, 0.7152, 0.0722));
 }
 
-void SBSCompressObjectDepth(inout SCVertexData vertex, float depthScale)
-{
-    if (depthScale >= 0.999) return;
-    float3 objectPosition = mul(SC_W2O(), float4(vertex.position, 1.0)).xyz;
-    objectPosition.z *= max(depthScale, 0.02);
-    vertex.position = mul(SC_O2W(), float4(objectPosition, 1.0)).xyz;
-}
-
 half SBSFresnel(half3 N, half3 V, half power)
 {
     half facing = saturate(dot(normalize(N), normalize(V)));
