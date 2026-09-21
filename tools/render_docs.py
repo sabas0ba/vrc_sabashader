@@ -53,6 +53,7 @@ SITE_FIGURE_DIR = "figures"
 # docs/*.md と過不足がないことは tests/test_docs_site.py が検査する。
 PAGES: List[tuple] = [
     ("shader-illust2d.md", "Illust2D"),
+    ("shader-thin2d.md", "Paper2D / Acrylic2D"),
     ("shader-debug.md", "Debug"),
     ("modules.md", "モジュール"),
     ("modules-advanced.md", "高度モジュール"),

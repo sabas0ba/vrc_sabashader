@@ -10,6 +10,7 @@ VRChat 向けシェーダー集です。**
 [![Unity](https://img.shields.io/badge/Unity-2022.3-black.svg?logo=unity)](https://unity.com/)
 
 収録しているのは、3D モデルを 2D イラスト調に見せるトゥーンシェーダー **Illust2D**、
+3D メッシュを薄い紙やアクリル作品風に見せる **Paper2D / Acrylic2D**、
 mesh とライティング入力を可視化する **Debug shader** と、
 その上に効果を足すモジュール（表面の重ね掛け・ドット絵風・ビデオ入力・
 表示パネル・ブラウン管とグリッチ・Decal・Surface Detail・Spatial Interior・
@@ -52,7 +53,7 @@ HLSL が実際にコンパイルできるかは
 | パス | 中身 |
 | --- | --- |
 | `Packages/io.github.sabas0ba.sabashader/` | 配布する VPM パッケージ本体 |
-| `Packages/.../Shaders/` | Illust2D と Debug shader |
+| `Packages/.../Shaders/` | Illust2D、Paper2D、Acrylic2D、Debug shader |
 | `tests/` | ヘッドレス描画による回帰テストと構造チェック |
 | `.ci/UnityProject/` | Unity でのコンパイル検証用プロジェクトの雛形 |
 | `tools/` | `.meta` 生成・VPM リスティング生成・Pages のサイト生成・Unity プロジェクト組み立て |
@@ -65,6 +66,7 @@ HLSL が実際にコンパイルできるかは
 並びと表記は [GitHub Pages のサイト](https://sabas0ba.github.io/vrc_sabashader/)と揃えてあります。
 
 - [Illust2D のパラメータ](docs/shader-illust2d.md)
+- [Paper2D / Acrylic2D のパラメータ](docs/shader-thin2d.md)
 - [Debug shader](docs/shader-debug.md)
 - [モジュールのパラメータ](docs/modules.md)（表面の重ね掛け・ドット絵風・ビデオ入力・表示パネル・ブラウン管とグリッチ）
 - [高度シェーダーモジュール](docs/modules-advanced.md)（Decal・Surface Detail・Spatial Interior・Transition・Mochi Skin）
