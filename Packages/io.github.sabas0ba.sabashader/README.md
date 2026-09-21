@@ -47,8 +47,13 @@ Package Manager の Samples から `Debug Shader Demo` を Import すると、�
 を参照してください。Package Manager の Samples から `Advanced Shader Suite Demo` を
 Importすると、Mochi Skinを除く4機能の代表設定を同一シーンで確認できます。
 Spatial InteriorにはUniverse、Starfield、Cyber、Mudの4presetがあります。
-Mochi Skinは別sampleの`Mochi Skin World Demo`で、静止比較とPlay Modeの接触previewを確認できます。
+Mochi Skinは別sampleの`Mochi Skin World Demo`で、NonToonの肌比較とPlay Modeの接触previewを確認できます。
+へこみやすさの全体係数、テクスチャマスク、Humanoidの骨・ウェイトから生成する硬さマスクは
+[docs/mochi-compliance.md](https://github.com/sabas0ba/vrc_sabashader/blob/main/docs/mochi-compliance.md)
+にまとめています。
 
 ## ライセンス
 
-MIT License。詳細は [LICENSE.md](LICENSE.md) を参照してください。
+Apache License 2.0。詳細は
+[LICENSE](https://github.com/sabas0ba/vrc_sabashader/blob/main/LICENSE) と
+[NOTICE](https://github.com/sabas0ba/vrc_sabashader/blob/main/NOTICE) を参照してください。

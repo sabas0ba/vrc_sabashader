@@ -119,12 +119,16 @@ Shader CoreのProject Settingsで対象shaderへ`Mochi Skin`を追加します�
 | Contact Threshold | Proximityを変形へ反映し始める値。接触前の反応を除く |
 | Contact Softness | thresholdから最大圧力までの立ち上がり曲線 |
 | Normal Strength | 高さ場から作る法線の強さ。頂点変位量は変えない |
+| Compliance / Compliance Mask | 全体のへこみやすさと、黒を硬い領域・白を柔らかい領域として使うRチャンネルマスク |
 | Contact Point 0–3 | XYがUV中心、ZWが接触footprintのUV半径 |
 | Contact Shape 0–3 | XがUV上の角度、Yが形状指数、Zが輪郭のseed。2は楕円、大きい値は角丸矩形 |
 | Pressure 0–3 | Animatorから駆動する0–1のProximity |
 
 Debug shaderのUV0–UV3表示またはDCCのUV editorで、各Receiverを置く肌位置に対応するUVを
 確認します。UV islandが重なるmeshでは、同じUV範囲にある別部位も同時に変形します。
+Humanoidの骨・ウェイトからUV3.xへ硬さを自動生成する手順は
+[肌のへこみやすさ](mochi-compliance.md)に分離しています。既存UV3を使うモデルでは、
+自動生成を実行せず、Compliance Maskを使用してください。
 
 ### Worldデモ
 
