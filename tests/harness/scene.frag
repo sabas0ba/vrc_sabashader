@@ -367,6 +367,47 @@ vec4 sceneDisplayPanelSwatch(vec2 uv)
     return vec4(SBSDisplayPanelApply(card, screen, 0.72, pst), 1.0);
 }
 
+// mode 14: 4つの接触点による高さ場と法線変化
+//
+// 頂点変形そのものはfragment harnessでは描けないため、出荷する高さと勾配の
+// 関数を平面の色と法線へ適用する。楕円半径、異なるPressure、重なりも通す。
+vec4 sceneMochiSkinSwatch(vec2 uv)
+{
+    vec4 point0 = vec4(0.22, 0.62, 0.15, 0.25);
+    vec4 point1 = vec4(0.45, 0.58, 0.18, 0.18);
+    vec4 point2 = vec4(0.68, 0.38, 0.14, 0.22);
+    vec4 point3 = vec4(0.84, 0.68, 0.12, 0.16);
+    vec4 shape0 = vec4(0.0, 2.0, 0.17, 0.0);
+    vec4 shape1 = vec4(32.0, 2.8, 0.41, 0.0);
+    vec4 shape2 = vec4(-24.0, 9.0, 0.67, 0.0);
+    vec4 shape3 = vec4(-52.0, 3.5, 0.89, 0.0);
+    vec4 pressure = vec4(1.0, 0.88, 0.95, 0.82);
+    float depth = 0.018;
+    float bulge = 0.22;
+    float indentSpread = 0.60;
+    float edgeSoftness = 0.78;
+    float irregularity = 0.075;
+    float irregularityScale = 3.2;
+    float contactThreshold = 0.72;
+    float contactSoftness = 0.82;
+
+    float height = SBSMochiHeight4(
+        uv, point0, point1, point2, point3, shape0, shape1, shape2, shape3,
+        pressure, depth, bulge, indentSpread, edgeSoftness, irregularity,
+        irregularityScale, contactThreshold, contactSoftness);
+    vec2 gradient = SBSMochiGradient4(
+        uv, point0, point1, point2, point3, shape0, shape1, shape2, shape3,
+        pressure, depth, bulge, indentSpread, edgeSoftness, irregularity,
+        irregularityScale, contactThreshold, contactSoftness);
+    vec3 tangentNormal = SBSMochiApplyNormal(vec3(0.0, 0.0, 1.0), gradient, 1.65);
+
+    SBSSurface s = sceneDefaultSurface();
+    float heightShade = clamp(1.0 + height / depth * 0.12, 0.75, 1.15);
+    s.albedo = vec3(0.92, 0.64, 0.58) * heightShade;
+    s.N = normalize(vec3(tangentNormal.xy, -tangentNormal.z));
+    return vec4(SBSComposeIllust(s, sceneStyle()), 1.0);
+}
+
 // mode 11: 立体（カプセル）にブラウン管とグリッチをかける
 //
 // 平らなテストカードには無いシルエットが入る。ずらしの 1 次近似は縁で
@@ -396,7 +437,8 @@ void main()
     vec2 ndc = uv * 2.0 - 1.0;
 
     vec4 col;
-    if (SCENE_MODE == 13) col = sceneDisplayPanelSwatch(uv);
+    if (SCENE_MODE == 14) col = sceneMochiSkinSwatch(uv);
+    else if (SCENE_MODE == 13) col = sceneDisplayPanelSwatch(uv);
     else if (SCENE_MODE == 12) col = sceneVideoInputSwatch(uv);
     else if (SCENE_MODE == 11) col = sceneCrtSolid(ndc);
     else if (SCENE_MODE == 10) col = sceneCrtSwatch(uv);
