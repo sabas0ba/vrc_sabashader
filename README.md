@@ -10,10 +10,11 @@ VRChat 向けシェーダー集です。**
 [![Unity](https://img.shields.io/badge/Unity-2022.3-black.svg?logo=unity)](https://unity.com/)
 
 収録しているのは、3D モデルを 2D イラスト調に見せるトゥーンシェーダー **Illust2D**、
+3D メッシュを薄い紙やアクリル作品風に見せる **Paper2D / Acrylic2D**、
 mesh とライティング入力を可視化する **Debug shader** と、
 その上に効果を足すモジュール（表面の重ね掛け・ドット絵風・ビデオ入力・
 表示パネル・ブラウン管とグリッチ・Decal・Surface Detail・Spatial Interior・
-Transition・衣装変身バンク）です。
+Transition・衣装変身バンク・Mochi Skin）です。
 [Shader Core](https://github.com/lilxyzw/Shader-Core) をベースにしています。
 
 シェーディングの数式は
@@ -52,7 +53,7 @@ HLSL が実際にコンパイルできるかは
 | パス | 中身 |
 | --- | --- |
 | `Packages/io.github.sabas0ba.sabashader/` | 配布する VPM パッケージ本体 |
-| `Packages/.../Shaders/` | Illust2D と Debug shader |
+| `Packages/.../Shaders/` | Illust2D、Paper2D、Acrylic2D、Debug shader |
 | `tests/` | ヘッドレス描画による回帰テストと構造チェック |
 | `.ci/UnityProject/` | Unity でのコンパイル検証用プロジェクトの雛形 |
 | `tools/` | `.meta` 生成・VPM リスティング生成・Pages のサイト生成・Unity プロジェクト組み立て |
@@ -68,14 +69,17 @@ Core Shader:
 
 - [Core Shader一覧](docs/core-shaders.md)（Illust2DとDebugの用途・使い方・主要パラメータ）
 - [Illust2D の全パラメータ](docs/shader-illust2d.md)
+- [Paper2D / Acrylic2D のパラメータ](docs/shader-thin2d.md)
 - [Debug shaderの全表示モード](docs/shader-debug.md)
 
 Shader拡張:
 
 - [Shader拡張一覧](docs/shader-extensions.md)（全10項目のレンダリング例・使い方・主要パラメータ）
 - [基本拡張の全パラメータ](docs/modules.md)（Surface Overlay・Pixel Art・Video Input・Display Panel・CRT / Glitch）
-- [高度拡張の全パラメータ](docs/modules-advanced.md)（Decal・Surface Detail・Spatial Interior・Transition）
+- [高度拡張の全パラメータ](docs/modules-advanced.md)（Decal・Surface Detail・Spatial Interior・Transition・Mochi Skin）
 - [衣装変身バンク](docs/transformation-bank.md)（Clip Generator UI・全パラメータ・12 Style・NonToon・トラブル対応）
+- [Mochi Skinのへこみやすさ](docs/mochi-compliance.md)（Compliance、テクスチャマスク、Humanoid骨マスク）
+- Package Manager sample: `Mochi Skin World Demo`（NonToonの肌比較・接触preview）
 
 利用・開発:
 

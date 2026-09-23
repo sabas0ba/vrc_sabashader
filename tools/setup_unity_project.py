@@ -140,6 +140,7 @@ def enable_modules(project: Path) -> None:
         modules = list(nontoon_modules)
         if shader == "NonToon":
             modules.append(TRANSFORMATION_BANK_ID)
+            modules.append("io.github.sabas0ba.mochiskin")
         shader_modules.append((shader, sorted(set(modules))))
 
     entries = "\n".join(
