@@ -139,6 +139,12 @@ def enable_modules(project: Path) -> None:
     for shader in nontoon_shaders:
         modules = list(nontoon_modules)
         if shader == "NonToon":
+            modules.extend(
+                [
+                    "jp.lilxyzw.nontoon.shade",
+                    "jp.lilxyzw.nontoon.specular",
+                ]
+            )
             modules.append(TRANSFORMATION_BANK_ID)
             modules.append("io.github.sabas0ba.mochiskin")
         shader_modules.append((shader, sorted(set(modules))))
