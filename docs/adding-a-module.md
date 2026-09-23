@@ -4,6 +4,8 @@ Shader Core のモジュール（`.scmodule`）は、**シェーダー本体が�
 効果を足す**仕組みです。本体側が置いた `__SC_PHASE_*__` の位置にコードが
 差し込まれます。第三者の `.scshader` にも後から乗せられます。
 
+![モジュールのファイルを配置し、Core の数式をテストして配布物へ組み込む流れ](../docs/assets/hero-contribution.svg)
+
 ## できること・できないこと
 
 Shader Core の README が明示している制約です。

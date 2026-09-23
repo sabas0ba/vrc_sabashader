@@ -186,21 +186,37 @@ def render_page(listing: dict, docs: Optional[List[Tuple[str, str, str, str]]] =
     description = html.escape(listing.get("description", ""))
     listing_url = html.escape(listing["url"])
 
-    nav = site_theme.render_nav(
-        [("index.html", "リスティング")] + [(href, label) for href, label, _, _ in docs],
+    nav = site_theme.render_sidebar(
+        site_theme.group_doc_pages(
+            [(page.href, page.label) for page in render_docs.collect_pages(DEFAULT_DOCS)],
+            prefix="docs/",
+        ),
         "index.html",
+        home_items=[("index.html", "リスティング")],
     )
 
     docs_section = ""
     if docs:
-        items = "".join(
-            f'<li><a href="{html.escape(href, quote=True)}">'
-            f'<span class="doc-title">{html.escape(title)}</span>'
-            f'<span class="doc-summary">{_summary_html(summary, href)}</span>'
-            "</a></li>"
-            for href, _, title, summary in docs
+        groups: Dict[str, List[str]] = {"シェーダー": [], "モジュール": [], "ガイド": []}
+        for href, _, title, summary in docs:
+            name = href.rsplit("/", 1)[-1]
+            if name == "shaders.html":
+                group = "シェーダー"
+            elif name == "modules.html":
+                group = "モジュール"
+            else:
+                group = "ガイド"
+            groups[group].append(
+                f'<li><a href="{html.escape(href, quote=True)}">'
+                f'<span class="doc-title">{html.escape(title)}</span>'
+                f'<span class="doc-summary">{_summary_html(summary, href)}</span>'
+                "</a></li>"
+            )
+        docs_section = "\n".join(
+            f'<h2>{group}</h2>\n<ul class="doc-list">{"".join(items)}</ul>'
+            for group, items in groups.items()
+            if items
         )
-        docs_section = f'<h2>ドキュメント</h2>\n<ul class="doc-list">{items}</ul>'
 
     body = f"""<h1>{html.escape(listing['name'])}</h1>
 <p class="lede">{description}</p>
@@ -254,11 +270,13 @@ def main() -> int:
 
     docs_links: List[Tuple[str, str, str, str]] = []
     if args.docs:
-        from tools.render_docs import build as build_docs, collect_pages, first_sentence
+        from tools.render_docs import PRIMARY_PAGES, build as build_docs, collect_pages, first_sentence
 
         written = build_docs(DEFAULT_DOCS, args.docs, extra_nav=[("../index.html", "リスティング")])
         relative = args.docs.name
         for page in collect_pages(DEFAULT_DOCS):
+            if page.source.name not in PRIMARY_PAGES:
+                continue
             docs_links.append(
                 (f"{relative}/{page.href}", page.label, page.title, first_sentence(page.summary))
             )

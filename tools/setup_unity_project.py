@@ -94,12 +94,13 @@ def copy_samples(project: Path) -> None:
 
 
 def enable_modules(project: Path) -> None:
-    """各検証shaderで必要なパッケージmoduleを有効にする。
+    """検証済みの shader と module の組み合わせを有効にする。
 
     Shader Core はシェーダーごとに有効なモジュールを ProjectSettings に持ち、
     既定値は「シェーダーと同じディレクトリにあるもの」だけ。モジュールを
-    別ディレクトリに置いている本パッケージでは、明示的に有効化しないと
-    Unity 側の検証がモジュールを一切通らない（気付けないまま緑になる）。
+    別ディレクトリに置いている本パッケージでは、Illust2D へ明示的に有効化する。
+    Thin2D などへ一律に追加すると、Surface Detail の add phase が参照する
+    Illust2D 固有の変数が無く、Unity でコンパイルできない。
     """
     import json
     import re
@@ -108,11 +109,7 @@ def enable_modules(project: Path) -> None:
         json.loads(path.read_text(encoding="utf-8"))["uniqueID"]
         for path in (PACKAGE_DIR / "Modules").rglob("*.scmodule")
     )
-    package_shaders = sorted(
-        re.search(r'^\s*Shader\s+"([^"]+)"', path.read_text(encoding="utf-8"), re.MULTILINE).group(1)
-        for path in (PACKAGE_DIR / "Shaders").rglob("*.scshader")
-    )
-    shader_modules = {shader: modules for shader in package_shaders}
+    shader_modules = {"SabaShader/Illust2D": modules}
     nontoon = project / "Packages" / "jp.lilxyzw.nontoon" / "Shaders" / "NonToon.scshader"
     if nontoon.is_file():
         match = re.search(r'^\s*Shader\s+"([^"]+)"', nontoon.read_text(encoding="utf-8"), re.MULTILINE)

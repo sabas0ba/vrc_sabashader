@@ -63,14 +63,16 @@ HLSL が実際にコンパイルできるかは
 
 ## ドキュメント
 
-並びと表記は [GitHub Pages のサイト](https://sabas0ba.github.io/vrc_sabashader/)と揃えてあります。
+公開ページの入口は [GitHub Pages のサイト](https://sabas0ba.github.io/vrc_sabashader/)を参照してください。シェーダーとモジュールの用途別一覧から各詳細ページへ進めます。
 
+- [シェーダー一覧](docs/shaders.md)
 - [Illust2D のパラメータ](docs/shader-illust2d.md)
-- [Paper2D / Acrylic2D のパラメータ](docs/shader-thin2d.md)
+- [Paper2D](docs/shader-paper2d.md)
+- [Acrylic2D](docs/shader-acrylic2d.md)
+- [Thin2D の比較](docs/shader-thin2d.md)
 - [Debug shader](docs/shader-debug.md)
-- [モジュールのパラメータ](docs/modules.md)（表面の重ね掛け・ドット絵風・ビデオ入力・表示パネル・ブラウン管とグリッチ）
-- [高度シェーダーモジュール](docs/modules-advanced.md)（Decal・Surface Detail・Spatial Interior・Transition・Mochi Skin）
-- [Mochi Skinのへこみやすさ](docs/mochi-compliance.md)（Compliance、テクスチャマスク、Humanoid骨マスク）
+- [モジュール一覧](docs/modules.md)（10 種類の個別ページへの入口）
+- [Mochi Skin](docs/module-mochi-skin.md)（Compliance、テクスチャマスク、Humanoid骨マスク）
 - Package Manager sample: `Mochi Skin World Demo`（NonToonの肌比較・接触preview）
 - [アバターに適用して確認する](docs/avatar-demo.md)
 - [テストの仕組みと動かし方](docs/testing.md)
@@ -78,8 +80,8 @@ HLSL が実際にコンパイルできるかは
 - [モジュールを追加する](docs/adding-a-module.md)
 - [配布のしくみとリリース手順](docs/distribution.md)
 
-パラメータの説明には図が付いています。図はすべて描画回帰テストのゴールデン画像
-（`tests/golden/`）で、出荷する数式をそのまま描いたものです。
+見た目の比較には描画回帰テストのゴールデン画像（`tests/golden/`）と、
+Package 同梱の Unity サンプルを撮影した画像（`docs/assets/`）を使用しています。
 
 ## 開発
 

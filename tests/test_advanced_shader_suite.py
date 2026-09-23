@@ -14,7 +14,11 @@ MODULES_DIR = PACKAGE_DIR / "Modules"
 SAMPLE_DIR = PACKAGE_DIR / "Samples~" / "AdvancedShaderSuiteDemo"
 PACKAGE_JSON = PACKAGE_DIR / "package.json"
 BUILDER = REPO_ROOT / ".ci" / "UnityProject" / "Assets" / "Editor" / "AdvancedShaderDemoBuilder.cs"
-DOCUMENTATION = REPO_ROOT / "docs" / "modules-advanced.md"
+DOCUMENTATION = (
+    REPO_ROOT / "docs" / "modules.md",
+    REPO_ROOT / "docs" / "module-decal.md",
+    REPO_ROOT / "docs" / "module-transition.md",
+)
 SETUP_UNITY = REPO_ROOT / "tools" / "setup_unity_project.py"
 CAPTURES = {
     "advanced_shader_suite_demo.png": (2560, 1440),
@@ -240,7 +244,7 @@ def test_setup_unity_project_copies_every_declared_sample():
 
 def test_documentation_captures_have_expected_dimensions():
     golden = REPO_ROOT / "tests" / "golden"
-    documentation = DOCUMENTATION.read_text(encoding="utf-8")
+    documentation = "\n".join(path.read_text(encoding="utf-8") for path in DOCUMENTATION)
     for filename, expected_size in CAPTURES.items():
         path = golden / filename
         assert f"../tests/golden/{filename}" in documentation
@@ -250,7 +254,7 @@ def test_documentation_captures_have_expected_dimensions():
 
 
 def test_transition_animation_property_is_documented_verbatim():
-    documentation = DOCUMENTATION.read_text(encoding="utf-8")
+    documentation = "\n".join(path.read_text(encoding="utf-8") for path in DOCUMENTATION)
     sample_readme = (SAMPLE_DIR / "README.md").read_text(encoding="utf-8")
     property_name = "material._io_github_sabas0ba_transition_Progress"
 

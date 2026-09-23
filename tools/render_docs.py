@@ -16,8 +16,9 @@ docs の体裁は `tests/test_docs_site.py` が検査する。
 * 1 ファイル 1 見出し (h1)、その直後に 1 段落の要約を置く
 * 要約の下には h2 の目次が自動で入る
 * 見出しの階層は飛ばさない
-* 図は `![説明](../tests/golden/<ケース名>.png)` の形で行頭に置く。
-  回帰テストのゴールデン画像だけを使うので、図が実装からずれない。
+* 図は `![説明](../tests/golden/<ケース名>.png)` または
+  `![説明](../docs/assets/<名前>.<拡張子>)` の形で行頭か表のセルに単独で置く。
+  後者には Unity キャプチャの PNG と構成図の SVG を置く。
 
     python tools/render_docs.py --output _site/docs
 """
@@ -44,19 +45,35 @@ from tools import site_theme  # noqa: E402  （sys.path を通してから読む
 
 GITHUB_BLOB = "https://github.com/sabas0ba/vrc_sabashader/blob/main"
 
-# 図の実体は回帰テストのゴールデン画像。docs からは相対パスで参照するので
-# GitHub 上の Markdown でもそのまま表示され、サイトへ出すときだけここへ集める。
+# 図の実体は回帰テストのゴールデン画像または docs/assets の描画例・構成図。docs からは
+# 相対パスで参照するので GitHub 上の Markdown でもそのまま表示され、サイトへ
+# 出すときだけここへ集める。
 FIGURE_DIR = REPO_ROOT / "tests" / "golden"
+ASSET_DIR = REPO_ROOT / "docs" / "assets"
+FIGURE_SOURCES = (FIGURE_DIR, ASSET_DIR)
 SITE_FIGURE_DIR = "figures"
 
-# ナビと索引に出す順と表記。ファイル名順ではなく読む順に並べる。
+# 全ページの生成順と表記。ファイル名順ではなく読む順に並べる。
 # docs/*.md と過不足がないことは tests/test_docs_site.py が検査する。
 PAGES: List[tuple] = [
+    ("shaders.md", "一覧"),
     ("shader-illust2d.md", "Illust2D"),
-    ("shader-thin2d.md", "Paper2D / Acrylic2D"),
+    ("shader-paper2d.md", "Paper2D"),
+    ("shader-acrylic2d.md", "Acrylic2D"),
     ("shader-debug.md", "Debug"),
+    ("shader-thin2d.md", "Thin2D 比較"),
     ("modules.md", "モジュール"),
-    ("modules-advanced.md", "高度モジュール"),
+    ("module-surface-overlay.md", "Surface Overlay"),
+    ("module-pixel-art.md", "Pixel Art"),
+    ("module-video-input.md", "Video Input"),
+    ("module-display-panel.md", "Display Panel"),
+    ("module-crt-glitch.md", "CRT / Glitch"),
+    ("module-decal.md", "Decal"),
+    ("module-surface-detail.md", "Surface Detail"),
+    ("module-mochi-skin.md", "Mochi Skin"),
+    ("module-spatial-interior.md", "Spatial Interior"),
+    ("module-transition.md", "Transition"),
+    ("modules-advanced.md", "旧モジュールページ"),
     ("mochi-compliance.md", "肌のへこみやすさ"),
     ("avatar-demo.md", "アバターで確認"),
     ("testing.md", "テスト"),
@@ -64,6 +81,17 @@ PAGES: List[tuple] = [
     ("adding-a-module.md", "モジュールを追加"),
     ("distribution.md", "配布"),
 ]
+
+# トップページの索引は入口だけに絞る。左ペインには全ページを階層表示する。
+PRIMARY_PAGES = {
+    "shaders.md",
+    "modules.md",
+    "avatar-demo.md",
+    "testing.md",
+    "adding-a-shader.md",
+    "adding-a-module.md",
+    "distribution.md",
+}
 
 _FENCE = re.compile(r"^```([A-Za-z0-9_+-]*)\s*$")
 _HEADING = re.compile(r"^(#{1,6})\s+(.*)$")
@@ -391,10 +419,6 @@ def render_body(
     return Rendered("".join(parts), renderer.headings, renderer.figures)
 
 
-def render_nav(pages: List[tuple[str, str]], current: Optional[str]) -> str:
-    return site_theme.render_nav(pages, current)
-
-
 def render_page(title: str, body: str, nav: str, *, home_href: str = "../index.html") -> str:
     return site_theme.render_document(title, body, nav, home_href=home_href)
 
@@ -476,7 +500,7 @@ def collect_pages(docs_dir: Path) -> List[Page]:
 
 
 def copy_figures(figures: List[str], docs_dir: Path, output_dir: Path) -> List[Path]:
-    """docs が参照した図をサイトへ複写する。実体は回帰テストのゴールデン画像。"""
+    """docs が参照した図をサイトへ複写する。実体は許可した図の置き場だけにする。"""
     import shutil
 
     copied: List[Path] = []
@@ -487,9 +511,9 @@ def copy_figures(figures: List[str], docs_dir: Path, output_dir: Path) -> List[P
         source = (docs_dir / href).resolve()
         if not source.is_file():
             raise SystemExit(f"図が見つかりません: {href}")
-        if source.parent != FIGURE_DIR:
+        if source.parent not in FIGURE_SOURCES:
             raise SystemExit(
-                f"図は {FIGURE_DIR} のゴールデン画像だけを使います: {href}"
+                f"図は tests/golden の回帰画像または docs/assets の画像だけを使います: {href}"
             )
 
         target = output_dir / SITE_FIGURE_DIR / source.name
@@ -506,7 +530,8 @@ def build(
     home_href: str = "../index.html",
 ) -> Dict[str, Path]:
     pages = collect_pages(docs_dir)
-    nav_items = list(extra_nav or []) + [(page.href, page.label) for page in pages]
+    groups = site_theme.group_doc_pages([(page.href, page.label) for page in pages])
+    home_items = list(extra_nav or [(home_href, "リスティング")])
 
     written: Dict[str, Path] = {}
     figures: List[str] = []
@@ -522,7 +547,7 @@ def build(
             render_page(
                 page.title,
                 rendered.body,
-                render_nav(nav_items, page.href),
+                site_theme.render_sidebar(groups, page.href, home_items=home_items),
                 home_href=home_href,
             ),
             encoding="utf-8",

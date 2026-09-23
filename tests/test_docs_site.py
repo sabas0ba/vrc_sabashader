@@ -11,6 +11,7 @@ import re
 from pathlib import Path
 
 import pytest
+from PIL import Image
 
 from harness.paths import REPO_ROOT
 from tools.render_docs import (
@@ -25,6 +26,21 @@ from tools.render_docs import (
 )
 
 DOCS_DIR = REPO_ROOT / "docs"
+
+
+def test_thin2d_unity_captures_show_rendered_shaders():
+    """シェーダーのコンパイル失敗を示すマゼンタ画像を公開しない。"""
+    for name in ("thin2d-demo.png", "thin2d-demo-side.png"):
+        path = DOCS_DIR / "assets" / name
+        with Image.open(path) as image:
+            assert image.size == (1600, 900), name
+
+    with Image.open(DOCS_DIR / "assets" / "thin2d-demo.png") as image:
+        rgb = image.convert("RGB")
+        for position in ((1100, 300), (530, 650)):
+            red, green, blue = rgb.getpixel(position)
+            assert not (red > 220 and blue > 220 and green < 80), position
+            assert (red, green, blue) != rgb.getpixel((100, 100)), position
 
 # 変換されずに残ると本文に出てしまう記法
 UNCONVERTED = (
@@ -109,6 +125,12 @@ def test_table_is_rendered():
     assert "<table>" in body and "<th>a</th>" in body and "<td>2</td>" in body
 
 
+def test_table_image_is_rendered_and_copied(site):
+    for name, count in (("shaders.html", 4), ("modules.html", 10)):
+        table = site[name].split("<table>", 1)[1].split("</table>", 1)[0]
+        assert table.count('<img src="figures/') == count, name
+
+
 def test_markdown_links_point_at_generated_pages():
     body, _ = render_markdown("[テスト](testing.md) と [節](avatar-demo.md#ライセンス表記)")
     assert 'href="testing.html"' in body
@@ -156,7 +178,7 @@ def test_listing_and_docs_share_the_shell(site, listing_page):
     for name, text in list(site.items()) + [("index.html", listing_page)]:
         assert PAGE_STYLE in text, f"{name} が共通スタイルを使っていません"
         assert '<header class="site-header">' in text, f"{name} にヘッダーがありません"
-        assert '<nav class="site">' in text, f"{name} にナビがありません"
+        assert '<nav class="site sidebar"' in text, f"{name} にナビがありません"
         assert '<footer class="site-footer">' in text, f"{name} にフッターがありません"
 
 
@@ -165,6 +187,22 @@ def test_listing_links_to_docs(listing_page):
     # 索引には見出しと 1 行の要約が出る。要約の記法も解いてから出す。
     assert "テストの仕組み" in listing_page
     assert "<code>tests/</code>" in listing_page
+
+
+def test_listing_groups_shader_and_module_entry_points():
+    from tools.build_listing import render_page
+
+    listing = {"name": "SabaShader", "url": "https://example.invalid/index.json", "packages": {}}
+    page = render_page(
+        listing,
+        [
+            ("docs/shaders.html", "一覧", "シェーダー一覧", "用途別に選ぶ。"),
+            ("docs/modules.html", "モジュール", "モジュール一覧", "効果を追加。"),
+            ("docs/testing.html", "テスト", "テストの仕組み", "検証手順。"),
+        ],
+    )
+    assert page.index("<h2>シェーダー</h2>") < page.index("<h2>モジュール</h2>")
+    assert page.index("<h2>モジュール</h2>") < page.index("<h2>ガイド</h2>")
 
 
 def test_docs_link_back_to_listing(site):
@@ -233,9 +271,8 @@ _HEADING = re.compile(r"^(#{1,6})\s+(.*)$")
 _FENCE = re.compile(r"^```")
 _IMAGE = re.compile(r"!\[([^\]]*)\]\(([^)]+)\)")
 
-# 図はここのファイルだけを使う。回帰テストが守っている画像なので、
-# 数式を変えれば図も変わり、説明が実装から離れない。
-FIGURE_PREFIX = "../tests/golden/"
+# 実装出力は golden、操作や構成の概念図は docs/assets に置く。
+FIGURE_PREFIXES = ("../tests/golden/", "../docs/assets/")
 
 
 def body_lines(text: str):
@@ -282,17 +319,18 @@ def test_heading_levels_do_not_skip(source):
 
 
 @pytest.mark.parametrize("source", sorted(DOCS_DIR.glob("*.md")), ids=lambda p: p.name)
-def test_figures_are_golden_images_on_their_own_line(source):
+def test_figures_are_allowed_assets_on_their_own_line_or_in_a_table_cell(source):
     for line in body_lines(source.read_text(encoding="utf-8")):
         # インラインコードの中は記法の説明なので見ない（レンダラも同じ扱い）
         line = re.sub(r"`[^`]+`", "", line)
         for match in _IMAGE.finditer(line):
-            assert line.strip() == match.group(0), (
-                f"{source.name}: 図は行頭に単独で置いてください: {line.strip()}"
+            cells = [cell.strip() for cell in line.strip().strip("|").split("|")] if line.startswith("|") else []
+            assert line.strip() == match.group(0) or match.group(0) in cells, (
+                f"{source.name}: 図は行頭または表のセルに単独で置いてください: {line.strip()}"
             )
             href = match.group(2)
-            assert href.startswith(FIGURE_PREFIX), (
-                f"{source.name}: 図は {FIGURE_PREFIX} のゴールデン画像だけを使います: {href}"
+            assert href.startswith(FIGURE_PREFIXES), (
+                f"{source.name}: 図は golden または docs/assets から参照してください: {href}"
             )
             assert (source.parent / href).resolve().is_file(), (
                 f"{source.name}: 図がありません: {href}"
@@ -312,25 +350,58 @@ def test_pages_cover_every_doc():
 
 
 def test_nav_follows_the_declared_order(site):
-    """全ページのナビが同じ順で並ぶこと。"""
-    expected = [name[:-3] + ".html" for name, _ in PAGES]
+    """左ペインに分類と全詳細ページが順序どおり並ぶこと。"""
+    legacy = {"modules-advanced.md", "mochi-compliance.md"}
+    expected = [name[:-3] + ".html" for name, _ in PAGES if name not in legacy]
     for name, text in site.items():
-        nav = text.split('<nav class="site">', 1)[1].split("</nav>", 1)[0]
+        nav = text.split('<nav class="site sidebar"', 1)[1].split("</nav>", 1)[0]
         found = re.findall(r'href="([^"]+\.html)"', nav)
         # 先頭にリスティングへの戻りが入る
         assert found[0] == "../index.html", f"{name}: 戻り先がありません"
-        # 現在地はリンクにならないので、残りが順序どおり並んでいれば良い
+        for section in ("シェーダー", "モジュール", "ガイド"):
+            assert f"<summary>{section}</summary>" in nav, name
+        # 現在地は強調されてリンクにならない。
         assert found[1:] == [href for href in expected if href != name], f"{name}: ナビの並びが違います"
+        if name not in {"modules-advanced.html", "mochi-compliance.html"}:
+            assert '<strong aria-current="page">' in nav, name
+
+
+def test_mochi_compliance_is_in_module_and_legacy_page_links_to_it(site):
+    module = site["module-mochi-skin.html"]
+    legacy = site["mochi-compliance.html"]
+    assert 'id="へこみやすさとマスク"' in module
+    assert 'id="humanoidからの自動生成"' in module
+    assert 'id="接触開始"' in module
+    assert 'href="module-mochi-skin.html#へこみやすさとマスク"' in legacy
+
+
+def test_sidebar_expands_the_current_section(site, listing_page):
+    for name, section in (
+        ("shaders.html", "シェーダー"),
+        ("shader-paper2d.html", "シェーダー"),
+        ("modules.html", "モジュール"),
+        ("module-pixel-art.html", "モジュール"),
+        ("testing.html", "ガイド"),
+    ):
+        nav = site[name].split('<nav class="site sidebar"', 1)[1].split("</nav>", 1)[0]
+        assert f'<details open><summary>{section}</summary>' in nav, name
+        assert nav.count("<details open>") == 1, name
+    assert 'href="docs/shaders.html"' in listing_page
+    assert 'href="docs/modules.html"' in listing_page
 
 
 def test_body_has_a_lede_and_a_table_of_contents():
-    """要約と目次が、どのページでも同じ位置に入ること。"""
+    """要約と、複数の節があるページの目次が正しい位置に入ること。"""
     for page in collect_pages(DOCS_DIR):
         rendered = render_body(page.source.read_text(encoding="utf-8"))
-        head = rendered.body[: rendered.body.index("</nav>") + len("</nav>")]
+        assert rendered.body.index("<h1") < rendered.body.index('<p class="lede">'), page.source.name
 
-        assert head.index("<h1") < head.index('<p class="lede">'), f"{page.source.name}"
-        assert head.index('<p class="lede">') < head.index('<nav class="toc"'), f"{page.source.name}"
+        if sum(heading.level == 2 for heading in rendered.headings) < 2:
+            assert '<nav class="toc"' not in rendered.body, page.source.name
+            continue
+
+        head = rendered.body[: rendered.body.index("</nav>") + len("</nav>")]
+        assert head.index('<p class="lede">') < head.index('<nav class="toc"'), page.source.name
 
         for heading in rendered.headings:
             if heading.level == 2:

@@ -177,6 +177,23 @@ def test_unity_workflow_skips_without_license():
     assert "game-ci/unity-test-runner" in workflow
 
 
+def test_unity_setup_keeps_unverified_modules_off_thin2d(tmp_path):
+    from tools.setup_unity_project import enable_modules
+
+    meta = tmp_path / "Packages" / "jp.lilxyzw.shadercore" / "Editor" / "ProjectSettings.cs.meta"
+    meta.parent.mkdir(parents=True)
+    meta.write_text("guid: 3ddde6b87320970478fca1b50e8a3e5d\n", encoding="utf-8")
+
+    enable_modules(tmp_path)
+    settings = (tmp_path / "ProjectSettings" / "jp.lilxyzw.shadercore.asset").read_text(
+        encoding="utf-8"
+    )
+    assert "shadername: SabaShader/Illust2D" in settings
+    assert "io.github.sabas0ba.surfacedetail" in settings
+    assert "shadername: SabaShader/Paper2D" not in settings
+    assert "shadername: SabaShader/Acrylic2D" not in settings
+
+
 @pytest.mark.skipif(
     __import__("importlib").util.find_spec("yaml") is None, reason="pyyaml が入っていません"
 )

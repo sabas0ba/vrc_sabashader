@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 420" role="img" aria-labelledby="title desc">
+  <title id="title">SabaShader の配布フロー</title>
+  <desc id="desc">GitHub Release の zip からリスティングと GitHub Pages を通じて VCC へ配布する流れ</desc>
+  <rect width="1200" height="420" rx="28" fill="#182638"/>
+  <g font-family="system-ui, sans-serif" fill="#f8fafc">
+    <text x="52" y="62" font-size="28" font-weight="700">VCC distribution</text>
+    <text x="52" y="95" font-size="17" fill="#b9c6d8">Release の成果物を listing に集約し、VCC が取得する</text>
+    <g transform="translate(60 155)">
+      <rect width="250" height="140" rx="18" fill="#354c69" stroke="#a8c5e5" stroke-width="2"/><text x="24" y="42" font-size="18" font-weight="700">GitHub Release</text><text x="24" y="82" font-size="16" fill="#d2e4f3">package.json + zip</text><text x="24" y="112" font-size="16" fill="#d2e4f3">tag / version</text>
+    </g>
+    <path d="M330 225h72" stroke="#8bd5ca" stroke-width="4" marker-end="url(#arrow)"/>
+    <g transform="translate(420 155)">
+      <rect width="250" height="140" rx="18" fill="#31534f" stroke="#a6d9c8" stroke-width="2"/><text x="24" y="42" font-size="18" font-weight="700">build-listing</text><text x="24" y="82" font-size="16" fill="#d1eee5">全 Release を走査</text><text x="24" y="112" font-size="16" fill="#d1eee5">index.json を生成</text>
+    </g>
+    <path d="M690 225h72" stroke="#8bd5ca" stroke-width="4" marker-end="url(#arrow)"/>
+    <g transform="translate(780 155)">
+      <rect width="250" height="140" rx="18" fill="#584b3c" stroke="#efd09e" stroke-width="2"/><text x="24" y="42" font-size="18" font-weight="700">GitHub Pages</text><text x="24" y="82" font-size="16" fill="#f0ddc3">index.json + docs</text><text x="24" y="112" font-size="16" fill="#f0ddc3">固定 URL</text>
+    </g>
+    <path d="M1050 225h70" stroke="#8bd5ca" stroke-width="4" marker-end="url(#arrow)"/>
+    <text x="1050" y="190" font-size="18" font-weight="700">VCC</text>
+    <text x="1050" y="262" font-size="16" fill="#b9c6d8">subscribe</text>
+  </g>
+  <defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="m0 0 10 5-10 5z" fill="#8bd5ca"/></marker></defs>
+</svg>
