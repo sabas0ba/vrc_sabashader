@@ -18,8 +18,10 @@ namespace SabaShader.CI
     public static class ShaderCompileChecker
     {
         public const string PackagePath = "Packages/io.github.sabas0ba.sabashader";
+        public const string NonToonPackagePath = "Packages/jp.lilxyzw.nontoon";
         public const string Illust2DPath = PackagePath + "/Shaders/Illust2D/Illust2D.scshader";
         public const string DebugPath = PackagePath + "/Shaders/Debug/Debug.scshader";
+        public const string NonToonPath = NonToonPackagePath + "/Shaders/NonToon.scshader";
         public const string Paper2DPath = PackagePath + "/Shaders/Paper2D/Paper2D.scshader";
         public const string Acrylic2DPath = PackagePath + "/Shaders/Acrylic2D/Acrylic2D.scshader";
 
@@ -55,6 +57,22 @@ namespace SabaShader.CI
             "_WireColor",
             "_BackgroundColor",
             "_WireWidth",
+        };
+
+        public static readonly string[] NonToonExpectedPasses =
+        {
+            "Forward",
+            "ForwardAdd",
+            "Outline",
+            "ShadowCaster",
+        };
+
+        public static readonly string[] NonToonRequiredProperties =
+        {
+            "_BaseTexture",
+            "_io_github_sabas0ba_transformationbank_Progress",
+            "_io_github_sabas0ba_transformationbank_Role",
+            "_io_github_sabas0ba_transformationbank_Style",
         };
 
         public static readonly string[] Paper2DExpectedPasses =
@@ -180,6 +198,11 @@ namespace SabaShader.CI
                     CollectPassFailures(path, shader, DebugExpectedPasses, failures);
                     CollectMaterialFailures(path, shader, DebugRequiredProperties, failures);
                 }
+                else if (IsNonToon(path))
+                {
+                    CollectPassFailures(path, shader, NonToonExpectedPasses, failures);
+                    CollectMaterialFailures(path, shader, NonToonRequiredProperties, failures);
+                }
                 else if (path == Paper2DPath)
                 {
                     CollectPassFailures(path, shader, Paper2DExpectedPasses, failures);
@@ -198,7 +221,7 @@ namespace SabaShader.CI
         public static List<string> FindShaderPaths()
         {
             // .scshader は ScriptedImporter が Shader をメインオブジェクトにするので t:Shader で拾える
-            return AssetDatabase.FindAssets("t:Shader", new[] { PackagePath })
+            return AssetDatabase.FindAssets("t:Shader", new[] { PackagePath, NonToonPackagePath })
                 .Select(AssetDatabase.GUIDToAssetPath)
                 .Where(path => !string.IsNullOrEmpty(path))
                 .Distinct()
@@ -243,6 +266,11 @@ namespace SabaShader.CI
         private static bool IsDebug(string path)
         {
             return path.EndsWith("Debug.scshader", StringComparison.Ordinal);
+        }
+
+        private static bool IsNonToon(string path)
+        {
+            return path.Equals(NonToonPath, StringComparison.Ordinal);
         }
 
         private static void CollectMessageFailures(string path, Shader shader, List<string> failures)

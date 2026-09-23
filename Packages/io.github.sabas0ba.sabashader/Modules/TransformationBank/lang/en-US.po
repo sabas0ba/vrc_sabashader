@@ -1,0 +1,117 @@
+msgid ""
+msgstr ""
+"Language: en-US\n"
+
+msgid "__TransformationBank"
+msgstr "Costume Transformation Bank"
+
+msgid "__Progress"
+msgstr "Bank Progress"
+
+msgid "__ProgressDesc"
+msgstr "Drive 0 to 1 from one Animation Controller value shared by every role."
+
+msgid "__Role"
+msgstr "Role"
+
+msgid "__RoleDesc"
+msgstr "Use Outgoing for the old costume and Incoming for the new costume."
+
+msgid "__Style"
+msgstr "Style"
+
+msgid "__StyleDesc"
+msgstr "Select arcane, cyber, astral, earth, shadow, flame, shatter, glitch, melt, cosmic rift, magical sparkle, or mana mist effects."
+
+msgid "__EffectIntensity"
+msgstr "Effect Intensity"
+
+msgid "__EffectIntensityDesc"
+msgstr "Common multiplier for vertex motion, boundaries, and surface patterns. Use 0 for subtle output and 4 for emphasis."
+
+msgid "__IncomingOutgoingWindow"
+msgstr "Costume Windows"
+
+msgid "__IncomingOutgoingWindowDesc"
+msgstr "XY starts and ends Incoming; ZW starts and ends Outgoing."
+
+msgid "__Direction"
+msgstr "Direction"
+
+msgid "__DirectionDesc"
+msgstr "Object-space transition direction. Only XYZ is used."
+
+msgid "__Bounds"
+msgstr "Height Range"
+
+msgid "__BoundsDesc"
+msgstr "Minimum and maximum values along Direction. Only XY is used."
+
+msgid "__NoiseScale"
+msgstr "Noise Scale"
+
+msgid "__NoiseScaleDesc"
+msgstr "Density of the object-space visibility noise."
+
+msgid "__Noise"
+msgstr "Boundary Noise"
+
+msgid "__NoiseDesc"
+msgstr "Irregularity of visibility boundaries, flames, glitches, and liquid melting."
+
+msgid "__EdgeWidth"
+msgstr "Edge Width"
+
+msgid "__EdgeWidthDesc"
+msgstr "Width of the emissive visibility boundary."
+
+msgid "__EdgeColor"
+msgstr "Edge Color"
+
+msgid "__EdgeColorDesc"
+msgstr "HDR color of the visibility boundary. Alpha scales intensity."
+
+msgid "__EdgeEmission"
+msgstr "Edge Emission"
+
+msgid "__EdgeEmissionDesc"
+msgstr "Unlit brightness of the boundary color."
+
+msgid "__Displacement"
+msgstr "Vertex Offset"
+
+msgid "__DisplacementDesc"
+msgstr "Object-space vertex displacement near the visibility boundary."
+
+msgid "__BlockScale"
+msgstr "Block Density"
+
+msgid "__BlockScaleDesc"
+msgstr "Cell density used by Cyber, Umbra, Shatter, and Glitch visibility."
+
+msgid "__Surface"
+msgstr "Surface Effect"
+
+msgid "__PatternColor"
+msgstr "Pattern Color"
+
+msgid "__PatternColorDesc"
+msgstr "HDR emission color added to the style pattern."
+
+msgid "__PatternScale"
+msgstr "Pattern Density"
+
+msgid "__PatternScaleDesc"
+msgstr "Object-space density of runes, grids, stars, cracks, flames, shards, scanlines, or liquid noise."
+
+msgid "__PatternSpeed"
+msgstr "Pattern Speed"
+
+msgid "__PatternSpeedDesc"
+msgstr "Time scale of the surface effect."
+
+msgid "__PatternEmission"
+msgstr "Pattern Emission"
+
+msgid "__PatternEmissionDesc"
+msgstr "Unlit brightness of the surface effect."

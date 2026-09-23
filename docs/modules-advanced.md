@@ -9,7 +9,8 @@ Decal、Surface Detail、Spatial Interior、Transition、Mochi Skinの用途、�
 
 ## 有効化とサンプル
 
-Shader Core の Project Settings で `SabaShader/Illust2D` に次のモジュールを追加します。
+Illust2DマテリアルのInspectorで `Select Modules` を開き、次のモジュールを有効にして
+`Apply` を押します。
 
 - Decal
 - Surface Detail
@@ -284,6 +285,9 @@ Spatial Interiorはライティング後の色を置き換え、Transitionの発
 | Mochi Skin | 4点の回転superellipse高さ場、central difference勾配、頂点変位 | `Amount = 0`で計算を省略 |
 | Spatial Interior | preset別の3D noise、star field、格子 | 計算を省略 |
 | Transition | object-space noise、clip、任意の頂点変位 | `Progress = 1` でclip境界と変位を省略 |
+
+旧衣装、新衣装、露出防止用meshを1本の進行度で切り替える場合は、Transitionを個別に
+組み合わせず、[衣装変身バンク](transformation-bank.md)を使用します。
 
 Mobile、Quest向けでは、対象マテリアルを限定し、Spatial InteriorとSurface Detailを
 同時に広い画面領域へ使わない構成を推奨します。
