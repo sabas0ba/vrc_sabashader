@@ -63,22 +63,17 @@ HLSL が実際にコンパイルできるかは
 
 ## ドキュメント
 
-並びと表記は [GitHub Pages のサイト](https://sabas0ba.github.io/vrc_sabashader/)と揃えてあります。
+公開ページの入口は [GitHub Pages のサイト](https://sabas0ba.github.io/vrc_sabashader/)を参照してください。シェーダーとモジュールの用途別一覧から各詳細ページへ進めます。
 
-Core Shader:
-
-- [Core Shader一覧](docs/core-shaders.md)（Illust2DとDebugの用途・使い方・主要パラメータ）
-- [Illust2D の全パラメータ](docs/shader-illust2d.md)
-- [Paper2D / Acrylic2D のパラメータ](docs/shader-thin2d.md)
-- [Debug shaderの全表示モード](docs/shader-debug.md)
-
-Shader拡張:
-
-- [Shader拡張一覧](docs/shader-extensions.md)（全10項目のレンダリング例・使い方・主要パラメータ）
-- [基本拡張の全パラメータ](docs/modules.md)（Surface Overlay・Pixel Art・Video Input・Display Panel・CRT / Glitch）
-- [高度拡張の全パラメータ](docs/modules-advanced.md)（Decal・Surface Detail・Spatial Interior・Transition・Mochi Skin）
+- [シェーダー一覧](docs/shaders.md)
+- [Illust2D のパラメータ](docs/shader-illust2d.md)
+- [Paper2D](docs/shader-paper2d.md)
+- [Acrylic2D](docs/shader-acrylic2d.md)
+- [Thin2D の比較](docs/shader-thin2d.md)
+- [Debug shader](docs/shader-debug.md)
+- [モジュール一覧](docs/modules.md)（11 種類の個別ページへの入口）
+- [Mochi Skin](docs/module-mochi-skin.md)（Compliance、テクスチャマスク、Humanoid骨マスク）
 - [衣装変身バンク](docs/transformation-bank.md)（Clip Generator UI・全パラメータ・12 Style・NonToon・トラブル対応）
-- [Mochi Skinのへこみやすさ](docs/mochi-compliance.md)（Compliance、テクスチャマスク、Humanoid骨マスク）
 - Package Manager sample: `Mochi Skin World Demo`（NonToonの肌比較・接触preview）
 
 利用・開発:
@@ -89,8 +84,9 @@ Shader拡張:
 - [Shader拡張を追加する](docs/adding-a-module.md)
 - [配布のしくみとリリース手順](docs/distribution.md)
 
-パラメータの説明には図が付いています。shaderの見た目は描画回帰テストのキャプチャ、UIと作業範囲は
-実装に対応する静的図として、いずれも `tests/golden/` で参照切れを検査します。
+見た目の比較には描画回帰テストのゴールデン画像（`tests/golden/`）と、
+Package 同梱の Unity サンプルを撮影した画像（`docs/assets/`）を使用しています。
+UI と作業範囲の図は `tests/golden/` に置き、参照切れをテストで検査します。
 
 ## 開発
 

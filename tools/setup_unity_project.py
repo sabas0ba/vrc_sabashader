@@ -100,12 +100,13 @@ def copy_samples(project: Path) -> None:
 
 
 def enable_modules(project: Path) -> None:
-    """パッケージ内のモジュールを全シェーダーで有効にする。
+    """検証済みの shader と module の組み合わせを有効にする。
 
     Shader Core はシェーダーごとに有効なモジュールを ProjectSettings に持ち、
     既定値は「シェーダーと同じディレクトリにあるもの」だけ。モジュールを
-    別ディレクトリに置いている本パッケージでは、明示的に有効化しないと
-    Unity 側の検証がモジュールを一切通らない（気付けないまま緑になる）。
+    別ディレクトリに置いている本パッケージでは、Illust2D へ明示的に有効化する。
+    Thin2D などへ一律に追加すると、Surface Detail の add phase が参照する
+    Illust2D 固有の変数が無く、Unity でコンパイルできない。
     """
     import json
     import re
@@ -114,10 +115,8 @@ def enable_modules(project: Path) -> None:
         json.loads(path.read_text(encoding="utf-8"))["uniqueID"]
         for path in (PACKAGE_DIR / "Modules").rglob("*.scmodule")
     )
-    saba_shaders = sorted(
-        re.search(r'^\s*Shader\s+"([^"]+)"', path.read_text(encoding="utf-8"), re.MULTILINE).group(1)
-        for path in (PACKAGE_DIR / "Shaders").rglob("*.scshader")
-    )
+    # Thin2D / Debug には Illust2D 固有 phase を使うモジュールを追加しない。
+    shader_modules = [("SabaShader/Illust2D", saba_modules)]
     nontoon = project / "Packages" / "jp.lilxyzw.nontoon"
     nontoon_modules = sorted(
         json.loads(path.read_text(encoding="utf-8"))["uniqueID"]
@@ -127,7 +126,7 @@ def enable_modules(project: Path) -> None:
         re.search(r'^\s*Shader\s+"([^"]+)"', path.read_text(encoding="utf-8"), re.MULTILINE).group(1)
         for path in (nontoon / "Shaders").glob("*.scshader")
     )
-    if not saba_modules or not saba_shaders:
+    if not saba_modules:
         return
 
     meta = project / "Packages" / "jp.lilxyzw.shadercore" / "Editor" / "ProjectSettings.cs.meta"
@@ -135,7 +134,6 @@ def enable_modules(project: Path) -> None:
     if guid_match is None:
         raise SystemExit(f"Shader Core の ProjectSettings の GUID を読めません: {meta}")
 
-    shader_modules = [(shader, saba_modules) for shader in saba_shaders]
     for shader in nontoon_shaders:
         modules = list(nontoon_modules)
         if shader == "NonToon":

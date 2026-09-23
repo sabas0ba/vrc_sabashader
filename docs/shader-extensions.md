@@ -1,6 +1,6 @@
-# Shader拡張一覧
+# Shader 拡張の旧一覧
 
-Shader拡張はShader Coreのmodule機構を使い、対応Materialへ表面効果、表示加工、空間表現、遷移を追加します。Materialの`Shader`を置き換えるCore Shaderとは導入操作が異なります。
+このページは旧分類の説明です。現在の入口は[モジュール一覧](modules.md)です。11 種類のモジュールを用途から選び、各詳細ページで設定と制約を確認できます。
 
 ## 有効化方法
 

@@ -19,7 +19,7 @@ BUILDER = (
     / "Editor"
     / "MochiSkinWorldDemoBuilder.cs"
 )
-DOCUMENTATION = REPO_ROOT / "docs" / "modules-advanced.md"
+DOCUMENTATION = REPO_ROOT / "docs" / "module-mochi-skin.md"
 CAPTURE = REPO_ROOT / "tests" / "golden" / "mochi_skin_world_demo.png"
 
 

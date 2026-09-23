@@ -30,7 +30,6 @@ from typing import List, Optional, Tuple
 
 # ナビゲーションの 1 項目。(href, ラベル)
 NavItem = Tuple[str, str]
-NavGroup = Tuple[str, List[NavItem]]
 
 SITE_NAME = "SabaShader"
 REPOSITORY_URL = "https://github.com/sabas0ba/vrc_sabashader"
@@ -167,7 +166,9 @@ PAGE_STYLE = f"""
     -webkit-text-size-adjust: 100%;
   }}
 
-  .page {{ max-width: 52rem; margin: 0 auto; padding: 0 1.25rem 4rem; }}
+  .page {{ max-width: 88rem; margin: 0 auto; padding: 0 1.25rem 4rem; }}
+  .site-layout {{ display: grid; grid-template-columns: 15.5rem minmax(0, 1fr); gap: 2.5rem; align-items: start; }}
+  .site-layout main {{ min-width: 0; max-width: 52rem; width: 100%; }}
 
   a {{ color: var(--accent); text-underline-offset: 0.2em; }}
   a:hover {{ text-decoration: underline; }}
@@ -212,40 +213,31 @@ PAGE_STYLE = f"""
   }}
 
   nav.site {{
-    display: grid;
-    gap: 0.55rem;
-    padding-bottom: 1.1rem;
-    border-bottom: 1px solid var(--border);
-    margin-bottom: 2.25rem;
-  }}
-  nav.site .nav-group {{
-    display: grid;
-    grid-template-columns: 7.5rem minmax(0, 1fr);
-    align-items: start;
-    gap: 0.35rem 0.6rem;
-  }}
-  nav.site .nav-group-title {{
-    padding: 0.25rem 0;
-    color: var(--text-muted);
-    font-size: 0.76rem;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-  }}
-  nav.site .nav-links {{
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.35rem 0.5rem;
+    position: sticky;
+    top: 1rem;
+    max-height: calc(100vh - 2rem);
+    overflow-y: auto;
+    padding: 0.75rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
   }}
   nav.site a, nav.site strong {{
-    display: inline-block;
-    padding: 0.25rem 0.7rem;
-    border-radius: 999px;
-    font-size: 0.9rem;
+    display: block;
+    padding: 0.25rem 0.55rem;
+    border-radius: 6px;
+    font-size: 0.88rem;
     text-decoration: none;
   }}
   nav.site a {{ color: var(--text-muted); }}
   nav.site a:hover {{ background: var(--surface-soft); color: var(--text); text-decoration: none; }}
   nav.site strong {{ background: var(--accent-soft); color: var(--accent); font-weight: 600; }}
+  nav.site .nav-home {{ margin-bottom: 0.7rem; border-bottom: 1px solid var(--border); padding-bottom: 0.7rem; }}
+  nav.site details {{ border-top: 1px solid var(--border); padding: 0.45rem 0; }}
+  nav.site summary {{ cursor: pointer; font-weight: 700; padding: 0.25rem 0.4rem; }}
+  nav.site summary:hover {{ color: var(--accent); }}
+  nav.site .nav-children {{ padding-left: 0.55rem; }}
+  nav.site .nav-children a, nav.site .nav-children strong {{ margin: 0.15rem 0; }}
 
   h1 {{ font-size: 1.9rem; line-height: 1.3; margin: 0 0 0.75rem; }}
   h2 {{ font-size: 1.35rem; line-height: 1.4; margin: 2.5rem 0 0.75rem; }}
@@ -294,6 +286,7 @@ PAGE_STYLE = f"""
     white-space: nowrap;
   }}
   tbody tr:last-child td {{ border-bottom: none; }}
+  td img {{ display: block; width: 11rem; max-width: none; height: auto; border-radius: 5px; }}
 
   blockquote {{
     margin: 1.2rem 0;
@@ -416,40 +409,64 @@ PAGE_STYLE = f"""
   @media (max-width: 30rem) {{
     h1 {{ font-size: 1.55rem; }}
     .card {{ padding: 1rem; }}
-    nav.site .nav-group {{ grid-template-columns: 1fr; }}
-    nav.site .nav-group-title {{ padding-bottom: 0; }}
+  }}
+  @media (max-width: 50rem) {{
+    .site-layout {{ grid-template-columns: minmax(0, 1fr); gap: 1.5rem; }}
+    nav.site {{ position: static; max-height: none; }}
   }}
 """
 
 
-def render_nav(pages: List[NavItem], current: Optional[str]) -> str:
-    """ページ間のナビ。現在地は強調してリンクにしない。"""
-    return render_grouped_nav([("ページ", pages)], current)
+def group_doc_pages(pages: List[NavItem], prefix: str = "") -> List[Tuple[str, List[NavItem]]]:
+    """ドキュメントをシェーダー・モジュール・ガイドに分類する。"""
+    groups: List[Tuple[str, List[NavItem]]] = [
+        ("シェーダー", []), ("モジュール", []), ("ガイド", []),
+    ]
+    for href, label in pages:
+        if href in {
+            "core-shaders.html", "shader-extensions.html",
+            "modules-advanced.html", "mochi-compliance.html",
+        }:
+            continue  # 旧 URL の互換ページ。新しいナビには表示しない。
+        if href == "shaders.html" or href.startswith("shader-"):
+            index = 0
+        elif href in {"modules.html", "transformation-bank.html"} or href.startswith("module-"):
+            index = 1
+        else:
+            index = 2
+        groups[index][1].append((prefix + href, label))
+    return groups
 
 
-def render_grouped_nav(groups: List[NavGroup], current: Optional[str]) -> str:
-    """分類見出し付きのページナビ。空の分類は出力しない。"""
-    rendered_groups = []
-    for group_label, pages in groups:
-        if not pages:
-            continue
-
-        links = []
-        for href, label in pages:
+def render_sidebar(
+    groups: List[Tuple[str, List[NavItem]]],
+    current: Optional[str],
+    *,
+    home_items: Optional[List[NavItem]] = None,
+) -> str:
+    """現在地を含む分類を開いた、JS 不要の階層ナビゲーション。"""
+    parts = ['<nav class="site sidebar" aria-label="ドキュメント">']
+    if home_items:
+        parts.append('<div class="nav-home">')
+        for href, label in home_items:
+            escaped = html.escape(label)
             if href == current:
-                links.append(f'<strong aria-current="page">{html.escape(label)}</strong>')
+                parts.append(f'<strong aria-current="page">{escaped}</strong>')
             else:
-                links.append(f'<a href="{html.escape(href, quote=True)}">{html.escape(label)}</a>')
-
-        rendered_groups.append(
-            '<div class="nav-group">'
-            f'<span class="nav-group-title">{html.escape(group_label)}</span>'
-            '<span class="nav-links">'
-            + "".join(links)
-            + "</span></div>"
-        )
-
-    return '<nav class="site">' + "".join(rendered_groups) + "</nav>"
+                parts.append(f'<a href="{html.escape(href, quote=True)}">{escaped}</a>')
+        parts.append("</div>")
+    for title, items in groups:
+        open_attr = " open" if any(href == current for href, _ in items) else ""
+        parts.append(f'<details{open_attr}><summary>{html.escape(title)}</summary><div class="nav-children">')
+        for href, label in items:
+            escaped = html.escape(label)
+            if href == current:
+                parts.append(f'<strong aria-current="page">{escaped}</strong>')
+            else:
+                parts.append(f'<a href="{html.escape(href, quote=True)}">{escaped}</a>')
+        parts.append("</div></details>")
+    parts.append("</nav>")
+    return "".join(parts)
 
 
 def render_header(home_href: str) -> str:
@@ -491,10 +508,12 @@ def render_document(title: str, body: str, nav: str, *, home_href: str) -> str:
 <body>
 <div class="page">
 {render_header(home_href)}
+<div class="site-layout">
 {nav}
 <main>
 {body}
 </main>
+</div>
 {render_footer()}
 </div>
 <script>{THEME_TOGGLE_SCRIPT}</script>

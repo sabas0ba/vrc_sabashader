@@ -1,6 +1,6 @@
-# Core Shader一覧
+# Core Shader の旧一覧
 
-Core ShaderはMaterialの`Shader`欄で直接選択する描画本体です。SabaShaderには、完成表示用の`SabaShader/Illust2D`と、mesh入力を調べる`SabaShader/Debug`があります。
+このページは旧分類の説明です。現在の入口は[シェーダー一覧](shaders.md)です。Illust2D、Paper2D、Acrylic2D、Debug を用途から選び、各詳細ページへ進めます。
 
 ## Core ShaderとShader拡張の違い
 

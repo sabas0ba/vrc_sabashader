@@ -4,6 +4,8 @@ Shader Core のモジュール（`.scmodule`）は、**シェーダー本体が�
 効果を足す**仕組みです。本体側が置いた `__SC_PHASE_*__` の位置にコードが
 差し込まれます。第三者の `.scshader` にも後から乗せられます。
 
+![モジュールのファイルを配置し、Core の数式をテストして配布物へ組み込む流れ](../docs/assets/hero-contribution.svg)
+
 ## できること・できないこと
 
 Shader Core の README が明示している制約です。
@@ -111,8 +113,9 @@ Unity では、シェーダーのインスペクタに出るモジュール一�
 保存されます。
 
 検証用プロジェクトでは `tools/setup_unity_project.py` がこの設定を書き出し、
-パッケージ内の全モジュールを全シェーダーで有効にします。これをしないと
-**Unity 側の検証がモジュールを一切通らないまま緑になります**。
+パッケージ内のモジュールを Illust2D で有効にします。Thin2D や Debug は同じ
+phase・変数を公開していないため、一律には追加しません。NonToon では検証済みの
+Mochi Skin と Transformation Bank を有効にします。
 
 ## テスト
 

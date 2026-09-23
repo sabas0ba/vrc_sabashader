@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 420" role="img" aria-labelledby="title desc">
+  <title id="title">SabaShader のテスト層</title>
+  <desc id="desc">描画、構造、配布、ライセンス、Unity コンパイルを段階的に検査する図</desc>
+  <rect width="1200" height="420" rx="28" fill="#182235"/>
+  <g font-family="system-ui, sans-serif" fill="#f8fafc">
+    <text x="52" y="62" font-size="28" font-weight="700">CI verification layers</text>
+    <text x="52" y="95" font-size="17" fill="#b9c6d8">見た目・構造・配布・ライセンス・Unity を段階的に検査</text>
+    <g transform="translate(70 135)">
+      <rect width="1060" height="48" rx="12" fill="#b86f67"/><text x="24" y="31" font-size="17">1  描画回帰 — 数式の出力と golden image</text>
+      <rect y="58" width="960" height="48" rx="12" fill="#bd895f"/><text x="24" y="89" font-size="17">2  構造 — .scshader の展開とパス構成</text>
+      <rect y="116" width="860" height="48" rx="12" fill="#9f9660"/><text x="24" y="147" font-size="17">3  配布 — package.json / .meta / listing</text>
+      <rect y="174" width="760" height="48" rx="12" fill="#6c9a78"/><text x="24" y="205" font-size="17">4  ライセンス — 第三者素材と非追跡</text>
+      <rect y="232" width="660" height="48" rx="12" fill="#5a83ad"/><text x="24" y="263" font-size="17">5  Unity — HLSL のコンパイル</text>
+    </g>
+  </g>
+</svg>

@@ -2,6 +2,8 @@
 
 Illust2D と同じ構成でシェーダーを増やす手順です。
 
+![シェーダー実装を配置し、Unity 非依存の数式、回帰テスト、Unity コンパイル、配布確認へ進める流れ](../docs/assets/hero-contribution.svg)
+
 ## 1. ファイルを置く
 
 ```
