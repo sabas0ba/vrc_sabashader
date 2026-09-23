@@ -423,11 +423,14 @@ def group_doc_pages(pages: List[NavItem], prefix: str = "") -> List[Tuple[str, L
         ("シェーダー", []), ("モジュール", []), ("ガイド", []),
     ]
     for href, label in pages:
-        if href in {"modules-advanced.html", "mochi-compliance.html"}:
+        if href in {
+            "core-shaders.html", "shader-extensions.html",
+            "modules-advanced.html", "mochi-compliance.html",
+        }:
             continue  # 旧 URL の互換ページ。新しいナビには表示しない。
         if href == "shaders.html" or href.startswith("shader-"):
             index = 0
-        elif href == "modules.html" or href.startswith("module-"):
+        elif href in {"modules.html", "transformation-bank.html"} or href.startswith("module-"):
             index = 1
         else:
             index = 2

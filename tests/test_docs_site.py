@@ -126,7 +126,7 @@ def test_table_is_rendered():
 
 
 def test_table_image_is_rendered_and_copied(site):
-    for name, count in (("shaders.html", 4), ("modules.html", 10)):
+    for name, count in (("shaders.html", 4), ("modules.html", 11)):
         table = site[name].split("<table>", 1)[1].split("</table>", 1)[0]
         assert table.count('<img src="figures/') == count, name
 
@@ -351,7 +351,10 @@ def test_pages_cover_every_doc():
 
 def test_nav_follows_the_declared_order(site):
     """左ペインに分類と全詳細ページが順序どおり並ぶこと。"""
-    legacy = {"modules-advanced.md", "mochi-compliance.md"}
+    legacy = {
+        "core-shaders.md", "shader-extensions.md",
+        "modules-advanced.md", "mochi-compliance.md",
+    }
     expected = [name[:-3] + ".html" for name, _ in PAGES if name not in legacy]
     for name, text in site.items():
         nav = text.split('<nav class="site sidebar"', 1)[1].split("</nav>", 1)[0]
@@ -362,7 +365,7 @@ def test_nav_follows_the_declared_order(site):
             assert f"<summary>{section}</summary>" in nav, name
         # 現在地は強調されてリンクにならない。
         assert found[1:] == [href for href in expected if href != name], f"{name}: ナビの並びが違います"
-        if name not in {"modules-advanced.html", "mochi-compliance.html"}:
+        if name not in {"core-shaders.html", "shader-extensions.html", "modules-advanced.html", "mochi-compliance.html"}:
             assert '<strong aria-current="page">' in nav, name
 
 
@@ -381,6 +384,7 @@ def test_sidebar_expands_the_current_section(site, listing_page):
         ("shader-paper2d.html", "シェーダー"),
         ("modules.html", "モジュール"),
         ("module-pixel-art.html", "モジュール"),
+        ("transformation-bank.html", "モジュール"),
         ("testing.html", "ガイド"),
     ):
         nav = site[name].split('<nav class="site sidebar"', 1)[1].split("</nav>", 1)[0]
@@ -388,6 +392,28 @@ def test_sidebar_expands_the_current_section(site, listing_page):
         assert nav.count("<details open>") == 1, name
     assert 'href="docs/shaders.html"' in listing_page
     assert 'href="docs/modules.html"' in listing_page
+
+
+def test_category_pages_compare_usage_parameters_and_rendering(site):
+    """2つの入口ページから shader と module を選べること。"""
+    shaders = site["shaders.html"]
+    for term in ("Illust2D", "Paper2D", "Acrylic2D", "Debug", "sphere_default.png", "debug_shader_demo.png"):
+        assert term in shaders, f"シェーダー一覧に {term} がありません"
+
+    modules = site["modules.html"]
+    for term in ("Surface Overlay", "Pixel Art", "Mochi Skin", "Transition", "Transformation Bank", "transformation_bank_demo.png"):
+        assert term in modules, f"モジュール一覧に {term} がありません"
+
+
+def test_module_overview_states_real_disable_and_platform_limits():
+    overview = (DOCS_DIR / "modules.md").read_text(encoding="utf-8")
+    overlay = (
+        REPO_ROOT / "Packages" / "io.github.sabas0ba.sabashader"
+        / "Modules" / "SurfaceOverlay" / "phase_base.hlsl"
+    ).read_text(encoding="utf-8")
+    assert overlay.index("if (_Amount > 0.0)") < overlay.index("SBSOverlayDropletNormal")
+    assert "`Amount = 0` で法線の歪みを含めて停止" in overview
+    assert "Android / Quest アバターは SDK 付属シェーダー以外を使用できず" in overview
 
 
 def test_body_has_a_lede_and_a_table_of_contents():

@@ -9,7 +9,8 @@ SabaShaderの正式ロゴや既存組織の商標ではありません。
 ## 導入
 
 1. Package Manager で SabaShader の `Samples` から **Advanced Shader Suite Demo** を Import します。
-2. Shader Core の Project Settings で `SabaShader/Illust2D` に次のモジュールを追加します。
+2. Illust2DマテリアルのInspectorで `Select Modules` を開き、次のモジュールを有効にして
+   `Apply` を押します。
    - Decal
    - Surface Detail
    - Spatial Interior

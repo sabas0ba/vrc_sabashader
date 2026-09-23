@@ -196,7 +196,7 @@ namespace SabaShader.Samples
                 meshRenderer.sharedMaterial = previewMaterial;
                 Debug.LogError(
                     $"[{nameof(AdvancedShaderDemoObject)}] {requiredProperty} がありません。" +
-                    "Shader Core の Project Settings で Illust2D の対象モジュールを有効にしてください。",
+                    "マテリアルInspectorのSelect ModulesでIllust2Dの対象モジュールを有効にしてください。",
                     this);
                 return;
             }

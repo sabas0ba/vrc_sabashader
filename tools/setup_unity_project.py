@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """Unity でのコンパイル検証用プロジェクトを組み立てる。
 
-`.ci/UnityProject` の雛形に、このリポジトリのパッケージ、Shader Core、NonToonを
+`.ci/UnityProject` の雛形に、このリポジトリのパッケージと Shader Core を
 埋め込みパッケージとして配置する。CI から使うが、Unity を持っている人が
 手元で同じ検証をするのにも使える。
 
     python tools/setup_unity_project.py
     # 出来た .ci/UnityProject を Unity で開く（または下記を実行）
     # <Unity> -batchmode -quit -projectPath .ci/UnityProject \\
-    #   -executeMethod SabaShader.CI.ShaderCompileCheck.Run
+    #   -executeMethod SabaShader.CI.ShaderCompileChecker.RunBatch
 """
 
 from __future__ import annotations
@@ -28,12 +28,17 @@ SHADERCORE_URL = "https://github.com/lilxyzw/Shader-Core.git"
 # tests/harness/paths.py と同じコミットに固定する
 SHADERCORE_COMMIT = "0a0b2fef78fc3b0438b58f443a2e75210db83ec4"
 NONTOON_URL = "https://github.com/lilxyzw/NonToon.git"
-# tag 0.1.3。Mochi Skin World DemoのNonToon統合検証にだけ使用する。
+# release 0.1.3。tests/harness/paths.py と同じコミットに固定する
 NONTOON_COMMIT = "130bea3e6be5183b4fceb60df0062d38ef98067c"
+TRANSFORMATION_BANK_ID = "io.github.sabas0ba.transformationbank"
 
 
-def clone_package(destination: Path, url: str, commit: str, display_name: str) -> None:
-    if (destination / "package.json").is_file():
+def clone_pinned_package(destination: Path, url: str, commit: str, display_name: str) -> None:
+    destination = destination.resolve()
+    marker = destination / ".saba-source-commit"
+    if (destination / "package.json").is_file() and marker.is_file() and marker.read_text(
+        encoding="utf-8"
+    ).strip() == commit:
         print(f"{display_name} は配置済み: {destination}")
         return
 
@@ -41,28 +46,30 @@ def clone_package(destination: Path, url: str, commit: str, display_name: str) -
         shutil.rmtree(destination)
     destination.mkdir(parents=True)
 
-    # Windowsのbind mountはcontainer内のuidと一致しないため、対象cloneだけを
-    # safe.directoryに指定する。hostやcontainerのglobal git設定は変更しない。
-    git = ["git", "-c", f"safe.directory={destination}"]
+    # Windows から Podman の bind mount を使う場合、コンテナ内の Git からは
+    # 初期化直後の作業ツリーが別所有者に見える。global 設定は変更せず、取得中の
+    # リポジトリだけを safe.directory としてコマンド単位で許可する。
+    git_at_destination = ["git", "-c", f"safe.directory={destination}", "-C", str(destination)]
     commands = [
-        [*git, "init", "--quiet", str(destination)],
-        [*git, "-C", str(destination), "remote", "add", "origin", url],
-        [*git, "-C", str(destination), "fetch", "--quiet", "--depth", "1", "origin", commit],
-        [*git, "-C", str(destination), "checkout", "--quiet", "FETCH_HEAD"],
+        ["git", "init", "--quiet", str(destination)],
+        [*git_at_destination, "remote", "add", "origin", url],
+        [*git_at_destination, "fetch", "--quiet", "--depth", "1", "origin", commit],
+        [*git_at_destination, "checkout", "--quiet", "FETCH_HEAD"],
     ]
     for command in commands:
         subprocess.run(command, check=True, timeout=300)
 
     shutil.rmtree(destination / ".git", ignore_errors=True)
+    marker.write_text(commit + "\n", encoding="utf-8")
     print(f"{display_name} を配置しました: {destination}")
 
 
 def clone_shadercore(destination: Path) -> None:
-    clone_package(destination, SHADERCORE_URL, SHADERCORE_COMMIT, "Shader Core")
+    clone_pinned_package(destination, SHADERCORE_URL, SHADERCORE_COMMIT, "Shader Core")
 
 
 def clone_nontoon(destination: Path) -> None:
-    clone_package(destination, NONTOON_URL, NONTOON_COMMIT, "NonToon")
+    clone_pinned_package(destination, NONTOON_URL, NONTOON_COMMIT, "NonToon")
 
 
 def copy_package(destination: Path) -> None:
@@ -75,19 +82,18 @@ def copy_package(destination: Path) -> None:
 def copy_samples(project: Path) -> None:
     """全 UPM sample を Package Manager と同じ配置へ展開する。"""
     package = json.loads((PACKAGE_DIR / "package.json").read_text(encoding="utf-8"))
+    sample_root = project / "Assets" / "Samples" / package["displayName"]
+    if sample_root.exists():
+        shutil.rmtree(sample_root)
+
     for sample in package.get("samples", []):
         source = PACKAGE_DIR / sample["path"]
         destination = (
-            project
-            / "Assets"
-            / "Samples"
-            / package["displayName"]
+            sample_root
             / package["version"]
             / sample["displayName"]
         )
 
-        if destination.exists():
-            shutil.rmtree(destination)
         destination.parent.mkdir(parents=True, exist_ok=True)
         shutil.copytree(source, destination)
         print(f"{sample['displayName']} を配置しました: {destination}")
@@ -105,23 +111,22 @@ def enable_modules(project: Path) -> None:
     import json
     import re
 
-    modules = sorted(
+    saba_modules = sorted(
         json.loads(path.read_text(encoding="utf-8"))["uniqueID"]
         for path in (PACKAGE_DIR / "Modules").rglob("*.scmodule")
     )
-    shader_modules = {"SabaShader/Illust2D": modules}
-    nontoon = project / "Packages" / "jp.lilxyzw.nontoon" / "Shaders" / "NonToon.scshader"
-    if nontoon.is_file():
-        match = re.search(r'^\s*Shader\s+"([^"]+)"', nontoon.read_text(encoding="utf-8"), re.MULTILINE)
-        if match is None:
-            raise SystemExit(f"NonToonのshader名を読めません: {nontoon}")
-        # NonToon標準の肌陰影にMochi Skinを重ねた互換性を検証する。
-        shader_modules[match.group(1)] = [
-            "jp.lilxyzw.nontoon.shade",
-            "jp.lilxyzw.nontoon.specular",
-            "io.github.sabas0ba.mochiskin",
-        ]
-    if not modules or not shader_modules:
+    # Thin2D / Debug には Illust2D 固有 phase を使うモジュールを追加しない。
+    shader_modules = [("SabaShader/Illust2D", saba_modules)]
+    nontoon = project / "Packages" / "jp.lilxyzw.nontoon"
+    nontoon_modules = sorted(
+        json.loads(path.read_text(encoding="utf-8"))["uniqueID"]
+        for path in (nontoon / "Shaders" / "Modules").rglob("*.scmodule")
+    )
+    nontoon_shaders = sorted(
+        re.search(r'^\s*Shader\s+"([^"]+)"', path.read_text(encoding="utf-8"), re.MULTILINE).group(1)
+        for path in (nontoon / "Shaders").glob("*.scshader")
+    )
+    if not saba_modules:
         return
 
     meta = project / "Packages" / "jp.lilxyzw.shadercore" / "Editor" / "ProjectSettings.cs.meta"
@@ -129,12 +134,25 @@ def enable_modules(project: Path) -> None:
     if guid_match is None:
         raise SystemExit(f"Shader Core の ProjectSettings の GUID を読めません: {meta}")
 
+    for shader in nontoon_shaders:
+        modules = list(nontoon_modules)
+        if shader == "NonToon":
+            modules.extend(
+                [
+                    "jp.lilxyzw.nontoon.shade",
+                    "jp.lilxyzw.nontoon.specular",
+                ]
+            )
+            modules.append(TRANSFORMATION_BANK_ID)
+            modules.append("io.github.sabas0ba.mochiskin")
+        shader_modules.append((shader, sorted(set(modules))))
+
     entries = "\n".join(
         f"  - shadername: {shader}\n"
         + "    modules:\n"
-        + "\n".join(f"    - {module}" for module in enabled_modules)
+        + "\n".join(f"    - {module}" for module in modules)
         + "\n    multiModules: []"
-        for shader, enabled_modules in sorted(shader_modules.items())
+        for shader, modules in shader_modules
     )
 
     body = f"""%YAML 1.1
@@ -158,11 +176,7 @@ MonoBehaviour:
     target = project / "ProjectSettings" / "jp.lilxyzw.shadercore.asset"
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(body, encoding="utf-8")
-    summary = ", ".join(
-        f"{shader}=[{', '.join(enabled_modules)}]"
-        for shader, enabled_modules in sorted(shader_modules.items())
-    )
-    print(f"モジュールを有効化しました: {summary}")
+    print("SabaShader と NonToon の検証用モジュール設定を作成しました")
 
 
 def main() -> int:

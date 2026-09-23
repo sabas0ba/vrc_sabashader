@@ -3,7 +3,8 @@
     "rootNamespace": "SabaShader.CI",
     "references": [
         "UnityEngine.TestRunner",
-        "UnityEditor.TestRunner"
+        "UnityEditor.TestRunner",
+        "SabaShader.Editor"
     ],
     "includePlatforms": [
         "Editor"

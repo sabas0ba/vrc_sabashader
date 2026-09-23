@@ -55,13 +55,14 @@ SITE_FIGURE_DIR = "figures"
 
 # 全ページの生成順と表記。ファイル名順ではなく読む順に並べる。
 # docs/*.md と過不足がないことは tests/test_docs_site.py が検査する。
-PAGES: List[tuple] = [
+PAGES: List[tuple[str, str]] = [
     ("shaders.md", "一覧"),
     ("shader-illust2d.md", "Illust2D"),
     ("shader-paper2d.md", "Paper2D"),
     ("shader-acrylic2d.md", "Acrylic2D"),
     ("shader-debug.md", "Debug"),
     ("shader-thin2d.md", "Thin2D 比較"),
+    ("core-shaders.md", "旧シェーダー一覧"),
     ("modules.md", "モジュール"),
     ("module-surface-overlay.md", "Surface Overlay"),
     ("module-pixel-art.md", "Pixel Art"),
@@ -73,6 +74,8 @@ PAGES: List[tuple] = [
     ("module-mochi-skin.md", "Mochi Skin"),
     ("module-spatial-interior.md", "Spatial Interior"),
     ("module-transition.md", "Transition"),
+    ("transformation-bank.md", "Transformation Bank"),
+    ("shader-extensions.md", "旧拡張一覧"),
     ("modules-advanced.md", "旧モジュールページ"),
     ("mochi-compliance.md", "肌のへこみやすさ"),
     ("avatar-demo.md", "アバターで確認"),

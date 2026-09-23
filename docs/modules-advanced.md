@@ -21,3 +21,7 @@
 ## Transition
 
 [登場・退場とアニメーション](module-transition.md)を参照してください。
+
+## Transformation Bank
+
+[衣装変身バンク](transformation-bank.md)を参照してください。
