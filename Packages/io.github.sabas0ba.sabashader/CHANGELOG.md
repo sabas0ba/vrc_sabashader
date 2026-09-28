@@ -4,6 +4,11 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Apache-2.0 の宣言、公式ライセンスURL、同梱するライセンス全文と README の表記を統一。
+
+
 ## [0.6.0] - 2026-09-02
 
 ### Changed
