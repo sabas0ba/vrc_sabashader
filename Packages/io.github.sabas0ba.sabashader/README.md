@@ -81,5 +81,5 @@ Generator UIの各入力、Material修復の変更範囲、全Materialパラメ�
 ## ライセンス
 
 Apache License 2.0。詳細は
-[LICENSE](https://github.com/sabas0ba/vrc_sabashader/blob/main/LICENSE) と
-[NOTICE](https://github.com/sabas0ba/vrc_sabashader/blob/main/NOTICE) を参照してください。
+[LICENSE.md](LICENSE.md) と
+[NOTICE.md](NOTICE.md) を参照してください。
