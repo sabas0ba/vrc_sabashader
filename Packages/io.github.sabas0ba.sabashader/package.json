@@ -39,6 +39,16 @@
       "displayName": "Transformation Bank Demo",
       "description": "旧衣装と新衣装を12種類のVFX、異なる形状、Particle Systemで切り替える変身バンクを確認します。",
       "path": "Samples~/TransformationBankDemo"
+    },
+    {
+      "displayName": "Thin2D Demo",
+      "description": "同じ 3D メッシュで紙、白い余白、単層のアクリル表現を比較します。",
+      "path": "Samples~/Thin2DDemo"
+    },
+    {
+      "displayName": "Mochi Skin World Demo",
+      "description": "NonToonの2種類の肌へ、球・円柱・板・capsuleを接触させるMochi Skinの変形を確認します。",
+      "path": "Samples~/MochiSkinWorldDemo"
     }
   ],
   "legacyFolders": {}

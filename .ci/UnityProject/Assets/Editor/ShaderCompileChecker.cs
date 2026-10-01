@@ -22,6 +22,8 @@ namespace SabaShader.CI
         public const string Illust2DPath = PackagePath + "/Shaders/Illust2D/Illust2D.scshader";
         public const string DebugPath = PackagePath + "/Shaders/Debug/Debug.scshader";
         public const string NonToonPath = NonToonPackagePath + "/Shaders/NonToon.scshader";
+        public const string Paper2DPath = PackagePath + "/Shaders/Paper2D/Paper2D.scshader";
+        public const string Acrylic2DPath = PackagePath + "/Shaders/Acrylic2D/Acrylic2D.scshader";
 
         public static readonly string[] ExpectedPasses =
         {
@@ -71,6 +73,57 @@ namespace SabaShader.CI
             "_io_github_sabas0ba_transformationbank_Progress",
             "_io_github_sabas0ba_transformationbank_Role",
             "_io_github_sabas0ba_transformationbank_Style",
+        };
+
+        public static readonly string[] Paper2DExpectedPasses =
+        {
+            "FORWARD",
+            "WHITE_BORDER",
+            "OUTLINE",
+            "FORWARD_DELTA",
+            "SHADOW_CASTER",
+        };
+
+        public static readonly string[] Paper2DRequiredProperties =
+        {
+            "_BaseTexture",
+            "_BaseColor",
+            "_BackfaceColor",
+            "_PaperGrain",
+            "_Cutoff",
+            "_Flatness",
+            "_DepthScale",
+            "_OutlineWidth",
+            "_WhiteBorderWidth",
+            "_SurfaceShadowEnabled",
+            "_CastShadowEnabled",
+        };
+
+        public static readonly string[] Acrylic2DExpectedPasses =
+        {
+            "FORWARD",
+            "WHITE_BORDER",
+            "RIM_OUTLINE",
+            "FORWARD_DELTA",
+            "SHADOW_CASTER",
+        };
+
+        public static readonly string[] Acrylic2DRequiredProperties =
+        {
+            "_BaseTexture",
+            "_BaseColor",
+            "_Opacity",
+            "_Thickness",
+            "_RefractionStrength",
+            "_RefractionScale",
+            "_InternalLight",
+            "_TransmissionColor",
+            "_Flatness",
+            "_DepthScale",
+            "_RimWidth",
+            "_WhiteBorderWidth",
+            "_SurfaceShadowEnabled",
+            "_CastShadowEnabled",
         };
 
         /// <summary>batchmode 用のエントリポイント。問題があれば終了コード 1 で落とす。</summary>
@@ -149,6 +202,16 @@ namespace SabaShader.CI
                 {
                     CollectPassFailures(path, shader, NonToonExpectedPasses, failures);
                     CollectMaterialFailures(path, shader, NonToonRequiredProperties, failures);
+                }
+                else if (path == Paper2DPath)
+                {
+                    CollectPassFailures(path, shader, Paper2DExpectedPasses, failures);
+                    CollectMaterialFailures(path, shader, Paper2DRequiredProperties, failures);
+                }
+                else if (path == Acrylic2DPath)
+                {
+                    CollectPassFailures(path, shader, Acrylic2DExpectedPasses, failures);
+                    CollectMaterialFailures(path, shader, Acrylic2DRequiredProperties, failures);
                 }
             }
 

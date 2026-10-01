@@ -1,0 +1,120 @@
+msgid ""
+msgstr ""
+"Language: ja-JP\n"
+
+msgid "__Compliance"
+msgstr "へこみやすさ"
+
+msgid "__ComplianceDesc"
+msgstr "0で変形なし、1で設定した深さまで変形します。"
+
+msgid "__ComplianceMask"
+msgstr "へこみやすさマスク (R)"
+
+msgid "__ComplianceMaskDesc"
+msgstr "sRGB無効のテクスチャを使用します。黒は硬く、白は柔らかくなります。接触UVを使用し、範囲外はClampします。"
+
+msgid "__UseBoneCompliance"
+msgstr "生成した骨マスクを使用"
+
+msgid "__UseBoneComplianceDesc"
+msgstr "生成済みmeshのUV3.xを骨マスクとして使用します。UV3は接触座標など他の用途と併用できません。"
+
+msgid "__MochiSkin"
+msgstr "もち肌"
+
+msgid "__Amount"
+msgstr "強さ"
+
+msgid "__AmountDesc"
+msgstr "0で変形を無効化し、1で設定した深さと法線変化を適用します。"
+
+msgid "__UVChannel"
+msgstr "UV channel"
+
+msgid "__UVChannelDesc"
+msgstr "4つの接触点を配置するUV channelです。"
+
+msgid "__Depth"
+msgstr "凹みの深さ"
+
+msgid "__DepthDesc"
+msgstr "Pressureが1のときに内側へ動かす最大距離をworld単位で指定します。"
+
+msgid "__Bulge"
+msgstr "外周の盛り上がり"
+
+msgid "__BulgeDesc"
+msgstr "凹みの外周に作る柔らかい盛り上がりをDepthに対する比率で指定します。"
+
+msgid "__IndentSpread"
+msgstr "凹みの範囲"
+
+msgid "__IndentSpreadDesc"
+msgstr "接触輪郭のうち中央の凹みに使う範囲です。小さい値では外周のクッション部分が広がります。"
+
+msgid "__EdgeSoftness"
+msgstr "輪郭の柔らかさ"
+
+msgid "__EdgeSoftnessDesc"
+msgstr "凹みから外周、無変位領域へ移る幅を調整します。大きい値ほど輪郭が緩やかになります。"
+
+msgid "__Irregularity"
+msgstr "輪郭の不規則さ"
+
+msgid "__IrregularityDesc"
+msgstr "接触輪郭を低周波で歪ませ、規則的な同心形状を崩します。"
+
+msgid "__IrregularityScale"
+msgstr "不規則さの密度"
+
+msgid "__IrregularityScaleDesc"
+msgstr "輪郭を歪ませる低周波の密度です。"
+
+msgid "__ContactThreshold"
+msgstr "接触開始値"
+
+msgid "__ContactThresholdDesc"
+msgstr "Proximityがこの値を超えるまで変形しません。接触前の反応を除くためReceiver形状に合わせて調整します。"
+
+msgid "__ContactSoftness"
+msgstr "接触応答の柔らかさ"
+
+msgid "__ContactSoftnessDesc"
+msgstr "接触開始値から最大圧力までの立ち上がりを調整します。1では両端が滑らかな応答になります。"
+
+msgid "__NormalStrength"
+msgstr "法線の強さ"
+
+msgid "__NormalStrengthDesc"
+msgstr "silhouetteを変えずにtangent-space法線の反応を増減します。"
+
+msgid "__Point0"
+msgstr "接触点0"
+
+msgid "__Point1"
+msgstr "接触点1"
+
+msgid "__Point2"
+msgstr "接触点2"
+
+msgid "__Point3"
+msgstr "接触点3"
+
+msgid "__Point"
+msgstr "中心XY / 半径ZW"
+
+msgid "__PointDesc"
+msgstr "XYにUV中心、ZWに接触形状のUV半径を指定します。"
+
+msgid "__Shape"
+msgstr "角度 / 形状指数 / Seed / 予約"
+
+msgid "__ShapeDesc"
+msgstr "XはUV上の角度、Yは形状指数です。2は楕円、大きい値は板に近い角丸矩形になります。Zは輪郭のSeedです。"
+
+msgid "__Pressure"
+msgstr "圧力"
+
+msgid "__PressureDesc"
+msgstr "0から1のProximityです。Contact Receiverからこのmaterial propertyをanimationします。接触開始値以下では変形しません。"

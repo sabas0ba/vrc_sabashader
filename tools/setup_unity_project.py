@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Unity でのコンパイル検証用プロジェクトを組み立てる。
 
-`.ci/UnityProject` の雛形に、このリポジトリのパッケージと Shader Core を
+`.ci/UnityProject` の雛形に、このリポジトリのパッケージ、Shader Core、NonToonを
 埋め込みパッケージとして配置する。CI から使うが、Unity を持っている人が
 手元で同じ検証をするのにも使える。
 
@@ -31,6 +31,7 @@ NONTOON_URL = "https://github.com/lilxyzw/NonToon.git"
 # release 0.1.3。tests/harness/paths.py と同じコミットに固定する
 NONTOON_COMMIT = "130bea3e6be5183b4fceb60df0062d38ef98067c"
 TRANSFORMATION_BANK_ID = "io.github.sabas0ba.transformationbank"
+MOCHI_SKIN_ID = "io.github.sabas0ba.mochiskin"
 
 
 def clone_pinned_package(destination: Path, url: str, commit: str, display_name: str) -> None:
@@ -100,7 +101,7 @@ def copy_samples(project: Path) -> None:
 
 
 def enable_modules(project: Path) -> None:
-    """パッケージ内のモジュールを全シェーダーで有効にする。
+    """各検証shaderで必要なパッケージmoduleを有効にする。
 
     Shader Core はシェーダーごとに有効なモジュールを ProjectSettings に持ち、
     既定値は「シェーダーと同じディレクトリにあるもの」だけ。モジュールを
@@ -118,6 +119,8 @@ def enable_modules(project: Path) -> None:
         re.search(r'^\s*Shader\s+"([^"]+)"', path.read_text(encoding="utf-8"), re.MULTILINE).group(1)
         for path in (PACKAGE_DIR / "Shaders").rglob("*.scshader")
     )
+    shader_modules = {shader: list(saba_modules) for shader in saba_shaders}
+
     nontoon = project / "Packages" / "jp.lilxyzw.nontoon"
     nontoon_modules = sorted(
         json.loads(path.read_text(encoding="utf-8"))["uniqueID"]
@@ -127,7 +130,7 @@ def enable_modules(project: Path) -> None:
         re.search(r'^\s*Shader\s+"([^"]+)"', path.read_text(encoding="utf-8"), re.MULTILINE).group(1)
         for path in (nontoon / "Shaders").glob("*.scshader")
     )
-    if not saba_modules or not saba_shaders:
+    if not saba_modules or not shader_modules:
         return
 
     meta = project / "Packages" / "jp.lilxyzw.shadercore" / "Editor" / "ProjectSettings.cs.meta"
@@ -135,19 +138,18 @@ def enable_modules(project: Path) -> None:
     if guid_match is None:
         raise SystemExit(f"Shader Core の ProjectSettings の GUID を読めません: {meta}")
 
-    shader_modules = [(shader, saba_modules) for shader in saba_shaders]
     for shader in nontoon_shaders:
         modules = list(nontoon_modules)
         if shader == "NonToon":
-            modules.append(TRANSFORMATION_BANK_ID)
-        shader_modules.append((shader, sorted(set(modules))))
+            modules.extend((TRANSFORMATION_BANK_ID, MOCHI_SKIN_ID))
+        shader_modules[shader] = sorted(set(modules))
 
     entries = "\n".join(
         f"  - shadername: {shader}\n"
         + "    modules:\n"
-        + "\n".join(f"    - {module}" for module in modules)
+        + "\n".join(f"    - {module}" for module in enabled_modules)
         + "\n    multiModules: []"
-        for shader, modules in shader_modules
+        for shader, enabled_modules in sorted(shader_modules.items())
     )
 
     body = f"""%YAML 1.1
@@ -171,7 +173,11 @@ MonoBehaviour:
     target = project / "ProjectSettings" / "jp.lilxyzw.shadercore.asset"
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(body, encoding="utf-8")
-    print("SabaShader と NonToon の検証用モジュール設定を作成しました")
+    summary = ", ".join(
+        f"{shader}=[{', '.join(enabled_modules)}]"
+        for shader, enabled_modules in sorted(shader_modules.items())
+    )
+    print(f"モジュールを有効化しました: {summary}")
 
 
 def main() -> int:

@@ -1,0 +1,15 @@
+{
+    "name": "__MochiSkin",
+    "uniqueID": "io.github.sabas0ba.mochiskin",
+    "phases": [
+        {
+            "phase": "morph",
+            "path": "mochi_skin_morph.hlsl"
+        },
+        {
+            "phase": "base",
+            "path": "mochi_skin_base.hlsl",
+            "afters": ["__SurfaceDetail"]
+        }
+    ]
+}

@@ -1,0 +1,141 @@
+msgid ""
+msgstr ""
+"Language: ja-JP\n"
+
+msgid "__NormalScale"
+msgstr "法線の強さ"
+
+msgid "__Acrylic"
+msgstr "アクリルの表現"
+
+msgid "__Opacity"
+msgstr "アクリル層の強さ"
+
+msgid "__OpacityDesc"
+msgstr "印刷面の上に合成するアクリル層の強さです。"
+
+msgid "__Thickness"
+msgstr "擬似厚み"
+
+msgid "__ThicknessDesc"
+msgstr "アクリル側面の見える厚みと内部層の強さを調整します。"
+
+msgid "__RefractionStrength"
+msgstr "印刷面の屈折"
+
+msgid "__RefractionStrengthDesc"
+msgstr "斜めから見たときに印刷面をずらす強さです。"
+
+msgid "__RefractionScale"
+msgstr "屈折スケール"
+
+msgid "__RefractionScaleDesc"
+msgstr "視線角度と印刷面のUVずらしを拡大します。"
+
+msgid "__InternalLight"
+msgstr "内部散乱光"
+
+msgid "__InternalLightDesc"
+msgstr "表面と印刷面の間で散乱する光の強さです。"
+
+msgid "__TransmissionColor"
+msgstr "アクリル層の色"
+
+msgid "__TransmissionStrength"
+msgstr "アクリル層の色の寄与"
+
+msgid "__EdgeColor"
+msgstr "縁の色"
+
+msgid "__EdgeWidth"
+msgstr "縁の幅"
+
+msgid "__EdgeWidthDesc"
+msgstr "画像のアルファ境界を検出する UV オフセットです。"
+
+msgid "__EdgePower"
+msgstr "縁の広がり"
+
+msgid "__EdgeIntensity"
+msgstr "縁の明るさ"
+
+msgid "__Specular"
+msgstr "ハイライト"
+
+msgid "__SpecularColor"
+msgstr "ハイライト色"
+
+msgid "__SpecularIntensity"
+msgstr "ハイライトの強さ"
+
+msgid "__SpecularPower"
+msgstr "ハイライトの鋭さ"
+
+msgid "__LightSettings"
+msgstr "ライトの受け方"
+
+msgid "__SHLightWeight"
+msgstr "環境光の強さ"
+
+msgid "__SHLightDirectionWeight"
+msgstr "環境光の方向の寄与"
+
+msgid "__DepthScale"
+msgstr "ローカル Z の厚み"
+
+msgid "__DepthScaleDesc"
+msgstr "元の 3D メッシュをローカル Z 軸方向に圧縮します。"
+
+msgid "__Flatness"
+msgstr "陰影の平坦化"
+
+msgid "__FlatnessDesc"
+msgstr "3D メッシュの陰影を二段階にする強さです。"
+
+msgid "__ShadeThreshold"
+msgstr "陰影の境界"
+
+msgid "__ShadeThresholdDesc"
+msgstr "明暗を分ける拡散光のしきい値です。"
+
+msgid "__RimWidth"
+msgstr "外形反射の幅"
+
+msgid "__RimWidthDesc"
+msgstr "外形反射の幅をワールド単位で指定します。重なった部品を連続面として見せる場合は 0 にします。"
+
+msgid "__SurfaceShadowEnabled"
+msgstr "表面の影"
+
+msgid "__SurfaceShadowEnabledDesc"
+msgstr "印刷面の明暗を切り替えます。"
+
+msgid "__PaperGrain"
+msgstr "印刷面の粒状感"
+
+msgid "__PaperGrainDesc"
+msgstr "アクリル層の下に微細な明暗の揺らぎを加えます。"
+
+msgid "__WhiteBorderWidth"
+msgstr "白い余白の幅"
+
+msgid "__WhiteBorderWidthDesc"
+msgstr "外側のキーホルダー風余白の幅をワールド単位で指定します。"
+
+msgid "__WhiteBorderColor"
+msgstr "余白の色"
+
+msgid "__CastShadowEnabled"
+msgstr "投影影"
+
+msgid "__CastShadowEnabledDesc"
+msgstr "他のオブジェクトへ落とす影を切り替えます。"
+
+msgid "__Cull"
+msgstr "カリング"
+
+msgid "__CullDesc"
+msgstr "描画する面を選択します。両面メッシュには Off を使用します。"
+
+msgid "__PaperGrainScale"
+msgstr "印刷グレインのスケール"

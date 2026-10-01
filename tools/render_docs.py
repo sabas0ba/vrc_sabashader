@@ -58,6 +58,7 @@ PAGE_GROUPS: List[Tuple[str, List[tuple[str, str]]]] = [
         [
             ("core-shaders.md", "一覧"),
             ("shader-illust2d.md", "Illust2D"),
+            ("shader-thin2d.md", "Paper2D / Acrylic2D"),
             ("shader-debug.md", "Debug"),
         ],
     ),
@@ -68,6 +69,7 @@ PAGE_GROUPS: List[Tuple[str, List[tuple[str, str]]]] = [
             ("modules.md", "基本拡張"),
             ("modules-advanced.md", "高度拡張"),
             ("transformation-bank.md", "衣装変身バンク"),
+            ("mochi-compliance.md", "肌のへこみやすさ"),
         ],
     ),
     (
